@@ -1,8 +1,7 @@
-// src/App.tsx
-import ArtDetailPage from './pages/ArtDetailPage';
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
 import BookingPage from './pages/Booking';
-import Reservation from './pages/Reservation';
-import TreatmentOptionsPage from './pages/TreatmentOptionsPage';
 
 function App() {
   return < BookingPage />;
