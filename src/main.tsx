@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import ChatList from "./pages/ChatList";
+import Chat from "./pages/Chat";
+import TemplateList from "./pages/TemplateList";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <ChatList />
+    {/* <Chat /> */}
+    {/* <TemplateList /> */}
   </StrictMode>,
-)
+);
