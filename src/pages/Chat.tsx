@@ -9,10 +9,10 @@ const messages = [
 
 export default function ChatRoom() {
   return (
-    <div className="mx-auto flex h-screen w-screen flex-col bg-[#1A1A1A] px-4 py-2 text-white">
+    <div className="mx-auto flex h-screen w-screen flex-col bg-[var(--color-grey-1000)] px-5">
       {/* 상단 헤더 */}
-      <div className="flex items-center justify-between py-3">
-        <div className="flex items-center gap-2">
+      <div className="mt-14 flex h-[60px] items-center justify-between py-2.5">
+        <div className="flex items-center gap-2.5">
           <button>
             <svg
               width="24"
@@ -32,20 +32,22 @@ export default function ChatRoom() {
           </button>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-xs text-[#545454]">샵 이름</span>
-          <span className="text-base text-white">상대방 이름</span>
+          <span className="caption2 text-[var(--color-grey-650)]">샵 이름</span>
+          <span className="label1 text-[var(--color-grey-150)]">
+            상대방 이름
+          </span>
         </div>
-        <button className="flex h-8 w-8 items-center justify-center rounded-full">
+        <button className="">
           <svg
-            width="36"
-            height="36"
-            viewBox="0 0 36 36"
+            width="40"
+            height="40"
+            viewBox="0 0 40 40"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <rect width="36" height="36" rx="18" fill="#3A3A3A" />
+            <rect width="40" height="40" rx="20" fill="#3A3A3A" />
             <path
-              d="M29.0688 12.2588C35.1716 13.5937 30.7834 26.4332 24.6717 27.7258C23.2498 28.0265 22.3459 28.1353 20.951 27.7258C16.7 26.4778 22.4252 19.3446 17.9971 19.2934C13.5549 19.2421 19.171 26.4694 14.9078 27.7258C13.5218 28.1342 12.6246 28.0393 11.2097 27.7479C5.09944 26.4897 0.874468 13.5855 6.97039 12.2588C8.26143 11.9779 9.07223 11.9329 10.3528 12.2588C14.9934 13.4398 8.34234 24.1064 13.1264 24.269C17.951 24.4329 11.6518 13.4631 16.3284 12.2588C17.6592 11.9161 18.5165 11.9113 19.8461 12.2588C24.4769 13.4693 18.0839 24.2887 22.8677 24.2025C27.6306 24.1167 21.0483 13.4445 25.6639 12.2588C26.9522 11.9279 27.7695 11.9746 29.0688 12.2588Z"
+              d="M32.6501 14.275C39.6246 15.6933 34.6096 29.3353 27.6248 30.7086C25.9997 31.0282 24.9667 31.1437 23.3726 30.7086C18.5143 29.3827 25.0573 21.8036 19.9966 21.7493C14.9199 21.6948 21.3383 29.3737 16.466 30.7086C14.8821 31.1426 13.8566 31.0418 12.2396 30.7322C5.25651 29.3953 0.427964 15.6846 7.39473 14.275C8.87021 13.9765 9.79684 13.9288 11.2603 14.275C16.5638 15.5298 8.96268 26.8631 14.4301 27.0358C19.944 27.21 12.7449 15.5546 18.0896 14.275C19.6106 13.9109 20.5903 13.9058 22.1098 14.275C27.4022 15.5611 20.0959 27.0568 25.5631 26.9652C31.0064 26.874 23.4838 15.5348 28.7587 14.275C30.2311 13.9234 31.1651 13.9731 32.6501 14.275Z"
               fill="#6E6E6E"
             />
           </svg>
@@ -53,7 +55,7 @@ export default function ChatRoom() {
       </div>
 
       {/* 채팅 메시지 */}
-      <div className="flex-1 space-y-2 overflow-y-auto py-2">
+      <div className="mt-3 flex-1 gap-2.5 space-y-2 overflow-y-auto py-2">
         {messages.map((message, index) => {
           const isLastOfSender =
             index === messages.length - 1 ||
@@ -65,9 +67,11 @@ export default function ChatRoom() {
               className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] rounded-3xl px-4 py-3 text-[13px] leading-relaxed tracking-tight ${
-                  message.sender === "me" ? "bg-[#9A50E0]" : "bg-[#3A3A3A]"
-                } ${message.sender === "me" && isLastOfSender ? "rounded-br-none" : ""} ${message.sender === "you" && isLastOfSender ? "rounded-bl-none" : ""}`}
+                className={`body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)] ${
+                  message.sender === "me"
+                    ? "bg-[var(--color-purple)]"
+                    : "bg-[var(--color-grey-850)]"
+                } ${message.sender === "me" && isLastOfSender ? "rounded-br-[2px]" : ""} ${message.sender === "you" && isLastOfSender ? "rounded-bl-[2px]" : ""}`}
               >
                 {message.text}
               </div>
@@ -77,9 +81,9 @@ export default function ChatRoom() {
       </div>
 
       {/* 하단 입력창 */}
-      <div className="flex items-center gap-2 pb-4">
+      <div className="mb-[34px] flex items-center gap-2">
         <button>
-          <svg
+          {/* <svg
             width="32"
             height="32"
             viewBox="0 0 32 32"
@@ -94,15 +98,28 @@ export default function ChatRoom() {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+          </svg> */}
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="32" height="32" rx="16" fill="#3A3A3A" />
+            <path
+              d="M20.2002 6.25C21.0278 6.25 21.6936 6.24903 22.2314 6.29297C22.7781 6.33763 23.258 6.43287 23.7022 6.65918C24.4078 7.01871 24.9813 7.59225 25.3408 8.29785C25.5671 8.74205 25.6624 9.22195 25.707 9.76856C25.751 10.3064 25.75 10.9722 25.75 11.7998V20.2002L25.7451 21.3242C25.7398 21.6614 25.729 21.9625 25.707 22.2314C25.6624 22.7781 25.5671 23.258 25.3408 23.7022C24.9813 24.4078 24.4078 24.9813 23.7022 25.3408C23.258 25.5671 22.7781 25.6624 22.2314 25.707C21.9625 25.729 21.6614 25.7398 21.3242 25.7451L20.2002 25.75H10.9316C10.6436 25.75 10.3761 25.751 10.166 25.7324C10.1563 25.7316 10.1462 25.7295 10.1357 25.7285C10.0072 25.7227 9.88483 25.7165 9.76856 25.707C9.22195 25.6624 8.74205 25.5671 8.29785 25.3408C7.59225 24.9813 7.01871 24.4078 6.65918 23.7022C6.43287 23.258 6.33763 22.7781 6.29297 22.2314C6.24903 21.6936 6.25 21.0278 6.25 20.2002V11.7998C6.25 10.9722 6.24903 10.3064 6.29297 9.76856C6.33763 9.22195 6.43287 8.74205 6.65918 8.29785C7.01871 7.59225 7.59225 7.01871 8.29785 6.65918C8.74205 6.43287 9.22195 6.33763 9.76856 6.29297C10.3064 6.24903 10.9722 6.25 11.7998 6.25H20.2002ZM21.5742 13.8008C21.0756 12.9832 19.9489 12.8361 19.2568 13.498L9.55469 22.7773C8.90341 23.4006 9.34465 24.4999 10.2461 24.5H21C22.933 24.5 24.5 22.933 24.5 21V18.8799C24.5 18.6963 24.4491 18.5162 24.3535 18.3594L21.5742 13.8008ZM12.5 10C11.1194 10.0001 10 11.1194 10 12.5C10 13.8807 11.1194 14.9999 12.5 15C13.8807 15 15 13.8807 15 12.5C15 11.1193 13.8807 10 12.5 10Z"
+              fill="#F3F3F3"
+            />
           </svg>
         </button>
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="메세지 입력"
-            className="w-full flex-1 rounded-full bg-[#3A3A3A] px-4 py-2 text-sm text-white placeholder-[#8E8E8E]"
+            className="body2 h-10 w-full flex-1 rounded-full bg-[var(--color-grey-850)] px-4 py-2 placeholder-[var(--color-grey-650)]"
           />
-          <button className="absolute top-0.5 right-1">
+          <button className="absolute top-1 right-1">
             <svg
               width="32"
               height="32"
