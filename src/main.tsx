@@ -10,6 +10,9 @@ import ReservationList3 from "./pages/ReservationList3";
 import ChatProfile from "./pages/ChatProfile";
 import ShopForm from "./pages/ShopForm";
 import ShopAnnouncement from "./pages/ShopAnnouncement";
+import ReservationListPage from "./pages/User/Reservation/ReservationListPage";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
 // import ManagerChatPage from "./pages/Manager/Chat/ManagerChatPage";
 
 createRoot(document.getElementById("root")!).render(
@@ -20,9 +23,10 @@ createRoot(document.getElementById("root")!).render(
     {/* <ManagerChatPage /> */}
     {/* <ReservationList /> */}
     {/* <ReservationList3 /> */}
-    <ReservationDetail />
+    {/* <ReservationDetail /> */}
     {/* <ChatProfile /> */}
     {/* <ShopForm /> */}
     {/* <ShopAnnouncement /> */}
+    <App />
   </StrictMode>,
 );

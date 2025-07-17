@@ -8,11 +8,3 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE, Edge */
-  scrollbar-width: none; /* Firefox */
-}
