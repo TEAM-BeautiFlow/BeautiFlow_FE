@@ -1,8 +1,13 @@
-import { useState } from "react";
+type Props = {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+};
 
-export default function ReservationTabBar() {
-  const [activeTab, setActiveTab] = useState("예정");
-  const tabs = ["예정", "완료", "취소"];
+const tabs = ["예정", "완료", "취소"];
+
+export default function ReservationTabBar({ activeTab, setActiveTab }: Props) {
+  // const [activeTab, setActiveTab] = useState("예정");
+  //   const tabs = ["예정", "완료", "취소"];
 
   return (
     <div className="">
