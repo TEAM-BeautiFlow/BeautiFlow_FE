@@ -20,10 +20,17 @@ export default function ReservationCard({ reservation }: Props) {
       >
         <span
           className={`body1 mb-1 ${
+            // reservation.status === "예약 확정"
+            //   ? "text-[#51C879]"
+            //   : "text-[var(--color-grey-450)]"
             reservation.status === "예약 확정"
-              ? "text-[#51C879]"
-              : "text-[var(--color-grey-450)]"
-          }`}
+              ? "text-[#51C879]" // 초록
+              : reservation.status === "예약 확인중"
+                ? "text-[var(--color-purple)]" // 보라
+                : ["노쇼", "취소 완료"].includes(reservation.status)
+                  ? "text-[#D2636A]" // 빨강 (Tailwind 기본색 or 직접 변수 지정 가능)
+                  : "text-[var(--color-grey-450)]" // 그 외
+          } }`}
         >
           {reservation.status}
         </span>
