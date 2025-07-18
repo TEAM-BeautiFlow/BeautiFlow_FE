@@ -7,9 +7,10 @@ const reservations = [
   {
     id: 1,
     status: "예약 확정",
-    title:
-      "시술명 리스트, 최대 2줄 (MAX 42px) 이며 넘어가는 경우 말줄임표를 사용함...",
-    name: "뷰티플로우(매장명)",
+    title: "이달의 아트",
+    shopname: "매장명",
+    name: "시술자명",
+    option: "없음",
     address:
       "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
     date: "2025.07.06 · 오후 1시",
@@ -17,9 +18,10 @@ const reservations = [
   {
     id: 2,
     status: "예약 확인중",
-    title:
-      "시술명 리스트, 최대 2줄 (MAX 42px) 이며 넘어가는 경우 말줄임표를 사용함...",
-    name: "뷰티플로우(매장명)",
+    title: "이달의 아트",
+    shopname: "매장명",
+    name: "시술자명",
+    option: "없음",
     address:
       "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
     date: "2025.08.01 · 오후 3시",
@@ -27,9 +29,10 @@ const reservations = [
   {
     id: 3,
     status: "시술 완료",
-    title:
-      "시술명 리스트, 최대 2줄 (MAX 42px) 이며 넘어가는 경우 말줄임표를 사용함...",
-    name: "뷰티플로우(매장명)",
+    title: "이달의 아트",
+    shopname: "매장명",
+    name: "시술자명",
+    option: "없음",
     address:
       "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
     date: "2025.07.06 · 오후 1시",
@@ -37,9 +40,10 @@ const reservations = [
   {
     id: 4,
     status: "취소 완료",
-    title:
-      "시술명 리스트, 최대 2줄 (MAX 42px) 이며 넘어가는 경우 말줄임표를 사용함...",
-    name: "뷰티플로우(매장명)",
+    title: "이달의 아트",
+    shopname: "매장명",
+    name: "시술자명",
+    option: "없음",
     address:
       "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
     date: "2025.07.06 · 오후 1시",
@@ -47,9 +51,10 @@ const reservations = [
   {
     id: 5,
     status: "노쇼",
-    title:
-      "시술명 리스트, 최대 2줄 (MAX 42px) 이며 넘어가는 경우 말줄임표를 사용함...",
-    name: "뷰티플로우(매장명)",
+    title: "이달의 아트",
+    shopname: "매장명",
+    name: "시술자명",
+    option: "없음",
     address:
       "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
     date: "2025.07.06 · 오후 1시",

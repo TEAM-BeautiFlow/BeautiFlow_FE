@@ -1,63 +1,79 @@
+import { useNavigate } from "react-router-dom";
+
 type Reservation = {
-  id: number;
+  reservationId: number;
   status: string;
   title: string;
+  shopname: string;
   name: string;
+  option: string;
   address: string;
   date: string;
 };
 
-type Props = {
+type ReservationProps = {
   reservation: Reservation;
 };
 
-export default function ReservationCard({ reservation }: Props) {
+export default function ReservationCard({ reservation }: ReservationProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="mt-4 flex flex-col">
+    <div className="mt-3 items-start">
       <div
-        key={reservation.id}
-        className="flex h-[177px] flex-col gap-3 px-5 py-4"
+        key={reservation.reservationId}
+        className="flex flex-col gap-3 px-5 py-4"
       >
         <span
-          className={`body1 mb-1 ${
-            // reservation.status === "예약 확정"
-            //   ? "text-[#51C879]"
-            //   : "text-[var(--color-grey-450)]"
+          className={`body1 mb-1 flex justify-between ${
             reservation.status === "예약 확정"
-              ? "text-[#51C879]" // 초록
+              ? "text-[#51C879]"
               : reservation.status === "예약 확인중"
-                ? "text-[var(--color-purple)]" // 보라
-                : ["노쇼", "취소 완료"].includes(reservation.status)
-                  ? "text-[#D2636A]" // 빨강 (Tailwind 기본색 or 직접 변수 지정 가능)
-                  : "text-[var(--color-grey-450)]" // 그 외
+                ? "text-[var(--color-purple)]"
+                : reservation.status === "시술 완료"
+                  ? "text-[var(--color-grey-450)]"
+                  : "text-[#D2636A]"
           } }`}
         >
           {reservation.status}
+          <span className="body2 cursor-pointer text-[var(--color-grey-550)]">
+            취소하기
+          </span>
         </span>
-        <div className="flex h-[112px] gap-4">
-          {/* 왼쪽 이미지 */}
-          <div className="h-25 w-25 shrink-0 rounded-[4px] bg-[var(--color-grey-450)]"></div>
 
-          {/* 오른쪽 내용 */}
-          <div className="flex flex-1 flex-col justify-between">
-            {/* 제목 */}
-            <div className="body1 line-clamp-2 text-[var(--color-grey-150)]">
-              {reservation.title}
+        <div
+          onClick={(): void | Promise<void> =>
+            navigate(`/reservation/${reservation.reservationId}`)
+          }
+          className="flex cursor-pointer gap-4"
+        >
+          <div className="h-25 w-25 shrink-0 rounded-[4px] bg-white"></div>
+          <div className="flex h-25 w-[223px] flex-col items-start justify-between">
+            <div className="flex flex-col items-start">
+              <div className="body1 line-clamp-2 text-[var(--color-grey-150)]">
+                {reservation.title}
+              </div>
+              <div className="caption1 line-clamp-1 text-[var(--color-grey-550)]">
+                {reservation.shopname + " | " + reservation.name}
+              </div>
             </div>
-
-            {/* 주소 */}
-            <div className="caption2 line-clamp-2 text-[var(--color-grey-650)]">
-              {reservation.name + " | " + reservation.address}
-            </div>
-
-            {/* 태그 + 날짜 */}
-            <div className="mt-2 flex h-[26px] items-center gap-2">
-              <span className="caption2 rounded-[8px] bg-[var(--color-dark-purple)] px-2 py-1 text-[var(--color-purple)]">
-                시연일정
-              </span>
-              <span className="body2 text-[var(--color-grey-150)]">
-                {reservation.date}
-              </span>
+            <div className="flex flex-col items-start gap-1">
+              <div className="flex items-center gap-2">
+                <span className="caption2 rounded-[4px] bg-[var(--color-dark-purple)] px-[6px] py-[3px] text-[var(--color-purple)]">
+                  시연옵션
+                </span>
+                <span className="body2 text-[var(--color-grey-150)]">
+                  {reservation.option}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="caption2 rounded-[4px] bg-[var(--color-dark-purple)] px-[6px] py-[3px] text-[var(--color-purple)]">
+                  시연일정
+                </span>
+                <span className="body2 text-[var(--color-grey-150)]">
+                  {reservation.date}
+                </span>
+              </div>
             </div>
           </div>
         </div>
