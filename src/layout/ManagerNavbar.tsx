@@ -16,7 +16,7 @@ const NAV_LINKS: NavItem[] = [
 
   { to: "/client", label: "고객", icon: ClientIcon },
   {
-    to: "/chat",
+    to: "/managerchat",
     label: "채팅",
     icon: ChatIcon,
   },

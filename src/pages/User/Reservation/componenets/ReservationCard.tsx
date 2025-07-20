@@ -1,19 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import type { Reservation } from "../../../../types/reservations";
 
-type Reservation = {
-  reservationId: number;
-  status: string;
-  title: string;
-  shopname: string;
-  name: string;
-  option: string;
-  address: string;
-  date: string;
-};
-
-type ReservationProps = {
+interface ReservationProps {
   reservation: Reservation;
-};
+}
 
 export default function ReservationCard({ reservation }: ReservationProps) {
   const navigate = useNavigate();
