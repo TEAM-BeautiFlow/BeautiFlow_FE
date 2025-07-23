@@ -7,7 +7,7 @@ type Props = {
 
 const tabs = ["채팅", "템플릿"];
 
-export default function ReservationTabBar({ activeTab, setActiveTab }: Props) {
+export default function ChatTabBar({ activeTab, setActiveTab }: Props) {
   const navigate = useNavigate();
 
   return (

@@ -26,11 +26,11 @@ const dummyChats: ChatItem[] = [
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
   const [chats] = useState<ChatItem[]>(dummyChats);
+  const [selectedChat, setSelectedChat] = useState<ChatItem | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<ChatItem[] | null>(null);
-
-  const openBottomSheet = (chat: ChatItem[]) => {
+  const openBottomSheet = (chat: ChatItem) => {
     setSelectedChat(chat);
     setIsBottomSheetOpen(true);
   };
@@ -41,8 +41,6 @@ export default function ManagerChatListPage() {
   };
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-
   const openAlert = (id: number) => {
     setSelectedChatId(id);
     setIsAlertOpen(true);
@@ -130,12 +128,11 @@ export default function ManagerChatListPage() {
         </svg>
       </button>
       <ManagerNavbar />
-      {isBottomSheetOpen && (
+      {isBottomSheetOpen && selectedChat && (
         <div
           className="absolute bottom-0 flex h-full items-end justify-center bg-[#0C0D1199]"
           onClick={closeBottomSheet}
         >
-          {/* 하단 시트 영역 */}
           <div
             onClick={e => e.stopPropagation()}
             className="flex w-[375px] flex-col items-start gap-[10px] rounded-t-xl bg-[var(--color-grey-850)] pt-2 pb-10"
@@ -154,19 +151,17 @@ export default function ManagerChatListPage() {
                   stroke-width="6"
                   stroke-linecap="round"
                 />
-              </svg>
+              </svg>{" "}
             </div>
             <div className="flex flex-col gap-[23px] px-5">
               <div className="label1 text-[var(--color-grey-550)]">
-                {selectedChat?.name}
+                {selectedChat.name}
               </div>
               <button
                 className="title2 cursor-pointer text-left text-[#D2636A]"
                 onClick={() => {
-                  if (selectedChat) {
-                    closeBottomSheet();
-                    openAlert(selectedChat.id);
-                  }
+                  closeBottomSheet();
+                  openAlert(selectedChat.id);
                 }}
               >
                 삭제

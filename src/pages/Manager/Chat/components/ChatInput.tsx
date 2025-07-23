@@ -1,7 +1,11 @@
-export default function ChatInput() {
+interface ChatInputProps {
+  onClick?: () => void;
+}
+
+export default function ChatInput({ onClick }: ChatInputProps) {
   return (
-    <div className="mb-[34px] flex items-center gap-2">
-      <button className="cursor-pointer">
+    <div className="flex items-center gap-2 px-5 py-2">
+      <button onClick={onClick} className="cursor-pointer">
         <svg
           width="32"
           height="32"
