@@ -50,7 +50,13 @@ const router = createBrowserRouter([
       },
       {
         path: "templatesform",
-        element: <TemplateFormPage />,
+        element: (
+          <TemplateFormPage
+            onClose={function (): void {
+              throw new Error("Function not implemented.");
+            }}
+          />
+        ),
       },
     ],
   },

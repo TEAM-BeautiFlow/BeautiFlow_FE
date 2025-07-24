@@ -3,6 +3,7 @@ import ChatTabBar from "./components/ChatTabBar";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import { useNavigate } from "react-router-dom";
 import TemplateFormPage from "./TemplateFormPage";
+import TemplateCard from "./components/TemplateCard";
 
 export default function TemplateListPage() {
   const [activeTab, setActiveTab] = useState("템플릿");
@@ -43,6 +44,7 @@ export default function TemplateListPage() {
           />
         </svg>
       </button>
+      <TemplateCard />
       <ManagerNavbar />
 
       {/* 조건부로 TemplateFormPage 띄우기 */}
