@@ -1,8 +1,19 @@
+import { useState } from "react";
+
 interface ChatInputProps {
-  onClick?: () => void;
+  onClick: () => void;
+  onSend: (text: string) => void;
 }
 
-export default function ChatInput({ onClick }: ChatInputProps) {
+export default function ChatInput({ onClick, onSend }: ChatInputProps) {
+  const [input, setInput] = useState("");
+
+  const handleSend = () => {
+    if (input.trim()) {
+      onSend(input);
+      setInput("");
+    }
+  };
   return (
     <div className="flex items-center gap-2 px-5 py-2">
       <button onClick={onClick} className="cursor-pointer">
@@ -24,11 +35,18 @@ export default function ChatInput({ onClick }: ChatInputProps) {
         </svg>
       </button>
       <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+            handleSend();
+          }
+        }}
         type="text"
         placeholder="메세지 입력"
         className="body2 h-10 w-full flex-1 rounded-full bg-[var(--color-grey-850)] px-4 py-2 text-[var(--color-grey-350)] placeholder-[var(--color-grey-650)]"
       />
-      <button className="cursor-pointer">
+      <button onClick={handleSend} className="cursor-pointer">
         <svg
           width="32"
           height="32"

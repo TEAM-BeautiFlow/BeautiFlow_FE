@@ -2,35 +2,75 @@ import { useState } from "react";
 import ChatTabBar from "./components/ChatTabBar";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
-interface ChatItem {
-  id: number;
-  name: string;
-  message: string;
-  unread: number;
-}
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import type { ChatList } from "../../../types/chatlist";
+import ChatListModal from "./components/ChatListModal";
+import ChatRoomList from "./components/ChatRoomList";
 
-const dummyChats: ChatItem[] = [
+// dummy
+const dummyChats: ChatList[] = [
   {
-    id: 1,
-    name: "상대방 이름",
-    message: "예약했던 시간보다 5분정도 늦을 것 s같아요 죄송합니다...",
-    unread: 9,
+    roomId: 1,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
   },
   {
-    id: 2,
-    name: "상대방 이름",
-    message: "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    unread: 0,
+    roomId: 2,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
   },
 ];
+
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats] = useState<ChatItem[]>(dummyChats);
-  const [selectedChat, setSelectedChat] = useState<ChatItem | null>(null);
+  const [chats] = useState<ChatList[]>(dummyChats);
+  const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const navigate = useNavigate();
+
+  const handleCreateRoom = async () => {
+    try {
+      const response = await axios.post(
+        "/chat/rooms",
+        {
+          // shopId, customerId, designerId 가져오는건 어떻게 ...?
+          shopId: 1,
+          customerId: 3,
+          designerId: 7,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      const roomId = response.data.roomId;
+      navigate(`/manager/chat/rooms/${roomId}`);
+    } catch (error) {
+      console.error("채팅방 생성 실패", error);
+    }
+  };
+
+  const handleChatClick = (roomId: number) => {
+    navigate(`/manager/chat/rooms/${roomId}`);
+  };
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const openBottomSheet = (chat: ChatItem) => {
+  const openBottomSheet = (chat: ChatList) => {
     setSelectedChat(chat);
     setIsBottomSheetOpen(true);
   };
@@ -41,8 +81,8 @@ export default function ManagerChatListPage() {
   };
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const openAlert = (id: number) => {
-    setSelectedChatId(id);
+  const openAlert = (roomId: number) => {
+    setSelectedChatId(roomId);
     setIsAlertOpen(true);
   };
   const closeAlert = () => setIsAlertOpen(false);
@@ -54,6 +94,7 @@ export default function ManagerChatListPage() {
 
   return (
     <div className="relative h-screen w-[375px] bg-[var(--color-grey-1000)]">
+      {/* 상단 */}
       <div className="">
         <h1 className="mx-1 h-[101px] px-4 pt-18 pb-10 text-2xl font-bold tracking-tighter text-[var(--color-purple)] transition-colors">
           BEAUTIFLOW
@@ -63,53 +104,19 @@ export default function ManagerChatListPage() {
       {/* 채팅 리스트 */}
       <div className="mt-3 flex-1 overflow-y-auto">
         {chats.map(chat => (
-          <div
-            key={chat.id}
-            onContextMenu={e => {
-              e.preventDefault();
-              openBottomSheet(chat);
-            }}
-            className="flex items-center justify-between px-5 py-4"
-          >
-            <div className="h-10 w-10 self-start rounded-full">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#3A3A3A" />
-                <path
-                  d="M32.6501 14.275C39.6246 15.6933 34.6096 29.3353 27.6248 30.7086C25.9997 31.0282 24.9667 31.1437 23.3726 30.7086C18.5143 29.3827 25.0573 21.8036 19.9966 21.7493C14.9199 21.6948 21.3383 29.3737 16.466 30.7086C14.8821 31.1426 13.8566 31.0418 12.2396 30.7322C5.25651 29.3953 0.427964 15.6846 7.39473 14.275C8.87021 13.9765 9.79684 13.9288 11.2603 14.275C16.5638 15.5298 8.96268 26.8631 14.4301 27.0358C19.944 27.21 12.7449 15.5546 18.0896 14.275C19.6106 13.9109 20.5903 13.9058 22.1098 14.275C27.4022 15.5611 20.0959 27.0568 25.5631 26.9652C31.0064 26.874 23.4838 15.5348 28.7587 14.275C30.2311 13.9234 31.1651 13.9731 32.6501 14.275Z"
-                  fill="#6E6E6E"
-                />
-              </svg>
-            </div>
-            <div className="flex w-[231px] flex-col gap-1 self-start">
-              <div className="">
-                <span className="label1 text-[var(--color-grey-50)]">
-                  {chat.name}
-                </span>
-              </div>
-              <p className="caption2 text-[var(--color-grey-450)]">
-                {chat.message}
-              </p>
-            </div>
-
-            <div
-              className={`caption1 flex h-6 w-6 items-center justify-center gap-2.5 rounded-full ${
-                chat.unread === 0
-                  ? "bg-[var(--color-grey-1000"
-                  : "bg-[var(--color-purple)] text-[var(--color-grey-1000)]"
-              } `}
-            >
-              {chat.unread}
-            </div>
-          </div>
+          <ChatRoomList
+            key={chat.roomId}
+            chat={chat}
+            onRightClick={openBottomSheet}
+            onClick={handleChatClick}
+          />
         ))}
       </div>
-      <button className="absolute right-6 bottom-32 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-purple)] shadow-lg">
+      {/* 버튼 */}
+      <button
+        onClick={handleCreateRoom}
+        className="absolute right-6 bottom-32 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[var(--color-purple)] shadow-lg"
+      >
         <svg
           width="44"
           height="44"
@@ -127,48 +134,15 @@ export default function ManagerChatListPage() {
           />
         </svg>
       </button>
+      {/* 하단 */}
       <ManagerNavbar />
+      {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
-        <div
-          className="absolute bottom-0 flex h-full items-end justify-center bg-[#0C0D1199]"
-          onClick={closeBottomSheet}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            className="flex w-[375px] flex-col items-start gap-[10px] rounded-t-xl bg-[var(--color-grey-850)] pt-2 pb-10"
-          >
-            <div className="mx-auto flex flex-col items-center p-[10px]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="47"
-                height="6"
-                viewBox="0 0 47 6"
-                fill="none"
-              >
-                <path
-                  d="M3.5 3H43.5"
-                  stroke="#545454"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                />
-              </svg>{" "}
-            </div>
-            <div className="flex flex-col gap-[23px] px-5">
-              <div className="label1 text-[var(--color-grey-550)]">
-                {selectedChat.name}
-              </div>
-              <button
-                className="title2 cursor-pointer text-left text-[#D2636A]"
-                onClick={() => {
-                  closeBottomSheet();
-                  openAlert(selectedChat.id);
-                }}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChatListModal
+          selectedChat={selectedChat}
+          onClose={closeBottomSheet}
+          onDeleteClick={openAlert}
+        />
       )}
       <DeleteConfirmModal
         isOpen={isAlertOpen}

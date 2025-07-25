@@ -1,17 +1,20 @@
-// import MessageList from "./MessageList";
 import { useState } from "react";
 import ChatHeader from "./components/ChatHeader";
 import ChatInput from "./components/ChatInput";
-const messages = [
-  { sender: "you", text: "안녕하세요 내일 추가 시술 가능할까요?" },
-  { sender: "me", text: "안녕하세요 하늘님:)" },
-  {
-    sender: "me",
-    text: "아쉽지만 바로 다음 시간대에 다른 시술이 예정되어 있어서 임의로 연장하기는 쉽지 않을 것 같아요ㅜㅜ",
-  },
-];
-export default function ChatRoom() {
+import ChatRoomModal from "./components/ChatRoomModal";
+
+interface Message {
+  sender: "me" | "you";
+  text: string;
+}
+
+export default function ManagerChatPage() {
   const [isOptionOpen, setIsOptionOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const handleSend = (text: string) => {
+    setMessages(prev => [...prev, { sender: "me", text }]);
+  };
 
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[#1A1A1A] py-2 text-white">
@@ -61,50 +64,89 @@ export default function ChatRoom() {
         })}
       </div>
 
-      <ChatInput onClick={() => setIsOptionOpen(prev => !prev)} />
-      {isOptionOpen && (
-        <div className="flex h-[291px] border-t border-[var(--color-grey-950)] px-5 py-4">
-          <div className="flex gap-5">
-            {/* 이미지 */}
-            <div className="flex h-[84px] flex-col items-center justify-between px-3 py-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3A3A3A]">
-                <svg
-                  width="25"
-                  height="24"
-                  viewBox="0 0 25 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M16.7002 2.25C17.5278 2.25 18.1936 2.24903 18.7314 2.29297C19.2781 2.33763 19.758 2.43287 20.2022 2.65918C20.9078 3.01871 21.4813 3.59225 21.8408 4.29785C22.0671 4.74205 22.1624 5.22195 22.207 5.76856C22.251 6.30639 22.25 6.97222 22.25 7.79981V16.2002L22.2451 17.3242C22.2398 17.6614 22.229 17.9625 22.207 18.2314C22.1624 18.7781 22.0671 19.258 21.8408 19.7022C21.4813 20.4078 20.9078 20.9813 20.2022 21.3408C19.758 21.5671 19.2781 21.6624 18.7314 21.707C18.4625 21.729 18.1614 21.7398 17.8242 21.7451L16.7002 21.75H7.43164C7.14357 21.75 6.8761 21.751 6.66602 21.7324C6.65626 21.7316 6.64623 21.7295 6.63574 21.7285C6.50716 21.7227 6.38483 21.7165 6.26856 21.707C5.72195 21.6624 5.24205 21.5671 4.79785 21.3408C4.09225 20.9813 3.51871 20.4078 3.15918 19.7022C2.93287 19.258 2.83763 18.7781 2.79297 18.2314C2.74903 17.6936 2.75 17.0278 2.75 16.2002V7.79981C2.75 6.97222 2.74903 6.30639 2.79297 5.76856C2.83763 5.22195 2.93287 4.74205 3.15918 4.29785C3.51871 3.59225 4.09225 3.01871 4.79785 2.65918C5.24205 2.43287 5.72195 2.33763 6.26856 2.29297C6.80639 2.24903 7.47222 2.25 8.29981 2.25H16.7002ZM18.0742 9.80078C17.5756 8.98321 16.4489 8.8361 15.7568 9.49805L6.05469 18.7773C5.40341 19.4006 5.84465 20.4999 6.7461 20.5H17.5C19.433 20.5 21 18.933 21 17V14.8799C21 14.6963 20.9491 14.5162 20.8535 14.3594L18.0742 9.80078ZM9 6C7.61937 6.0001 6.5 7.11935 6.5 8.5C6.5 9.88065 7.61937 10.9999 9 11C10.3807 11 11.5 9.88071 11.5 8.5C11.5 7.11929 10.3807 6 9 6Z"
-                    fill="#F3F3F3"
-                  />
-                </svg>
-              </div>
-              <span className="caption1 text-white">이미지</span>
-            </div>
-
-            {/* 템플릿 메시지 */}
-            <div className="flex h-[84px] flex-col items-center justify-between px-3 py-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3A3A3A]">
-                <svg
-                  width="25"
-                  height="24"
-                  viewBox="0 0 25 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M16.7002 2.25C17.5278 2.25 18.1936 2.24903 18.7314 2.29297C19.2781 2.33763 19.758 2.43287 20.2022 2.65918C20.9078 3.01871 21.4813 3.59225 21.8408 4.29785C22.0671 4.74205 22.1624 5.22195 22.207 5.76856C22.251 6.30639 22.25 6.97222 22.25 7.79981V16.2002L22.2451 17.3242C22.2398 17.6614 22.229 17.9625 22.207 18.2314C22.1624 18.7781 22.0671 19.258 21.8408 19.7022C21.4813 20.4078 20.9078 20.9813 20.2022 21.3408C19.758 21.5671 19.2781 21.6624 18.7314 21.707C18.4625 21.729 18.1614 21.7398 17.8242 21.7451L16.7002 21.75H7.43164C7.14357 21.75 6.8761 21.751 6.66602 21.7324C6.65626 21.7316 6.64623 21.7295 6.63574 21.7285C6.50716 21.7227 6.38483 21.7165 6.26856 21.707C5.72195 21.6624 5.24205 21.5671 4.79785 21.3408C4.09225 20.9813 3.51871 20.4078 3.15918 19.7022C2.93287 19.258 2.83763 18.7781 2.79297 18.2314C2.74903 17.6936 2.75 17.0278 2.75 16.2002V7.79981C2.75 6.97222 2.74903 6.30639 2.79297 5.76856C2.83763 5.22195 2.93287 4.74205 3.15918 4.29785C3.51871 3.59225 4.09225 3.01871 4.79785 2.65918C5.24205 2.43287 5.72195 2.33763 6.26856 2.29297C6.80639 2.24903 7.47222 2.25 8.29981 2.25H16.7002ZM18.0742 9.80078C17.5756 8.98321 16.4489 8.8361 15.7568 9.49805L6.05469 18.7773C5.40341 19.4006 5.84465 20.4999 6.7461 20.5H17.5C19.433 20.5 21 18.933 21 17V14.8799C21 14.6963 20.9491 14.5162 20.8535 14.3594L18.0742 9.80078ZM9 6C7.61937 6.0001 6.5 7.11935 6.5 8.5C6.5 9.88065 7.61937 10.9999 9 11C10.3807 11 11.5 9.88071 11.5 8.5C11.5 7.11929 10.3807 6 9 6Z"
-                    fill="#F3F3F3"
-                  />
-                </svg>
-              </div>
-              <span className="caption1 text-white">템플릿 메시지</span>
-            </div>
-          </div>
-        </div>
-      )}
+      <ChatInput
+        onSend={handleSend}
+        onClick={() => setIsOptionOpen(prev => !prev)}
+      />
+      {isOptionOpen && <ChatRoomModal />}
     </div>
   );
 }
+
+// import { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import useChatSocket from "../../../hooks/useChatSocket";
+// import ChatHeader from "./components/ChatHeader";
+// import ChatInput from "./components/ChatInput";
+// import ChatRoomModal from "./components/ChatRoomModal";
+
+// interface Message {
+//   sender: "me" | "you";
+//   text: string;
+// }
+
+// export default function ManagerChatPage() {
+//   const { roomId } = useParams<{ roomId: string }>();
+//   const [messages, setMessages] = useState<Message[]>([]);
+//   const [isOptionOpen, setIsOptionOpen] = useState(false);
+
+//   // 수신 메시지 처리
+//   const handleIncomingMessage = (msg: any) => {
+//     const parsed = JSON.parse(msg.body);
+//     setMessages(prev => [
+//       ...prev,
+//       {
+//         sender: parsed.senderType === "DESIGNER" ? "me" : "you",
+//         text: parsed.content,
+//       },
+//     ]);
+//   };
+
+//   // WebSocket 연결 + 전송 함수
+//   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
+
+//   // 메시지 전송 (예: ChatInput에서 호출)
+//   const handleSend = (text: string) => {
+//     sendMessage(text);
+//     setMessages(prev => [...prev, { sender: "me", text }]);
+//   };
+
+//   return (
+//     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[#1A1A1A] py-2 text-white">
+//       <ChatHeader title="상대방 이름" />
+//       <div className="mt-3 flex-1 space-y-2 overflow-y-auto px-5 py-2">
+//         {messages.map((message, index) => {
+//           const isLastOfSender =
+//             index === messages.length - 1 ||
+//             messages[index + 1].sender !== message.sender;
+
+//           return (
+//             <div
+//               key={index}
+//               className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}
+//             >
+//               <div
+//                 className={`body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)] ${
+//                   message.sender === "me"
+//                     ? "bg-[var(--color-purple)]"
+//                     : "bg-[var(--color-grey-850)]"
+//                 } ${message.sender === "me" && isLastOfSender ? "rounded-br-[2px]" : ""} ${
+//                   message.sender === "you" && isLastOfSender
+//                     ? "rounded-bl-[2px]"
+//                     : ""
+//                 }`}
+//               >
+//                 {message.text}
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+//       <ChatInput
+//         onSend={handleSend}
+//         onClick={() => setIsOptionOpen(prev => !prev)}
+//       />
+//       {isOptionOpen && <ChatRoomModal />}
+//     </div>
+//   );
+// }

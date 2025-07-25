@@ -29,15 +29,15 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "userchat",
+        path: "user/chat/rooms",
         element: <UserChatListPage />,
       },
       {
-        path: "managerchat",
+        path: "manager/chat/rooms",
         element: <ManagerChatListPage />,
       },
       {
-        path: "chatroom",
+        path: "manager/chat/rooms/:roomId",
         element: <ManagerChatPage />,
       },
       {
