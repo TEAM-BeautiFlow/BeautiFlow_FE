@@ -12,6 +12,7 @@ import TemplateFormPage from "./pages/Manager/Chat/TemplateFormPage";
 import UserChatPage from "./pages/User/Chat/UserChatPage";
 import ChatProfile from "./pages/User/Chat/ChatProfile";
 import ChatProfilePage from "./pages/Manager/Chat/ChatProfilePage";
+import ClientListPage from "./pages/Manager/Client/ClientListPage";
 
 const router = createBrowserRouter([
   {
@@ -73,6 +74,7 @@ const router = createBrowserRouter([
           />
         ),
       },
+      { path: "client", element: <ClientListPage /> },
     ],
   },
 ]);
