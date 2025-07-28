@@ -9,6 +9,12 @@ export default function useChatSocket(
   const clientRef = useRef<Client | null>(null);
 
   useEffect(() => {
+    // 개발용 accessToken 임시 저장
+    const devToken = "chattest"; // 테스트용 토큰
+    if (!localStorage.getItem("accessToken")) {
+      localStorage.setItem("accessToken", devToken);
+      console.log("💡 개발용 accessToken이 저장되었습니다.");
+    }
     const token = localStorage.getItem("accessToken");
     const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/connect`);
     const client = new Client({

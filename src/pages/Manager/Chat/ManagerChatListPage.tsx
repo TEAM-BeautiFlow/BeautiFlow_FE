@@ -16,36 +16,36 @@ export default function ManagerChatListPage() {
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
-  useEffect(() => {
-    const fetchChatList = async () => {
-      try {
-        // 개발용 accessToken 임시 저장
-        const devToken = "chattest"; // 테스트용 토큰
-        if (!localStorage.getItem("accessToken")) {
-          localStorage.setItem("accessToken", devToken);
-          console.log("💡 개발용 accessToken이 저장되었습니다.");
-        }
+  // useEffect(() => {
+  //   const fetchChatList = async () => {
+  //     try {
+  //       // 개발용 accessToken 임시 저장
+  //       const devToken = "chattest"; // 테스트용 토큰
+  //       if (!localStorage.getItem("accessToken")) {
+  //         localStorage.setItem("accessToken", devToken);
+  //         console.log("💡 개발용 accessToken이 저장되었습니다.");
+  //       }
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("Access Token이 없습니다.");
-          return;
-        }
+  //       const token = localStorage.getItem("accessToken");
+  //       if (!token) {
+  //         console.error("Access Token이 없습니다.");
+  //         return;
+  //       }
 
-        const response = await axios.get("/chat/rooms", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  //       const response = await axios.get("/chat/rooms", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
 
-        setChats(response.data);
-      } catch (error) {
-        console.error("채팅 리스트 불러오기 실패", error);
-      }
-    };
+  //       setChats(response.data);
+  //     } catch (error) {
+  //       console.error("채팅 리스트 불러오기 실패", error);
+  //     }
+  //   };
 
-    fetchChatList();
-  }, []);
+  //   fetchChatList();
+  // }, []);
 
   // chat room 생성
   const handleCreateRoom = async () => {
@@ -79,7 +79,7 @@ export default function ManagerChatListPage() {
 
   // room 클릭 시 이동
   const handleChatClick = (roomId: number) => {
-    navigate(`/manager/chat/rooms/${roomId}`);
+    navigate(`/chat/rooms/${roomId}`);
   };
 
   // 모달
