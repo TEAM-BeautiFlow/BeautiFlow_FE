@@ -2,6 +2,7 @@ export default function ChatRoomModal() {
   return (
     <div className="flex h-[291px] border-t border-[var(--color-grey-950)] px-5 py-4">
       <div className="flex gap-5">
+        {/* 각각 누르면 이미지, 템플릿 보내지게 작업 */}
         {/* 이미지 */}
         <div className="flex h-[84px] flex-col items-center justify-between px-3 py-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3A3A3A]">

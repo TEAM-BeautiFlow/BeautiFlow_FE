@@ -18,7 +18,7 @@ export default function ChatTabBar({ activeTab, setActiveTab }: Props) {
             <button
               onClick={() => {
                 setActiveTab(tab);
-                if (tab === "채팅") navigate("/managerchat");
+                if (tab === "채팅") navigate("/manager/chat/rooms");
                 if (tab === "템플릿") navigate("/templates");
               }}
               className={`h1 flex h-[36px] cursor-pointer items-center justify-center px-1 transition-colors duration-200 ${

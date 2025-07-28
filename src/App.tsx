@@ -9,6 +9,9 @@ import TemplateListPage from "./pages/Manager/Chat/TemplateListPage";
 import ManagerChatPage from "./pages/Manager/Chat/ManagerChatPage";
 import GroupChatPage from "./pages/Manager/Chat/GroupChatPage";
 import TemplateFormPage from "./pages/Manager/Chat/TemplateFormPage";
+import UserChatPage from "./pages/User/Chat/UserChatPage";
+import ChatProfile from "./pages/User/Chat/ChatProfile";
+import ChatProfilePage from "./pages/Manager/Chat/ChatProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -33,16 +36,28 @@ const router = createBrowserRouter([
         element: <UserChatListPage />,
       },
       {
-        path: "manager/chat/rooms",
+        path: "user/chat/rooms/:roomId",
+        element: <UserChatPage />,
+      },
+      {
+        path: "chat/rooms",
         element: <ManagerChatListPage />,
       },
       {
-        path: "manager/chat/rooms/:roomId",
+        path: "chat/rooms/:roomId",
         element: <ManagerChatPage />,
       },
       {
         path: "groupchat",
         element: <GroupChatPage />,
+      },
+      {
+        path: "chat/profile/:opponentId",
+        element: <ChatProfile />,
+      },
+      {
+        path: "chat/profile",
+        element: <ChatProfilePage />,
       },
       {
         path: "templates",

@@ -9,7 +9,7 @@ export default function useChatSocket(
   const clientRef = useRef<Client | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/connect`);
     const client = new Client({
       webSocketFactory: () => socket,
@@ -18,7 +18,8 @@ export default function useChatSocket(
       },
       debug: str => console.log("[STOMP]", str),
       onConnect: () => {
-        client.subscribe(`/topic/${roomId}`, onMessage, {
+        const topic = `/topic/${roomId}`;
+        client.subscribe(topic, onMessage, {
           Authorization: `Bearer ${token}`,
         });
       },
@@ -37,7 +38,13 @@ export default function useChatSocket(
 
   // 메시지 전송용 함수 반환
   const sendMessage = (content: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
+
+    if (!clientRef.current?.connected) {
+      console.warn("STOMP client가 연결되지 않았습니다.");
+      return;
+    }
+
     clientRef.current?.publish({
       destination: `/publish/${roomId}`,
       headers: {
@@ -45,8 +52,8 @@ export default function useChatSocket(
       },
       body: JSON.stringify({
         roomId,
-        senderId: 3, // TODO: 로그인한 유저 ID로 교체
-        senderType: "DESIGNER", // 또는 "CUSTOMER"
+        senderId: 3, // 나중에 로그인한 유저 ID로 교체
+        senderType: "DESIGNER", // 이것도 가져오기 ..?
         content,
         imageUrl: null,
       }),

@@ -1,15 +1,29 @@
 import { useNavigate } from "react-router-dom";
-import ChatProfile from "../ChatProfile";
 
-export default function ChatHeader() {
+interface ChatHeaderProps {
+  shopName: string;
+  opponentName: string;
+  opponentId: number;
+}
+
+export default function ChatHeader({
+  shopName,
+  opponentName,
+  opponentId,
+}: ChatHeaderProps) {
   // 뒤로가기
   const navigate = useNavigate();
   const goBack = () => {
     navigate(-1); // 이전 페이지로 이동
   };
+  const goToProfile = () => {
+    navigate(`/chat/profile/${opponentId}`, {
+      state: { name: opponentName },
+    });
+  };
 
   return (
-    <div className="mt-14 flex h-[60px] items-center justify-between py-2.5">
+    <div className="mt-14 flex h-[60px] items-center justify-between px-5 py-2.5">
       <div className="flex items-center gap-2.5">
         <button onClick={goBack} className="cursor-pointer">
           <svg
@@ -33,7 +47,7 @@ export default function ChatHeader() {
         <span className="caption2 text-[var(--color-grey-650)]">샵 이름</span>
         <span className="label1 text-[var(--color-grey-150)]">상대방 이름</span>
       </div>
-      <button className="cursor-pointer">
+      <button onClick={goToProfile} className="cursor-pointer">
         <svg
           width="40"
           height="40"

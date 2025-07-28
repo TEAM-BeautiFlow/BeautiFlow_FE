@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatTabBar from "./components/ChatTabBar";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
@@ -9,66 +9,106 @@ import ChatListModal from "./components/ChatListModal";
 import ChatRoomList from "./components/ChatRoomList";
 
 // dummy
-const dummyChats: ChatList[] = [
-  {
-    roomId: 1,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-  },
-  {
-    roomId: 2,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-  },
-];
+// const dummyChats: ChatList[] = [
+//   {
+//     roomId: 1,
+//     shopId: 2,
+//     shopName: "가게이름",
+//     opponentId: 1,
+//     opponentName: "상대방 이름",
+//     lastMessageContent:
+//       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+//     lastMessageTime: "2025-07-21T15:00:00",
+//     unreadCount: 9,
+//   },
+//   {
+//     roomId: 2,
+//     shopId: 2,
+//     shopName: "가게이름",
+//     opponentId: 1,
+//     opponentName: "상대방 이름",
+//     lastMessageContent:
+//       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+//     lastMessageTime: "2025-07-21T15:00:00",
+//     unreadCount: 9,
+//   },
+// ];
 
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats] = useState<ChatList[]>(dummyChats);
+  const [chats, setChats] = useState<ChatList[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  // 채팅 리스트 불러오기
+  useEffect(() => {
+    const fetchChatList = async () => {
+      try {
+        // 개발용 accessToken 임시 저장
+        const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
+        if (!localStorage.getItem("accessToken")) {
+          localStorage.setItem("accessToken", devToken);
+          console.log("개발용 accessToken이 저장되었습니다.");
+        }
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          console.error("Access Token이 없습니다.");
+          return;
+        }
+
+        const response = await axios.get("/chat/rooms", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setChats(response.data);
+      } catch (error) {
+        console.error("채팅 리스트 불러오기 실패", error);
+      }
+    };
+
+    fetchChatList();
+  }, []);
+
+  // chat room 생성
   const handleCreateRoom = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("Access Token이 없습니다.");
+        return;
+      }
+
       const response = await axios.post(
         "/chat/rooms",
         {
-          // shopId, customerId, designerId 가져오는건 어떻게 ...?
           shopId: 1,
           customerId: 3,
           designerId: 7,
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
 
       const roomId = response.data.roomId;
-      navigate(`/manager/chat/rooms/${roomId}`);
+      navigate(`/chat/rooms/${roomId}`);
     } catch (error) {
       console.error("채팅방 생성 실패", error);
     }
   };
 
+  // room 클릭 시 이동
   const handleChatClick = (roomId: number) => {
     navigate(`/manager/chat/rooms/${roomId}`);
   };
 
+  // 모달
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const openBottomSheet = (chat: ChatList) => {
     setSelectedChat(chat);
@@ -80,6 +120,7 @@ export default function ManagerChatListPage() {
     setSelectedChat(null);
   };
 
+  // 모달2
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const openAlert = (roomId: number) => {
     setSelectedChatId(roomId);
@@ -87,13 +128,14 @@ export default function ManagerChatListPage() {
   };
   const closeAlert = () => setIsAlertOpen(false);
 
+  // 삭제 기능
   const handleDeleteChat = () => {
-    // 삭제 로직 구현 (예: 상태 변경 또는 API 호출)
+    // 삭제 로직 구현해야함
     console.log("채팅 삭제됨!");
   };
 
   return (
-    <div className="relative h-screen w-[375px] bg-[var(--color-grey-1000)]">
+    <div className="relative mx-auto h-screen w-[375px] bg-[var(--color-grey-1000)]">
       {/* 상단 */}
       <div className="">
         <h1 className="mx-1 h-[101px] px-4 pt-18 pb-10 text-2xl font-bold tracking-tighter text-[var(--color-purple)] transition-colors">
@@ -149,7 +191,6 @@ export default function ManagerChatListPage() {
         onClose={() => setIsAlertOpen(false)}
         onDelete={handleDeleteChat}
       />
-      ;
     </div>
   );
 }

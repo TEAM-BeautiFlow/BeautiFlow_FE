@@ -1,23 +1,27 @@
+import { useState } from "react";
 import ChatHeader from "./components/ChatHeader";
 import ChatInput from "./components/ChatInput";
 
-const messages = [
-  { sender: "you", text: "안녕하세요 내일 추가 시술 가능할까요?" },
-  { sender: "me", text: "안녕하세요 하늘님:)" },
-  {
-    sender: "me",
-    text: "아쉽지만 바로 다음 시간대에 다른 시술이 예정되어 있어서 임의로 연장하기는 쉽지 않을 것 같아요ㅜㅜ",
-  },
-];
+interface Message {
+  sender: "me" | "you";
+  text: string;
+}
 
 export default function UserChatPage() {
+  const [isOptionOpen, setIsOptionOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const handleSend = (text: string) => {
+    setMessages(prev => [...prev, { sender: "me", text }]);
+  };
+
   return (
-    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] px-5">
-      {/* 상단 헤더 */}
+    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
+      {/* 상단 헤더 -> api 에 따라서 고쳐야함 */}
       <ChatHeader />
 
       {/* 채팅 메시지 */}
-      <div className="mt-3 flex-1 gap-2.5 space-y-2 overflow-y-auto py-2">
+      <div className="mt-3 flex-1 gap-2.5 space-y-2 overflow-y-auto px-5 py-2">
         {messages.map((message, index) => {
           const isLastOfSender =
             index === messages.length - 1 ||
@@ -43,7 +47,10 @@ export default function UserChatPage() {
       </div>
 
       {/* 하단 입력창 */}
-      <ChatInput />
+      <ChatInput
+        onSend={handleSend}
+        onClick={() => setIsOptionOpen(prev => !prev)}
+      />
     </div>
   );
 }
