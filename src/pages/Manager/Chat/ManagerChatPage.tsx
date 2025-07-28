@@ -82,7 +82,7 @@
 
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-// import useChatSocket from "../../../hooks/useChatSocket";
+import useChatSocket from "../../../hooks/useChatSocket";
 import ChatHeader from "./components/ChatHeader";
 import ChatInput from "./components/ChatInput";
 import ChatRoomModal from "./components/ChatRoomModal";
@@ -112,11 +112,11 @@ export default function ManagerChatPage() {
   };
 
   // WebSocket 연결 + 전송 함수
-  // const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
+  const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
 
   // 메시지 전송 (예: ChatInput에서 호출)
   const handleSend = (text: string) => {
-    // sendMessage(text);
+    sendMessage(text);
     setMessages(prev => [...prev, { sender: "me", text }]);
   };
 

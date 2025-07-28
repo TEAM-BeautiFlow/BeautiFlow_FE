@@ -9,69 +9,69 @@ import ChatListModal from "./components/ChatListModal";
 import ChatRoomList from "./components/ChatRoomList";
 
 // dummy
-// const dummyChats: ChatList[] = [
-//   {
-//     roomId: 1,
-//     shopId: 2,
-//     shopName: "가게이름",
-//     opponentId: 1,
-//     opponentName: "상대방 이름",
-//     lastMessageContent:
-//       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-//     lastMessageTime: "2025-07-21T15:00:00",
-//     unreadCount: 9,
-//   },
-//   {
-//     roomId: 2,
-//     shopId: 2,
-//     shopName: "가게이름",
-//     opponentId: 1,
-//     opponentName: "상대방 이름",
-//     lastMessageContent:
-//       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-//     lastMessageTime: "2025-07-21T15:00:00",
-//     unreadCount: 9,
-//   },
-// ];
+const dummyChats: ChatList[] = [
+  {
+    roomId: 1,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
+  },
+  {
+    roomId: 2,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
+  },
+];
 
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats, setChats] = useState<ChatList[]>([]);
+  const [chats, setChats] = useState<ChatList[]>(dummyChats);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
-  useEffect(() => {
-    const fetchChatList = async () => {
-      try {
-        // 개발용 accessToken 임시 저장
-        const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
-        if (!localStorage.getItem("accessToken")) {
-          localStorage.setItem("accessToken", devToken);
-          console.log("개발용 accessToken이 저장되었습니다.");
-        }
+  // useEffect(() => {
+  //   const fetchChatList = async () => {
+  //     try {
+  //       // 개발용 accessToken 임시 저장
+  //       const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
+  //       if (!localStorage.getItem("accessToken")) {
+  //         localStorage.setItem("accessToken", devToken);
+  //         console.log("개발용 accessToken이 저장되었습니다.");
+  //       }
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("Access Token이 없습니다.");
-          return;
-        }
+  //       const token = localStorage.getItem("accessToken");
+  //       if (!token) {
+  //         console.error("Access Token이 없습니다.");
+  //         return;
+  //       }
 
-        const response = await axios.get("/chat/rooms", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  //       const response = await axios.get("/chat/rooms", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
 
-        setChats(response.data);
-      } catch (error) {
-        console.error("채팅 리스트 불러오기 실패", error);
-      }
-    };
+  //       setChats(response.data);
+  //     } catch (error) {
+  //       console.error("채팅 리스트 불러오기 실패", error);
+  //     }
+  //   };
 
-    fetchChatList();
-  }, []);
+  //   fetchChatList();
+  // }, []);
 
   // chat room 생성
   const handleCreateRoom = async () => {
@@ -105,7 +105,7 @@ export default function ManagerChatListPage() {
 
   // room 클릭 시 이동
   const handleChatClick = (roomId: number) => {
-    navigate(`/manager/chat/rooms/${roomId}`);
+    navigate(`/chat/rooms/${roomId}`);
   };
 
   // 모달
