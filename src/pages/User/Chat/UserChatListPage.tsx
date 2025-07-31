@@ -4,8 +4,8 @@ import ChatListHeader from "./components/ChatListHeader";
 import type { ChatList } from "../../../types/chatlist";
 import ChatRoomList from "./components/ChatRoomList";
 import { useNavigate } from "react-router-dom";
-import ChatListModal from "./components/ChatListModal";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import DeleteModal from "../../../components/DeleteModal";
 
 const dummyChats: ChatList[] = [
   {
@@ -70,7 +70,7 @@ export default function UserChatListPage() {
   };
 
   return (
-    <div className="flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
       {/* 상단 네비게이션 */}
       <ChatListHeader />
 
@@ -88,10 +88,11 @@ export default function UserChatListPage() {
       <UserNavbar />
       {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
-        <ChatListModal
-          selectedChat={selectedChat}
-          onClose={closeBottomSheet}
-          onDeleteClick={openAlert}
+        <DeleteModal
+          visible={!!selectedChat}
+          targetName={selectedChat?.opponentName || ""}
+          onClose={() => setSelectedChat(null)}
+          onConfirm={() => openAlert(selectedChat.roomId)}
         />
       )}
       <DeleteConfirmModal

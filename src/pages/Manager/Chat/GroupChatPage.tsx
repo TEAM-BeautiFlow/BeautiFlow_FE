@@ -5,7 +5,7 @@ export default function GroupChat() {
   const [text, setText] = useState("");
 
   return (
-    <div className="mx-auto flex h-[812px] w-[375px] flex-col bg-[var(--color-grey-1000)] px-5">
+    <div className="mx-auto flex h-[812px] w-[375px] flex-col bg-[var(--color-grey-1000)]">
       <ChatHeader
         title="VIP, 손하늘"
         rightContent={
@@ -15,7 +15,7 @@ export default function GroupChat() {
       />
 
       {/* 임시  */}
-      <div className="mb-20">
+      <div className="mb-20 px-5">
         <label className="label2 block py-3 text-[var(--color-grey-150)]">
           본문
         </label>

@@ -5,8 +5,8 @@ import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { ChatList } from "../../../types/chatlist";
-import ChatListModal from "./components/ChatListModal";
 import ChatRoomList from "./components/ChatRoomList";
+import DeleteModal from "../../../components/DeleteModal";
 
 // dummy
 const dummyChats: ChatList[] = [
@@ -74,33 +74,38 @@ export default function ManagerChatListPage() {
   // }, []);
 
   // chat room 생성
-  const handleCreateRoom = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("Access Token이 없습니다.");
-        return;
-      }
+  // const handleCreateRoom = async () => {
+  //   try {
+  //     const token = localStorage.getItem("accessToken");
+  //     if (!token) {
+  //       console.error("Access Token이 없습니다.");
+  //       return;
+  //     }
 
-      const response = await axios.post(
-        "/chat/rooms",
-        {
-          shopId: 1,
-          customerId: 3,
-          designerId: 7,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+  //     const response = await axios.post(
+  //       "/chat/rooms",
+  //       {
+  //         shopId: 1,
+  //         customerId: 3,
+  //         designerId: 7,
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
 
-      const roomId = response.data.roomId;
-      navigate(`/chat/rooms/${roomId}`);
-    } catch (error) {
-      console.error("채팅방 생성 실패", error);
-    }
+  //     const roomId = response.data.roomId;
+  //     navigate(`/chat/rooms/${roomId}`);
+  //   } catch (error) {
+  //     console.error("채팅방 생성 실패", error);
+  //   }
+  // };
+
+  const handleCreateRoom = () => {
+    // 이 부분에서 원하는 페이지로 이동
+    navigate("/chat/rooms/groupset");
   };
 
   // room 클릭 시 이동
@@ -180,10 +185,11 @@ export default function ManagerChatListPage() {
       <ManagerNavbar />
       {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
-        <ChatListModal
-          selectedChat={selectedChat}
-          onClose={closeBottomSheet}
-          onDeleteClick={openAlert}
+        <DeleteModal
+          visible={!!selectedChat}
+          targetName={selectedChat?.opponentName || ""}
+          onClose={() => setSelectedChat(null)}
+          onConfirm={() => openAlert(selectedChat.roomId)}
         />
       )}
       <DeleteConfirmModal

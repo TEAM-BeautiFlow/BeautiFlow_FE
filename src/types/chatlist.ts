@@ -8,3 +8,8 @@ export type ChatList = {
   lastMessageTime: string;
   unreadCount: number;
 };
+
+export type CustomerList = {
+  name: string;
+  tag?: string;
+};

@@ -1,16 +1,18 @@
-import type { ChatList } from "../../../../types/chatlist";
-
-interface ChatListModalProps {
-  selectedChat: ChatList;
+interface DeleteModalProps {
+  targetName: string;
+  visible: boolean;
   onClose: () => void;
-  onDeleteClick: (roomId: number) => void;
+  onConfirm: () => void;
 }
 
-export default function ChatListModal({
-  selectedChat,
+export default function DeleteModal({
+  targetName,
+  visible,
   onClose,
-  onDeleteClick,
-}: ChatListModalProps) {
+  onConfirm,
+}: DeleteModalProps) {
+  if (!visible) return null;
+
   return (
     <div
       className="absolute bottom-0 flex h-full items-end justify-center bg-[#0C0D1199]"
@@ -31,20 +33,20 @@ export default function ChatListModal({
             <path
               d="M3.5 3H43.5"
               stroke="#545454"
-              stroke-width="6"
-              stroke-linecap="round"
+              strokeWidth="6"
+              strokeLinecap="round"
             />
-          </svg>{" "}
+          </svg>
         </div>
         <div className="flex flex-col gap-[23px] px-5">
           <div className="label1 text-[var(--color-grey-550)]">
-            {selectedChat.opponentName}
+            {targetName}
           </div>
           <button
             className="title2 cursor-pointer text-left text-[#D2636A]"
             onClick={() => {
               onClose();
-              onDeleteClick(selectedChat.roomId);
+              onConfirm();
             }}
           >
             삭제

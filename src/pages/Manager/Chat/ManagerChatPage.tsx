@@ -122,7 +122,7 @@ export default function ManagerChatPage() {
 
   // 프로필 이동
   const goToProfile = () => {
-    navigate("/chat/profile");
+    navigate("/chat/rooms/profile");
   };
 
   return (

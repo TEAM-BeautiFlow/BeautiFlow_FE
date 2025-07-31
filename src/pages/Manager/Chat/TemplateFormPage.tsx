@@ -2,6 +2,9 @@ import { useState } from "react";
 import TemplateHeader from "./components/TemplateHeader";
 import ChatHeader from "./components/ChatHeader";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
+import SendTimingModal from "./components/SendingTimingModal";
+import ActivationModal from "./components/ActivationModal";
+import TargetModal from "./components/TargetModal";
 
 type Props = {
   onClose: () => void;
@@ -9,6 +12,11 @@ type Props = {
 export default function TemplateFormPage({ onClose }: Props) {
   const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
   const [text, setText] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTiming, setSelectedTiming] = useState<string>("");
+  const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
+  const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
+  const [selectedTargets, setSelectedTargets] = useState<string[]>(["전체"]);
 
   return (
     <div className="mx-auto flex w-[375px] flex-col bg-[var(--color-grey-1000)]">
@@ -46,7 +54,10 @@ export default function TemplateFormPage({ onClose }: Props) {
         </div>
         <div className="body2 flex h-[45px] w-full justify-between rounded-[6px] border-[1px] border-[var(--color-grey-650)] bg-[var(--color-grey-950)] px-4 py-[12px] text-[var(--color-grey-150)]">
           활성화
-          <button className="cursor-pointer">
+          <button
+            onClick={() => setIsActivationModalOpen(true)}
+            className="cursor-pointer"
+          >
             <svg
               width="24"
               height="24"
@@ -81,7 +92,10 @@ export default function TemplateFormPage({ onClose }: Props) {
         <div className="relative flex gap-[7px]">
           <div className="body2 flex h-[45px] w-full justify-between rounded-[6px] border-[1px] border-[var(--color-grey-650)] bg-[var(--color-grey-950)] px-4 py-[12px] text-[var(--color-grey-150)]">
             시술 전
-            <button className="cursor-pointer">
+            <button
+              onClick={() => setShowModal(true)}
+              className="cursor-pointer"
+            >
               <svg
                 width="24"
                 height="24"
@@ -119,8 +133,12 @@ export default function TemplateFormPage({ onClose }: Props) {
           <span className="text-[#D2636A]">*</span>
         </div>
         <div className="body2 flex h-[45px] w-full justify-between rounded-[6px] border-[1px] border-[var(--color-grey-650)] bg-[var(--color-grey-950)] px-4 py-[12px] text-[var(--color-grey-150)]">
-          전체
-          <button className="cursor-pointer">
+          {selectedTargets.join(", ")}
+
+          <button
+            onClick={() => setIsTargetModalOpen(true)}
+            className="cursor-pointer"
+          >
             <svg
               width="24"
               height="24"
@@ -157,6 +175,26 @@ export default function TemplateFormPage({ onClose }: Props) {
         </div>
       </div>
       <ManagerNavbar />
+
+      <SendTimingModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={value => console.log("선택된 값:", value)}
+      />
+      <ActivationModal
+        visible={isActivationModalOpen}
+        onClose={() => setIsActivationModalOpen(false)}
+        onConfirm={status => console.log("선택된 활성화 상태:", status)}
+      />
+      <TargetModal
+        visible={isTargetModalOpen}
+        onClose={() => setIsTargetModalOpen(false)}
+        selected={selectedTargets}
+        onConfirm={selected => {
+          setSelectedTargets(selected);
+          setIsTargetModalOpen(false);
+        }}
+      />
     </div>
   );
 }

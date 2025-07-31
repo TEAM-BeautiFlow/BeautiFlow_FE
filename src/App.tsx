@@ -13,6 +13,9 @@ import UserChatPage from "./pages/User/Chat/UserChatPage";
 import ChatProfile from "./pages/User/Chat/ChatProfile";
 import ChatProfilePage from "./pages/Manager/Chat/ChatProfilePage";
 import ClientListPage from "./pages/Manager/Client/ClientListPage";
+import ClientPage from "./pages/Manager/Client/ClientPage";
+import ModifyPage from "./pages/Manager/Client/ModifyPage";
+import GroupSet from "./pages/Manager/Chat/GroupSet";
 
 const router = createBrowserRouter([
   {
@@ -36,28 +39,31 @@ const router = createBrowserRouter([
         path: "user/chat/rooms",
         element: <UserChatListPage />,
       },
+
       {
         path: "user/chat/rooms/:roomId",
         element: <UserChatPage />,
       },
+
       {
         path: "chat/rooms",
         element: <ManagerChatListPage />,
       },
+      { path: "chat/rooms/groupset", element: <GroupSet /> },
       {
         path: "chat/rooms/:roomId",
         element: <ManagerChatPage />,
       },
       {
-        path: "groupchat",
+        path: "chat/rooms/groupchat",
         element: <GroupChatPage />,
       },
       {
-        path: "chat/profile/:opponentId",
+        path: "chat/rooms/profile/:opponentId",
         element: <ChatProfile />,
       },
       {
-        path: "chat/profile",
+        path: "chat/rooms/profile",
         element: <ChatProfilePage />,
       },
       {
@@ -75,6 +81,8 @@ const router = createBrowserRouter([
         ),
       },
       { path: "client", element: <ClientListPage /> },
+      { path: "client/page", element: <ClientPage /> },
+      { path: "client/page/modify", element: <ModifyPage /> },
     ],
   },
 ]);
