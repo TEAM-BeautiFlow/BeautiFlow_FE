@@ -80,13 +80,14 @@
 //   );
 // }
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import useChatSocket from "../../../hooks/useChatSocket";
 import ChatHeader from "./components/ChatHeader";
 import ChatInput from "./components/ChatInput";
 import ChatRoomModal from "./components/ChatRoomModal";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface Message {
   sender: "me" | "you";
@@ -102,14 +103,43 @@ export default function ManagerChatPage() {
   // 수신 메시지 처리
   const handleIncomingMessage = (msg: any) => {
     const parsed = JSON.parse(msg.body);
+    const mySenderType = localStorage.getItem("senderType");
     setMessages(prev => [
       ...prev,
       {
-        sender: parsed.senderType === "DESIGNER" ? "me" : "you",
+        sender: parsed.senderType === mySenderType ? "me" : "you",
         text: parsed.content,
       },
     ]);
   };
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const senderType = localStorage.getItem("senderType");
+
+        const response = await axios.get(`/chat/rooms/${roomId}/messages`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const fetchedMessages = response.data.map((msg: any) => ({
+          sender: msg.senderType === senderType ? "me" : "you",
+          text: msg.content,
+        }));
+
+        setMessages(fetchedMessages);
+      } catch (error) {
+        console.error("이전 메시지 불러오기 실패", error);
+      }
+    };
+
+    if (roomId) {
+      fetchMessages();
+    }
+  }, [roomId]);
 
   // WebSocket 연결 + 전송 함수
   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
