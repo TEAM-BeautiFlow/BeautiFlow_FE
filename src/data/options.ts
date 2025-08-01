@@ -4,72 +4,72 @@ export interface Option {
   name: string;
   price: string;
   description: string;
+  time?: string; // 새로운 time 속성 추가 (선택적)
 }
 
 export const fingerOptions: Option[] = [
   {
     id: 'basic',
-    name: '기본',
-    price: '34,000원',
-    description: '젤리큐어(톤업)'
+    name: '없음',
+    price: '0원',
+    description: '젤 제거를 하지 않는 경우'
   },
   {
     id: 'care',
-    name: '케어',
-    price: '사진 +3,000원',
-    description: '젤리큐어(톤업)'
+    name: '자샵',
+    price: '10,000원',
+    description: '젤 제거 (자샵)',
+    time: '30분' // 시간 정보 별도 필드로 분리
   },
   {
     id: 'premium',
-    name: '프리미엄',
-    price: '사진 +5,000원',
-    description: '젤리큐어(톤업)'
+    name: '타샵',
+    price: '10,000원',
+    description: '젤 제거 (타샵)',
+    time: '30분' // 시간 정보 별도 필드로 분리
   }
 ];
 
 export const toeOptions: Option[] = [
   {
     id: 'basic-toe',
-    name: '기본',
-    price: '34,000원',
-    description: '젤리큐어(톤업)'
+    name: '없음',
+    price: '0원',
+    description: '젤 연장을 하지 않는 경우'
   },
   {
     id: 'simple-toe',
     name: '1-5개',
-    price: '사진 +3,000원',
-    description: '젤리큐어(톤업)'
+    price: '10,000원',
+    description: '젤 연장 (1-5개)',
+    time: '30분' // 시간 정보 별도 필드로 분리
   },
   {
     id: 'care-toe',
-    name: '6-9개',
-    price: '사진 +5,000원',
-    description: '젤리큐어(톤업)'
-  },
-  {
-    id: 'premium-toe',
-    name: '10개 이상',
-    price: '사진 +8,000원',
-    description: '젤리큐어(톤업)'
+    name: '6-10개',
+    price: '20,000원',
+    description: '젤 연장 (6-10개)',
+    time: '60분' // 시간 정보 별도 필드로 분리
   }
 ];
 
 export const managementOptions: Option[] = [
   {
     id: 'basic-mgmt',
-    name: '기본',
-    price: '34,000원',
-    description: '젤리큐어(톤업)'
+    name: '없음',
+    price: '0원',
+    description: '랩핑을 하지 않는 경우'
   },
   {
     id: 'special-mgmt',
-    name: '특수 유형',
-    price: '사진 +3,000원',
-    description: '젤리큐어(톤업)'
+    name: '떨어진 손톱 보수',
+    price: '10,000원',
+    description: '떨어진 손톱 보수 (1개당)',
+    time: '30분' // 시간 정보 별도 필드로 분리
   }
 ];
 
-// 추가 옵션 카테고리 예시
+// 추가 옵션 카테고리 예시 (기존 데이터 유지)
 export const additionalOptions: Option[] = [
   {
     id: 'art-basic',
@@ -122,7 +122,7 @@ export const findOptionById = (optionId: string): Option | undefined => {
 };
 
 export const calculateTotalPrice = (selectedOptions: Record<string, string>): number => {
-  let total = 34000;
+  let total = 34000; // 기본 가격 (예시)
   
   Object.values(selectedOptions).forEach(optionId => {
     const option = findOptionById(optionId);
@@ -132,6 +132,9 @@ export const calculateTotalPrice = (selectedOptions: Record<string, string>): nu
         const additionalPrice = parseInt(priceMatch[1].replace(',', ''));
         total += additionalPrice;
       }
+    } else if (option && !isNaN(parseInt(option.price.replace(',', '')))) {
+      // '+'가 없는 순수 가격도 더하도록 수정
+      total += parseInt(option.price.replace(',', ''));
     }
   });
   
