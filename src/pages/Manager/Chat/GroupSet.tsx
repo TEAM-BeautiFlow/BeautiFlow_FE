@@ -28,12 +28,15 @@ export default function GroupSet() {
 
   const isSelected = (item: string, list: string[]) => list.includes(item);
 
+  const goBack = () => {
+    navigate(-1);
+  };
   return (
     <div className="mx-auto h-screen w-[375px] bg-[var(--color-grey-1000)]">
       {/* 상단 */}
       <div className="flex items-center justify-between px-5 py-3 pt-14">
         <div className="flex items-center gap-2">
-          <button>
+          <button onClick={goBack} className="cursor-pointer">
             <svg
               width="24"
               height="24"

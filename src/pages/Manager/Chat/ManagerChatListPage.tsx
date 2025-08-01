@@ -74,39 +74,44 @@ export default function ManagerChatListPage() {
   // }, []);
 
   // chat room 생성
-  // const handleCreateRoom = async () => {
-  //   try {
-  //     const token = localStorage.getItem("accessToken");
-  //     if (!token) {
-  //       console.error("Access Token이 없습니다.");
-  //       return;
-  //     }
+  const handleCreateRoom = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const shopId = Number(localStorage.getItem("shopId"));
+      const designerId = Number(localStorage.getItem("designerId"));
 
-  //     const response = await axios.post(
-  //       "/chat/rooms",
-  //       {
-  //         shopId: 1,
-  //         customerId: 3,
-  //         designerId: 7,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
+      // if (!token || !designerId || !shopId || !selectedCustomerId) {
+      if (!token || !designerId || !shopId) {
+        console.error("정보가 부족합니다.");
+        return;
+      }
 
-  //     const roomId = response.data.roomId;
-  //     navigate(`/chat/rooms/${roomId}`);
-  //   } catch (error) {
-  //     console.error("채팅방 생성 실패", error);
-  //   }
-  // };
+      const response = await axios.post(
+        "/chat/rooms",
+        {
+          shopId,
+          customerId: 3, // 임의값
+          // customerId: selectedCustomerId, 버튼 클릭 등으로 선택된 고객 정보에서 받아와야 합
+          designerId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-  const handleCreateRoom = () => {
-    // 이 부분에서 원하는 페이지로 이동
-    navigate("/chat/rooms/groupset");
+      const roomId = response.data.roomId;
+      navigate(`/chat/rooms/${roomId}`);
+    } catch (error) {
+      console.error("채팅방 생성 실패", error);
+    }
   };
+
+  // const handleCreateRoom = () => {
+  //   // 이 부분에서 원하는 페이지로 이동
+  //   navigate("/chat/rooms/groupset");
+  // };
 
   // room 클릭 시 이동
   const handleChatClick = (roomId: number) => {
