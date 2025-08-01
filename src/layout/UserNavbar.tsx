@@ -13,7 +13,7 @@ type NavItem = {
 const NAV_LINKS: NavItem[] = [
   { to: "/store", label: "매장", icon: StoreIcon },
   {
-    to: "/userchat",
+    to: "/user/chat/rooms",
     label: "채팅",
     icon: ChatIcon,
   },

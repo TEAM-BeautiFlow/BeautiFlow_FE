@@ -5,12 +5,38 @@ import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { ChatList } from "../../../types/chatlist";
-import ChatListModal from "./components/ChatListModal";
 import ChatRoomList from "./components/ChatRoomList";
+import DeleteModal from "../../../components/DeleteModal";
+
+// dummy
+const dummyChats: ChatList[] = [
+  {
+    roomId: 1,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
+  },
+  {
+    roomId: 2,
+    shopId: 2,
+    shopName: "가게이름",
+    opponentId: 1,
+    opponentName: "상대방 이름",
+    lastMessageContent:
+      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
+    lastMessageTime: "2025-07-21T15:00:00",
+    unreadCount: 9,
+  },
+];
 
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats, setChats] = useState<ChatList[]>([]);
+  const [chats, setChats] = useState<ChatList[]>(dummyChats);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const navigate = useNavigate();
@@ -20,10 +46,10 @@ export default function ManagerChatListPage() {
   //   const fetchChatList = async () => {
   //     try {
   //       // 개발용 accessToken 임시 저장
-  //       const devToken = "chattest"; // 테스트용 토큰
+  //       const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
   //       if (!localStorage.getItem("accessToken")) {
   //         localStorage.setItem("accessToken", devToken);
-  //         console.log("💡 개발용 accessToken이 저장되었습니다.");
+  //         console.log("개발용 accessToken이 저장되었습니다.");
   //       }
 
   //       const token = localStorage.getItem("accessToken");
@@ -51,17 +77,22 @@ export default function ManagerChatListPage() {
   const handleCreateRoom = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("Access Token이 없습니다.");
+      const shopId = Number(localStorage.getItem("shopId"));
+      const designerId = Number(localStorage.getItem("designerId"));
+
+      // if (!token || !designerId || !shopId || !selectedCustomerId) {
+      if (!token || !designerId || !shopId) {
+        console.error("정보가 부족합니다.");
         return;
       }
 
       const response = await axios.post(
         "/chat/rooms",
         {
-          shopId: 1,
-          customerId: 3,
-          designerId: 7,
+          shopId,
+          customerId: 3, // 임의값
+          // customerId: selectedCustomerId, 버튼 클릭 등으로 선택된 고객 정보에서 받아와야 합
+          designerId,
         },
         {
           headers: {
@@ -76,6 +107,11 @@ export default function ManagerChatListPage() {
       console.error("채팅방 생성 실패", error);
     }
   };
+
+  // const handleCreateRoom = () => {
+  //   // 이 부분에서 원하는 페이지로 이동
+  //   navigate("/chat/rooms/groupset");
+  // };
 
   // room 클릭 시 이동
   const handleChatClick = (roomId: number) => {
@@ -154,10 +190,11 @@ export default function ManagerChatListPage() {
       <ManagerNavbar />
       {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
-        <ChatListModal
-          selectedChat={selectedChat}
-          onClose={closeBottomSheet}
-          onDeleteClick={openAlert}
+        <DeleteModal
+          visible={!!selectedChat}
+          targetName={selectedChat?.opponentName || ""}
+          onClose={() => setSelectedChat(null)}
+          onConfirm={() => openAlert(selectedChat.roomId)}
         />
       )}
       <DeleteConfirmModal
