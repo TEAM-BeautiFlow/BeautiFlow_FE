@@ -55,13 +55,15 @@ export default function GroupSet() {
           </button>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-base text-white">발송 상대 초대</span>
+          <span className="label1 text-[var(--color-grey-150)]">
+            발송 상대 초대
+          </span>
         </div>
         <span
           onClick={sendMessage}
-          className={`flex cursor-pointer items-center justify-center ${
+          className={`label2 flex cursor-pointer items-center justify-center ${
             selectedGroups.length > 0 || selectedCustomers.length > 0
-              ? "text-[var(--color-purple)]"
+              ? "text-[var(--color-light-purple)]"
               : "text-[var(--color-grey-650)]"
           }`}
         >
@@ -91,7 +93,7 @@ export default function GroupSet() {
                 }
               >
                 <span
-                  className={`${isSelected(group, selectedGroups) ? "text-[var(--color-purple)]" : "text-[var(--color-grey-150)]"}`}
+                  className={`${isSelected(group, selectedGroups) ? "text-[var(--color-light-purple)]" : "text-[var(--color-grey-150)]"}`}
                 >
                   {group}
                 </span>
@@ -141,7 +143,7 @@ function CheckIcon() {
     >
       <path
         d="M18.0001 7L9.0507 16L4.5 11.4494"
-        stroke="#A83DFF"
+        stroke="var(--color-light-purple)"
         stroke-width="1.5"
         stroke-linecap="round"
         stroke-linejoin="round"
