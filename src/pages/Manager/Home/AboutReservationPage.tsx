@@ -1,0 +1,273 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+interface ReservationDetailPageProps {
+  onBack?: () => void;
+  onClose?: () => void;
+  onStatusChange?: () => void;
+  onChat?: () => void;
+}
+
+interface StatusModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onStatusSelect: (status: string) => void;
+  currentStatus: string;
+}
+
+function StatusModal({
+  isOpen,
+  onClose,
+  onStatusSelect,
+  currentStatus,
+}: StatusModalProps) {
+  const statusOptions = [
+    { id: "확정 대기", label: "확정 대기" },
+    { id: "예약 확정", label: "예약 확정" },
+    { id: "취소", label: "취소" },
+    { id: "노쇼", label: "노쇼" },
+    { id: "시술 완료", label: "시술 완료" },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-end justify-center duration-200">
+      {/* Overlay */}
+      <div
+        className="bg-opacity-60 absolute inset-0 bg-[#0c0d11] transition-opacity duration-200"
+        onClick={onClose}
+      />
+
+      {/* Bottom Sheet */}
+      <div className="relative mx-auto w-full max-w-[375px] transform rounded-t-lg bg-[#3a3a3a] pb-6 shadow-2xl transition-transform duration-300 ease-out">
+        <div className="px-5 py-6">
+          <h3 className="mb-6 text-lg font-semibold text-[#fafafa]">
+            활성화 상태
+          </h3>
+
+          <div className="space-y-4">
+            {statusOptions.map(option => (
+              <button
+                key={option.id}
+                onClick={() => onStatusSelect(option.id)}
+                className="flex w-full items-center space-x-3 py-1"
+              >
+                <div className="flex h-6 w-6 items-center justify-center">
+                  {currentStatus === option.id ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" fill="#a83dff" />
+                      <path
+                        d="M9 12l2 2 4-4"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <div className="h-6 w-6 rounded-full border-2 border-[#6e6e6e]" />
+                  )}
+                </div>
+                <span className="text-sm text-[#f3f3f3]">{option.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Confirm Button */}
+          <button
+            onClick={onClose}
+            className="mt-6 w-full rounded bg-[#a83dff] py-4 text-base font-semibold text-[#f3f3f3]"
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AboutReservationPage({
+  onBack,
+  onClose,
+  onStatusChange,
+  onChat,
+}: ReservationDetailPageProps = {}) {
+  const navigate = useNavigate();
+  const [currentStatus, setCurrentStatus] = useState("확정 대기");
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1); // 이전 페이지로 이동
+    }
+  };
+
+  const handleStatusChange = () => {
+    setIsStatusModalOpen(true);
+    onStatusChange?.();
+  };
+
+  const handleStatusSelect = (status: string) => {
+    setCurrentStatus(status);
+  };
+
+  const handleModalClose = () => {
+    setIsStatusModalOpen(false);
+  };
+  return (
+    <>
+      <div className="mx-auto min-h-screen w-[375px] bg-[#1a1a1a] text-white">
+        {/* Header */}
+        <div className="relative flex h-[60px] items-center justify-between px-5 py-4">
+          <button onClick={handleBack} className="h-6 w-6">
+            <svg viewBox="0 0 24 24" fill="none" className="h-full w-full">
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#f3f3f3"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          <h1 className="absolute left-1/2 -translate-x-1/2 transform text-base font-semibold text-[#f3f3f3]">
+            예약 세부 내역
+          </h1>
+
+          <div className="h-6 w-6"></div>
+        </div>
+
+        {/* Status Section */}
+        <div className="flex items-center justify-between px-5 py-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[#b270ea]">
+              {currentStatus}
+            </h2>
+            <p className="mt-1 text-sm leading-[21px] text-[#8e8e8e]">
+              예약금 입금 여부를 확인하고
+              <br />
+              예약 확정 상태로 변경해주세요.
+            </p>
+          </div>
+          <button
+            onClick={handleStatusChange}
+            className="rounded-lg border border-[#6e6e6e] px-4 py-2 text-sm text-[#f3f3f3]"
+          >
+            상태 변경
+          </button>
+        </div>
+
+        {/* Service Info Section */}
+        <div className="px-5 py-4">
+          <h3 className="mb-4 text-lg font-medium text-[#f3f3f3]">시술 정보</h3>
+          <div className="space-y-3 rounded bg-[#3a3a3a] p-4">
+            <div>
+              <h4 className="text-lg font-semibold text-[#e8e8e8]">
+                이달의 아트 (9월)
+              </h4>
+              <p className="mt-1 text-sm text-[#bdbebd]">
+                2025.07.07 13:00 | 1시간 30분
+              </p>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-[#8e8e8e]">젤제거술</span>
+                <span className="font-semibold text-[#f3f3f3]">없음</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8e8e8e]">연장개수</span>
+                <span className="font-semibold text-[#f3f3f3]">1~5개</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8e8e8e]">그외옵션</span>
+                <span className="font-semibold text-[#f3f3f3]">
+                  네일보습, 케이터링, 데모데이
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Info Section */}
+        <div className="px-5 py-4">
+          <h3 className="mb-2 text-lg font-medium text-[#f3f3f3]">결제 정보</h3>
+          <p className="mb-4 text-sm leading-[21px] text-[#8e8e8e]">
+            매장에서 결제할 금액은
+            <br />
+            전체 시술 금액에서 예약금을 제외한 값이에요.
+          </p>
+
+          <div className="space-y-4 rounded bg-[#3a3a3a] p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-base text-[#bdbebd]">받을 예약금</span>
+              <span className="text-base font-semibold text-[#a83dff]">
+                30,000원
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-base text-[#bdbebd]">
+                매장에서 결제할 금액
+              </span>
+              <span className="text-base font-semibold text-[#f3f3f3]">
+                90,000원
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* Customer Info Section */}
+        <div className="px-5 py-4">
+          <h3 className="mb-4 text-lg font-medium text-[#f3f3f3]">고객 정보</h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-[#3a3a3a]"></div>
+              <div>
+                <span className="text-base font-semibold text-[#f3f3f3]">
+                  손하늘
+                </span>
+                <p className="text-sm text-[#8e8e8e]">010-1234-5678</p>
+              </div>
+            </div>
+            <button
+              onClick={onChat}
+              className="flex items-center space-x-2 rounded-lg bg-[#3a3a3a] px-3 py-2"
+            >
+              <span className="text-sm font-semibold text-[#bdbebd]">채팅</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path
+                  d="M11.4668 0.533203L0.466797 5.53503L4.46663 6.53503L10.4666 2.53503L6.46663 8.53503L7.46663 12.5332L11.4668 0.533203Z"
+                  fill="#bdbebd"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Customer Photos */}
+          <div className="mt-4 flex space-x-2">
+            <div className="h-20 w-20 rounded bg-[#3a3a3a]"></div>
+            <div className="h-20 w-20 rounded bg-[#3a3a3a]"></div>
+          </div>
+
+          {/* Customer Message */}
+          <div className="mt-4 rounded bg-[#262626] p-4">
+            <p className="text-sm text-[#f3f3f3]">
+              최대한 빠른 시술 부탁드립니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Status Modal */}
+      <StatusModal
+        isOpen={isStatusModalOpen}
+        onClose={handleModalClose}
+        onStatusSelect={handleStatusSelect}
+        currentStatus={currentStatus}
+      />
+    </>
+  );
+}
