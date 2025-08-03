@@ -21,4 +21,8 @@
   --color-grey-150: #F3F3F3;
   --color-grey-50:  #FAFAFA;
   --color-white: #FFFFFF;
-} 
+
+  /* Status Colors */
+  --color-status-dark-red: #4B2024;
+  --color-status-red: #D2636A;
+}
