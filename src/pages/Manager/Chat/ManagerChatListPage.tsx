@@ -47,13 +47,6 @@ export default function ManagerChatListPage() {
   // useEffect(() => {
   //   const fetchChatList = async () => {
   //     try {
-  //       // 개발용 accessToken 임시 저장
-  //       const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
-  //       if (!localStorage.getItem("accessToken")) {
-  //         localStorage.setItem("accessToken", devToken);
-  //         console.log("개발용 accessToken이 저장되었습니다.");
-  //       }
-
   //       const token = localStorage.getItem("accessToken");
   //       if (!token) {
   //         console.error("Access Token이 없습니다.");
@@ -65,7 +58,6 @@ export default function ManagerChatListPage() {
   //           Authorization: `Bearer ${token}`,
   //         },
   //       });
-
   //       setChats(response.data);
   //     } catch (error) {
   //       console.error("채팅 리스트 불러오기 실패", error);
@@ -92,7 +84,7 @@ export default function ManagerChatListPage() {
         "/chat/rooms",
         {
           shopId,
-          customerId: 3, // 임의값
+          customerId: "3", // 임의값 유효한 customerId 넣어야해요
           // customerId: selectedCustomerId, 버튼 클릭 등으로 선택된 고객 정보에서 받아와야 합
           designerId,
         },
@@ -106,7 +98,12 @@ export default function ManagerChatListPage() {
       const roomId = response.data.roomId;
       navigate(`/chat/rooms/${roomId}`);
     } catch (error) {
-      console.error("채팅방 생성 실패", error);
+      if (axios.isAxiosError(error)) {
+        console.error("채팅방 생성 실패", {
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+      }
     }
   };
 
@@ -150,10 +147,12 @@ export default function ManagerChatListPage() {
         },
       });
 
-      // 채팅 리스트 새로고침
-      setChats(prev => prev.filter(chat => chat.roomId !== selectedChatId));
+      setChats(prev =>
+        prev.map(chat =>
+          chat.roomId === selectedChatId ? { ...chat, isExited: true } : chat,
+        ),
+      );
 
-      // 상태 초기화 + 페이지 이동
       setSelectedChatId(null);
       setIsAlertOpen(false);
       navigate("/chat/rooms");

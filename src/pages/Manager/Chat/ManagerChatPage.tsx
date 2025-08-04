@@ -112,6 +112,8 @@ export default function ManagerChatPage() {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("roomId:", roomId);
+        console.log("메시지 응답", response.data);
 
         const fetchedMessages = response.data.map((msg: any) => ({
           sender: msg.senderType === senderType ? "me" : "you",
