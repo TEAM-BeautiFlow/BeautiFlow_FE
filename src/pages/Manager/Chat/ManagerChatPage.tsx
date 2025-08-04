@@ -100,25 +100,13 @@ export default function ManagerChatPage() {
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 수신 메시지 처리
-  const handleIncomingMessage = (msg: any) => {
-    const parsed = JSON.parse(msg.body);
-    const mySenderType = localStorage.getItem("senderType");
-    setMessages(prev => [
-      ...prev,
-      {
-        sender: parsed.senderType === mySenderType ? "me" : "you",
-        text: parsed.content,
-      },
-    ]);
-  };
-
+  // 채팅 내역 불러오기
   useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const senderType = localStorage.getItem("senderType");
+
     const fetchMessages = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        const senderType = localStorage.getItem("senderType");
-
         const response = await axios.get(`/chat/rooms/${roomId}/messages`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,18 +124,27 @@ export default function ManagerChatPage() {
       }
     };
 
-    if (roomId) {
-      fetchMessages();
-    }
+    fetchMessages();
   }, [roomId]);
+  // 메시지 처리
+  const handleIncomingMessage = (msg: any) => {
+    const parsed = JSON.parse(msg.body);
+    const mySenderType = localStorage.getItem("senderType");
+    setMessages(prev => [
+      ...prev,
+      {
+        sender: parsed.senderType === mySenderType ? "me" : "you",
+        text: parsed.content,
+      },
+    ]);
+  };
 
   // WebSocket 연결 + 전송 함수
   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
 
-  // 메시지 전송 (예: ChatInput에서 호출)
+  // 메시지 전송
   const handleSend = (text: string) => {
     sendMessage(text);
-    setMessages(prev => [...prev, { sender: "me", text }]);
   };
 
   // 프로필 이동

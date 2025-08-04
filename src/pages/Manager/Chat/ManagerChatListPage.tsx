@@ -20,6 +20,7 @@ const dummyChats: ChatList[] = [
       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
     lastMessageTime: "2025-07-21T15:00:00",
     unreadCount: 9,
+    isExited: false,
   },
   {
     roomId: 2,
@@ -31,6 +32,7 @@ const dummyChats: ChatList[] = [
       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
     lastMessageTime: "2025-07-21T15:00:00",
     unreadCount: 9,
+    isExited: true,
   },
 ];
 
@@ -139,9 +141,33 @@ export default function ManagerChatListPage() {
   const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
-  const handleDeleteChat = () => {
-    // 삭제 로직 구현해야함
-    console.log("채팅 삭제됨!");
+  const handleDeleteChat = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      await axios.patch(`/chat/rooms/${roomId}/exit`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // 채팅 리스트 새로고침
+      setChats(prev => prev.filter(chat => chat.roomId !== selectedChatId));
+
+      // 상태 초기화 + 페이지 이동
+      setSelectedChatId(null);
+      setIsAlertOpen(false);
+      navigate("/chat/rooms");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("채팅방 나가기 실패", {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+      } else {
+        console.error("알 수 없는 오류", error);
+      }
+    }
   };
 
   return (
@@ -155,14 +181,16 @@ export default function ManagerChatListPage() {
       </div>
       {/* 채팅 리스트 */}
       <div className="mt-3 flex-1 overflow-y-auto">
-        {chats.map(chat => (
-          <ChatRoomList
-            key={chat.roomId}
-            chat={chat}
-            onRightClick={openBottomSheet}
-            onClick={handleChatClick}
-          />
-        ))}
+        {chats
+          .filter(chat => !chat.isExited)
+          .map(chat => (
+            <ChatRoomList
+              key={chat.roomId}
+              chat={chat}
+              onRightClick={openBottomSheet}
+              onClick={handleChatClick}
+            />
+          ))}
       </div>
       {/* 버튼 */}
       <button
