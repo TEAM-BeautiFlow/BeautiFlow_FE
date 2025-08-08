@@ -16,8 +16,13 @@ import ClientListPage from "./pages/Manager/Client/ClientListPage";
 import ClientPage from "./pages/Manager/Client/ClientPage";
 import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
+import LoginPage from "./pages/Login/LoginPage";
+import SignupPage from "./pages/Signup/SignupPage";
 
 const router = createBrowserRouter([
+  // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
+  { path: "/login", element: <LoginPage /> },
+  { path: "/signup", element: <SignupPage /> },
   {
     path: "/",
     element: <Layout />,
