@@ -13,7 +13,7 @@ export default function ClientCard({
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate("/client/page");
+    navigate("mangedCustomer/:customerId");
   };
 
   return (

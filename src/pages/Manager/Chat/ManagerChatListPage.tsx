@@ -44,48 +44,56 @@ export default function ManagerChatListPage() {
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
-  // useEffect(() => {
-  //   const fetchChatList = async () => {
-  //     try {
-  //       const token = localStorage.getItem("accessToken");
-  //       if (!token) {
-  //         console.error("Access Token이 없습니다.");
-  //         return;
-  //       }
+  useEffect(() => {
+    const fetchChatList = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          console.error("Access Token이 없습니다.");
+          return;
+        }
 
-  //       const response = await axios.get("/chat/rooms", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-  //       setChats(response.data);
-  //     } catch (error) {
-  //       console.error("채팅 리스트 불러오기 실패", error);
-  //     }
-  //   };
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        setChats(response.data);
+      } catch (error) {
+        console.error("채팅 리스트 불러오기 실패", error);
+      }
+    };
 
-  //   fetchChatList();
-  // }, []);
+    fetchChatList();
+  }, []);
 
   // chat room 생성
   const handleCreateRoom = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const shopId = Number(localStorage.getItem("shopId"));
-      const designerId = Number(localStorage.getItem("designerId"));
+      // **유효한 값 입력**
+      const shopId = 1;
+      const designerId = 3;
+      // const shopId = localStorage.getItem("shopId");
+      // const designerId = localStorage.getItem("designerId");
+      // const res = await axios.get("/customers");
+      // setCustomers(res.data);
 
-      // if (!token || !designerId || !shopId || !selectedCustomerId) {
       if (!token || !designerId || !shopId) {
         console.error("정보가 부족합니다.");
         return;
       }
 
       const response = await axios.post(
-        "/chat/rooms",
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
         {
           shopId,
-          customerId: "3", // 임의값 유효한 customerId 넣어야해요
-          // customerId: selectedCustomerId, 버튼 클릭 등으로 선택된 고객 정보에서 받아와야 합
+          // **유효한 값 입력**
+          customerId: 1,
+          //  customerId: selectedCustomerId,
           designerId,
         },
         {
@@ -100,6 +108,8 @@ export default function ManagerChatListPage() {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("채팅방 생성 실패", {
+          message: error.message,
+          response: error.response,
           status: error.response?.status,
           data: error.response?.data,
         });
@@ -141,11 +151,15 @@ export default function ManagerChatListPage() {
   const handleDeleteChat = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      await axios.patch(`/chat/rooms/${roomId}/exit`, null, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/exit`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       setChats(prev =>
         prev.map(chat =>

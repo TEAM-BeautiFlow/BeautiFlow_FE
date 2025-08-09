@@ -7,6 +7,7 @@ export type ChatList = {
   lastMessageContent: string;
   lastMessageTime: string;
   unreadCount: number;
+  isExited: boolean;
 };
 
 export type CustomerList = {

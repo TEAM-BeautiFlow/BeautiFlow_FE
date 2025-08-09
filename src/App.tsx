@@ -85,9 +85,9 @@ const router = createBrowserRouter([
           />
         ),
       },
-      { path: "client", element: <ClientListPage /> },
-      { path: "client/page", element: <ClientPage /> },
-      { path: "client/page/modify", element: <ModifyPage /> },
+      { path: "mangedCustomer", element: <ClientListPage /> },
+      { path: "mangedCustomer/:customerId", element: <ClientPage /> },
+      { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
     ],
   },
 ]);

@@ -42,7 +42,7 @@ export default function ClientPage() {
         rightContent={
           <span className="label2 text-[var(--color-purple)]">수정</span>
         }
-        onRightClick={() => navigate("/client/page/modify")}
+        onRightClick={() => navigate("/mangedCustomer/:customerId/modify")}
       />
 
       {/* 개인정보 */}

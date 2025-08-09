@@ -18,34 +18,38 @@ export default function ManagerChatPage() {
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 채팅 내역 불러오기
-  useEffect(() => {
+  // fetch
+  const fetchMessages = async () => {
     const token = localStorage.getItem("accessToken");
     const senderType = localStorage.getItem("senderType");
-
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get(`/chat/rooms/${roomId}/messages`, {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
+        {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
-        console.log("roomId:", roomId);
-        console.log("메시지 응답", response.data);
+        },
+      );
+      console.log("roomId:", roomId);
+      console.log("메시지 응답", response.data);
 
-        const fetchedMessages = response.data.map((msg: any) => ({
-          sender: msg.senderType === senderType ? "me" : "you",
-          text: msg.content,
-        }));
+      const fetchedMessages = response.data.map((msg: any) => ({
+        sender: msg.senderType === senderType ? "me" : "you",
+        text: msg.content,
+      }));
 
-        setMessages(fetchedMessages);
-      } catch (error) {
-        console.error("이전 메시지 불러오기 실패", error);
-      }
-    };
+      setMessages(fetchedMessages);
+    } catch (error) {
+      console.error("이전 메시지 불러오기 실패", error);
+    }
+  };
 
+  // 채팅 내역 불러오기
+  useEffect(() => {
     fetchMessages();
   }, [roomId]);
+
   // 메시지 처리
   const handleIncomingMessage = (msg: any) => {
     const parsed = JSON.parse(msg.body);
@@ -63,8 +67,36 @@ export default function ManagerChatPage() {
   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
 
   // 메시지 전송
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
+    const token = localStorage.getItem("accessToken");
+    const senderType = localStorage.getItem("senderType");
+    const senderId = localStorage.getItem("senderId");
     sendMessage(text);
+
+    // 프런트 확인용(지우기)
+    // setMessages(prev => [...prev, { sender: "me", text }]);
+    console.log("전송된 메시지:", text);
+
+    // 저장 API 호출
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
+        {
+          roomId,
+          senderId,
+          senderType,
+          content: text,
+          imageUrl: null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    } catch (error) {
+      console.error("메시지 저장 실패", error);
+    }
   };
 
   // 프로필 이동

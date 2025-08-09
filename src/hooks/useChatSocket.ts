@@ -9,14 +9,16 @@ export default function useChatSocket(
   const clientRef = useRef<Client | null>(null);
 
   useEffect(() => {
-    // 개발용 accessToken 임시 저장
-    const devToken = "chat-test"; // 테스트용 토큰
+    // **유효한 값 입력**
+    const devToken =
+      "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjA4MDU3YjUzZWY3MmY2ZTA1NjRjYzNkNjA4MjJiMDFhIiwidXNlcklkIjo0NSwiaWF0IjoxNzU0NjMxNTgzLCJleHAiOjE3NTQ2MzUxODN9.ierPEimliWFkWPI6ZT6ryd6sOtPbZgfqOrCpWKP_kJE"; // 테스트용 토큰
     if (!localStorage.getItem("accessToken")) {
       localStorage.setItem("accessToken", devToken);
       console.log("개발용 accessToken이 저장되었습니다.");
     }
-    localStorage.setItem("senderID", "3"); // 토큰에 맞는 sendId 넣어주세요 실제로는 localStorage에서 id 가져올 예정입니다
-    localStorage.setItem("senderType", "DESIGNER"); // 이것도 !
+    // **유효한 값 입력**
+    localStorage.setItem("senderId", "3");
+    localStorage.setItem("senderType", "DESIGNER");
 
     const token = localStorage.getItem("accessToken");
     const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/connect`);
