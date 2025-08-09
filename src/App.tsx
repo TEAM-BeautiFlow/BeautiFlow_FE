@@ -18,16 +18,20 @@ import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
+import KakaoCallbackPage from "./pages/Login/KakaoCallbackPage";
+import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
   { path: "/login", element: <LoginPage /> },
+  { path: "/auth/kakao/callback", element: <KakaoCallbackPage /> },
   { path: "/signup", element: <SignupPage /> },
   {
     path: "/",
     element: <Layout />,
     // errorElement: <NotFoundPage />,
     children: [
+      { index: true, element: <PostLoginRedirect /> },
       //     {
       //     index: true,
       //     element: <HomePage />

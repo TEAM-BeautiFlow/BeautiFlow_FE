@@ -1,10 +1,19 @@
 import { useState } from "react";
+import { sendPhoneCode, verifyPhoneCode } from "@/apis/login";
 
-export default function OnboardShopRegister() {
+type Props = {
+  onComplete?: (name: string, contact: string) => void;
+};
+
+export default function OnboardShopRegister({ onComplete }: Props) {
   const [shopName, setShopName] = useState("");
   const [shopAddress, setShopAddress] = useState("");
   const [shopAddressDetail, setShopAddressDetail] = useState("");
   const [bizNum, setBizNum] = useState("");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   const isFormValid = shopName && shopAddress && shopAddressDetail && bizNum;
 
@@ -44,6 +53,53 @@ export default function OnboardShopRegister() {
               required
             />
           </div>
+          {/* 휴대폰 인증 */}
+          <div>
+            <label className="label1 mb-2 flex items-center text-[var(--color-white)]">
+              휴대폰 인증 <span className="ml-1 text-[#D2636A]">*</span>
+            </label>
+            <div className="mb-4 flex gap-2">
+              <input
+                className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${phone ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
+                placeholder="연락처를 입력해주세요."
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  await sendPhoneCode(phone);
+                  setIsCodeSent(true);
+                }}
+                className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${phone && !isCodeSent ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
+                disabled={!phone || isCodeSent}
+              >
+                번호 인증
+              </button>
+            </div>
+            {isCodeSent && (
+              <div className="mb-4 flex gap-2">
+                <input
+                  className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${code ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
+                  placeholder="인증번호"
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await verifyPhoneCode(phone, code);
+                    setIsPhoneVerified(true);
+                  }}
+                  className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${code ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
+                  disabled={!code || isPhoneVerified}
+                >
+                  확인
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* 샵 주소 */}
           <div>
             <label className="label1 mb-2 flex items-center text-[var(--color-white)]">
@@ -89,6 +145,7 @@ export default function OnboardShopRegister() {
         </form>
         {/* 하단 버튼 */}
         <button
+          onClick={() => onComplete?.(shopName, shopAddress)}
           className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${isFormValid ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}
           disabled={!isFormValid}
         >
