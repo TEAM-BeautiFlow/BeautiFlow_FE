@@ -45,7 +45,6 @@ export default function DeleteModal({
           <button
             className="title2 cursor-pointer text-left text-[#D2636A]"
             onClick={() => {
-              onClose();
               onConfirm();
             }}
           >

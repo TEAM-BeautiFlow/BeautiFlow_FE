@@ -21,7 +21,6 @@ export default function ManagerChatPage() {
   // fetch
   const fetchMessages = async () => {
     const token = localStorage.getItem("accessToken");
-    const senderType = localStorage.getItem("senderType");
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
@@ -31,15 +30,19 @@ export default function ManagerChatPage() {
           },
         },
       );
-      console.log("roomId:", roomId);
-      console.log("메시지 응답", response.data);
+      console.log("response.data", response.data);
 
-      const fetchedMessages = response.data.map((msg: any) => ({
-        sender: msg.senderType === senderType ? "me" : "you",
-        text: msg.content,
-      }));
+      // 'response.data.data'로 배열에 접근
+      if (Array.isArray(response.data.data)) {
+        const fetchedMessages = response.data.data.map((msg: any) => ({
+          sender: msg.senderType === "STAFF" ? "me" : "you", // STAFF이면 'me', CUSTOMER이면 'you'
+          text: msg.content,
+        }));
 
-      setMessages(fetchedMessages);
+        setMessages(fetchedMessages); // 상태 업데이트
+      } else {
+        console.error("응답 데이터는 배열이 아닙니다.");
+      }
     } catch (error) {
       console.error("이전 메시지 불러오기 실패", error);
     }
@@ -53,11 +56,10 @@ export default function ManagerChatPage() {
   // 메시지 처리
   const handleIncomingMessage = (msg: any) => {
     const parsed = JSON.parse(msg.body);
-    const mySenderType = localStorage.getItem("senderType");
     setMessages(prev => [
       ...prev,
       {
-        sender: parsed.senderType === mySenderType ? "me" : "you",
+        sender: parsed.senderType === "STAFF" ? "me" : "you",
         text: parsed.content,
       },
     ]);

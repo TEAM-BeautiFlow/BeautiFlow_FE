@@ -41,6 +41,10 @@ export default function ManagerChatListPage() {
   const [chats, setChats] = useState<ChatList[]>(dummyChats);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
@@ -61,7 +65,16 @@ export default function ManagerChatListPage() {
             },
           },
         );
-        setChats(response.data);
+
+        // 안전하게 배열만 set
+        if (Array.isArray(response.data?.data)) {
+          const activeChats = response.data.data.filter(
+            (chat: ChatList) => !chat.isExited,
+          );
+          setChats(activeChats);
+        } else {
+          console.warn("채팅 리스트 응답이 배열이 아닙니다:", response.data);
+        }
       } catch (error) {
         console.error("채팅 리스트 불러오기 실패", error);
       }
@@ -103,7 +116,7 @@ export default function ManagerChatListPage() {
         },
       );
 
-      const roomId = response.data.roomId;
+      const roomId = response.data.data.roomId;
       navigate(`/chat/rooms/${roomId}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -128,7 +141,6 @@ export default function ManagerChatListPage() {
   };
 
   // 모달
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const openBottomSheet = (chat: ChatList) => {
     setSelectedChat(chat);
     setIsBottomSheetOpen(true);
@@ -140,19 +152,26 @@ export default function ManagerChatListPage() {
   };
 
   // 모달2
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const openAlert = (roomId: number) => {
     setSelectedChatId(roomId);
     setIsAlertOpen(true);
+    setIsBottomSheetOpen(false);
   };
   const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
   const handleDeleteChat = async () => {
+    if (!selectedChatId) return;
+
     const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Access Token이 없습니다.");
+      return;
+    }
     try {
+      setDeleting(true);
       await axios.patch(
-        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/exit`,
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${selectedChatId}/exit`,
         null,
         {
           headers: {
@@ -161,15 +180,11 @@ export default function ManagerChatListPage() {
         },
       );
 
-      setChats(prev =>
-        prev.map(chat =>
-          chat.roomId === selectedChatId ? { ...chat, isExited: true } : chat,
-        ),
-      );
+      setChats(prev => prev.filter(c => c.roomId !== selectedChatId));
 
       setSelectedChatId(null);
       setIsAlertOpen(false);
-      navigate("/chat/rooms");
+      setDeleting(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("채팅방 나가기 실패", {
@@ -229,19 +244,24 @@ export default function ManagerChatListPage() {
       </button>
       {/* 하단 */}
       <ManagerNavbar />
+
       {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
         <DeleteModal
           visible={!!selectedChat}
-          targetName={selectedChat?.opponentName || ""}
-          onClose={() => setSelectedChat(null)}
+          targetName={selectedChat.opponentName ?? ""}
+          onClose={closeBottomSheet}
           onConfirm={() => openAlert(selectedChat.roomId)}
         />
       )}
       <DeleteConfirmModal
         isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
+        onClose={() => {
+          setIsAlertOpen(false);
+          setDeleting(false);
+        }}
         onDelete={handleDeleteChat}
+        confirmDisabled={deleting}
       />
     </div>
   );
