@@ -20,6 +20,8 @@ import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
 import KakaoCallbackPage from "./pages/Login/KakaoCallbackPage";
 import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
+import Mypage from "./pages/User/Mypage/Mypage";
+import ManagerMypage from "./pages/Manager/Mypage/Mypage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -92,6 +94,8 @@ const router = createBrowserRouter([
       { path: "client", element: <ClientListPage /> },
       { path: "client/page", element: <ClientPage /> },
       { path: "client/page/modify", element: <ModifyPage /> },
+      { path: "client/mypage", element: <Mypage /> },
+      { path: "manager/mypage", element: <ManagerMypage /> },
     ],
   },
 ]);
