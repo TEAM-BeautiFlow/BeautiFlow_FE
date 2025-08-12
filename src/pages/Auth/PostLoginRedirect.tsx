@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { login as requestLogin } from "@/apis/login";
+import { useAuthStore } from "@/stores/auth";
 
 export default function PostLoginRedirect() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export default function PostLoginRedirect() {
             try {
               localStorage.removeItem("postLoginRedirect");
             } catch {}
+            // 전역 상태에 사용자 프로바이더/카카오ID 저장
+            useAuthStore.getState().setUserInfo({ kakaoId, provider });
             if (provider) {
               try {
                 localStorage.setItem("loginProvider", provider);
@@ -45,9 +48,10 @@ export default function PostLoginRedirect() {
             try {
               // 기존 유저도 postLoginRedirect 무시하고 루트로 가기 위해 제거
               localStorage.removeItem("postLoginRedirect");
-              if (accessToken) localStorage.setItem("accessToken", accessToken);
-              if (refreshToken)
-                localStorage.setItem("refreshToken", refreshToken);
+              // 전역 상태에 토큰 저장 (localStorage 동기 반영됨)
+              useAuthStore.getState().setTokens({ accessToken, refreshToken });
+              // 유저 정보도 함께 저장
+              useAuthStore.getState().setUserInfo({ kakaoId, provider });
             } catch {}
             // 루트로 돌아가며 쿼리 정리
             navigate("/", { replace: true });
