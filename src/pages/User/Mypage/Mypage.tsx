@@ -73,8 +73,22 @@ export default function Mypage() {
         <MenuItem disabled={!isLoggedIn}>탈퇴하기</MenuItem>
         {/* 고객센터 */}
         <SectionTitle>고객센터</SectionTitle>
-        <MenuItem>자주 묻는 질문</MenuItem>
-        <MenuItem>공지사항</MenuItem>
+        <MenuItem
+          onClick={() =>
+            (window.location.href =
+              "https://pale-kale-a47.notion.site/24d18d2ded1580068e21ef4e52a2bdc0")
+          }
+        >
+          자주 묻는 질문
+        </MenuItem>
+        <MenuItem
+          onClick={() =>
+            (window.location.href =
+              "https://pale-kale-a47.notion.site/24d18d2ded1580feb8b0df6e262358e3")
+          }
+        >
+          공지사항
+        </MenuItem>
         {/* 약관 */}
         <SectionTitle>약관</SectionTitle>
         <MenuItem>이용약관</MenuItem>
@@ -101,22 +115,36 @@ function SectionTitle({ children }: { children: ReactNode }) {
 function MenuItem({
   children,
   disabled = false,
+  onClick,
 }: {
   children: ReactNode;
   disabled?: boolean;
+  onClick?: () => void;
 }) {
+  if (disabled || !onClick) {
+    return (
+      <div
+        className={
+          "body1 w-full bg-transparent px-0 py-3 text-left " +
+          (disabled
+            ? "pointer-events-none text-[var(--color-grey-550)]"
+            : "text-[var(--color-white)]")
+        }
+        aria-disabled={disabled}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={
-        "body1 w-full bg-transparent px-0 py-3 text-left " +
-        (disabled
-          ? "pointer-events-none text-[var(--color-grey-550)]"
-          : "text-[var(--color-white)]")
-      }
-      aria-disabled={disabled}
+    <button
+      type="button"
+      onClick={onClick}
+      className="body1 w-full bg-transparent px-0 py-3 text-left text-[var(--color-white)]"
     >
       {children}
-    </div>
+    </button>
   );
 }
 
