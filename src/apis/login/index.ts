@@ -22,6 +22,11 @@ export async function exchangeKakaoCode(code: string) {
   return data;
 }
 
+export async function login(loginKey: string) {
+  const { data } = await api.post("/users/login", { loginKey });
+  return data;
+}
+
 // 회원가입 API
 export async function postSignup(params: {
   kakaoId: string;

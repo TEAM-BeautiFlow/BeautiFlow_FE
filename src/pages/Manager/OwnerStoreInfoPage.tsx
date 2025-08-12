@@ -1,0 +1,208 @@
+import React, { useState } from 'react';
+import { ChevronLeft, X, Home, User, MessageSquare, Calendar, MoreHorizontal } from 'lucide-react';
+import '../../styles/color-system.css'; // 색상 시스템 임포트
+import '../../styles/type-system.css'; // 타입 시스템 임포트
+
+const OwnerStoreInfoPage = () => {
+  const [storeName, setStoreName] = useState('');
+  const [storeContact, setStoreContact] = useState('');
+  const [storeLocation, setStoreLocation] = useState('');
+
+  const MAX_LENGTH_NAME = 50;
+  const MAX_LENGTH_CONTACT = 50;
+  const MAX_LENGTH_LOCATION = 50;
+
+  const handleSave = () => {
+    console.log('매장 정보 저장:', { storeName, storeContact, storeLocation });
+    // 여기에 실제 저장 로직 (API 호출 등)을 구현합니다.
+  };
+
+  return (
+    <div className="max-w-sm mx-auto min-h-screen" style={{ 
+      backgroundColor: 'var(--color-black)',
+      color: 'var(--color-white)',
+      fontFamily: 'Pretendard, sans-serif' // Pretendard 폰트 적용
+    }}>
+      {/* Status Bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 20px',
+        fontSize: '16px',
+        fontWeight: '600'
+      }}>
+        <span>9:41</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '2px' }}>
+            <div style={{ width: '4px', height: '4px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+            <div style={{ width: '4px', height: '4px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+            <div style={{ width: '4px', height: '4px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+            <div style={{ width: '4px', height: '4px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+          </div>
+          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+            <rect x="1" y="3" width="18" height="6" rx="2" stroke="white" strokeWidth="1"/>
+            <rect x="20" y="4" width="2" height="4" rx="1" fill="white"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0 20px 24px', // Figma에 맞춰 패딩 조정
+        marginTop: '8px' // Figma에 맞춰 마진 조정
+      }}>
+        <ChevronLeft size={24} color="var(--color-white)" />
+        <h1 className="title1" style={{ color: 'var(--color-white)', margin: 0 }}>
+          매장 정보
+        </h1>
+        <button className="label1" style={{ color: 'var(--color-light-purple)', fontWeight: 'var(--font-weight-semibold)' }} onClick={handleSave}>
+          저장
+        </button>
+      </div>
+
+      {/* Content Area */}
+      <div style={{ padding: '0 20px 32px' }}> {/* Figma에 맞춰 패딩 조정 */}
+        {/* 매장명 입력 필드 */}
+        <div style={{ marginBottom: '24px' }}>
+          <label htmlFor="storeName" className="label1" style={{ color: 'var(--color-white)', marginBottom: '8px', display: 'block' }}>
+            매장명 <span style={{ color: 'var(--color-status-red)' }}>*</span>
+          </label>
+          <div style={{ position: 'relative' }}>
+            <input
+              id="storeName"
+              type="text"
+              placeholder="매장명을 입력해주세요"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              maxLength={MAX_LENGTH_NAME}
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--color-grey-850)',
+                border: '1px solid var(--color-grey-750)',
+                borderRadius: '8px',
+                padding: '16px',
+                color: 'var(--color-white)',
+                fontSize: '14px',
+                fontFamily: 'Pretendard, sans-serif',
+                outline: 'none'
+              }}
+            />
+            <span className="caption2" style={{ 
+              position: 'absolute',
+              bottom: '12px',
+              right: '16px',
+              color: 'var(--color-grey-450)'
+            }}>
+              {storeName.length}/{MAX_LENGTH_NAME}
+            </span>
+          </div>
+        </div>
+
+        {/* 매장 연락처 입력 필드 */}
+        <div style={{ marginBottom: '24px' }}>
+          <label htmlFor="storeContact" className="label1" style={{ color: 'var(--color-white)', marginBottom: '8px', display: 'block' }}>
+            매장 연락처
+          </label>
+          <p className="caption2" style={{ color: 'var(--color-grey-450)', marginBottom: '8px' }}>
+            하이픈(-) 없이 숫자만 입력해주세요.
+          </p>
+          <div style={{ position: 'relative' }}>
+            <input
+              id="storeContact"
+              type="text"
+              placeholder="매장 연락처를 입력해주세요"
+              value={storeContact}
+              onChange={(e) => setStoreContact(e.target.value)}
+              maxLength={MAX_LENGTH_CONTACT}
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--color-grey-850)',
+                border: '1px solid var(--color-grey-750)',
+                borderRadius: '8px',
+                padding: '16px',
+                color: 'var(--color-white)',
+                fontSize: '14px',
+                fontFamily: 'Pretendard, sans-serif',
+                outline: 'none'
+              }}
+            />
+            <span className="caption2" style={{ 
+              position: 'absolute',
+              bottom: '12px',
+              right: '16px',
+              color: 'var(--color-grey-450)'
+            }}>
+              {storeContact.length}/{MAX_LENGTH_CONTACT}
+            </span>
+          </div>
+        </div>
+
+        {/* 매장 위치 입력 필드 */}
+        <div style={{ marginBottom: '32px' }}> {/* Figma에 맞춰 마진 조정 */}
+          <label htmlFor="storeLocation" className="label1" style={{ color: 'var(--color-white)', marginBottom: '8px', display: 'block' }}>
+            매장 위치
+          </label>
+          <div style={{ position: 'relative' }}>
+            <input
+              id="storeLocation"
+              type="text"
+              placeholder="매장 위치를 입력해주세요"
+              value={storeLocation}
+              onChange={(e) => setStoreLocation(e.target.value)}
+              maxLength={MAX_LENGTH_LOCATION}
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--color-grey-850)',
+                border: '1px solid var(--color-grey-750)',
+                borderRadius: '8px',
+                padding: '16px',
+                color: 'var(--color-white)',
+                fontSize: '14px',
+                fontFamily: 'Pretendard, sans-serif',
+                outline: 'none'
+              }}
+            />
+            <span className="caption2" style={{ 
+              position: 'absolute',
+              bottom: '12px',
+              right: '16px',
+              color: 'var(--color-grey-450)'
+            }}>
+              {storeLocation.length}/{MAX_LENGTH_LOCATION}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 w-full max-w-sm mx-auto flex justify-around items-center py-3" style={{ backgroundColor: 'var(--color-black)', borderTop: '1px solid var(--color-grey-850)' }}>
+        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-grey-450)' }}>
+          <Calendar size={24} />
+          예약
+        </button>
+        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-grey-450)' }}>
+          <User size={24} />
+          고객
+        </button>
+        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-grey-450)' }}>
+          <MessageSquare size={24} />
+          채팅
+        </button>
+        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-light-purple)' }}>
+          <Home size={24} />
+          매장
+        </button>
+        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-grey-450)' }}>
+          <MoreHorizontal size={24} />
+          더보기
+        </button>
+      </nav>
+    </div>
+  );
+};
+
+export default OwnerStoreInfoPage;
