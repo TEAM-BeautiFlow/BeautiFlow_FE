@@ -18,27 +18,18 @@ import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
-import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
-import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
-import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
-import OwnerTreatmentsPage from "./pages/Manager/OwnerTreatmentsPage";
-import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
-import TreatmentOptionsPage from "./pages/Consumer/TreatmentOptionsPage";
-import TreatmentBookingPage from "./pages/Consumer/TreatmentBookingPage";
-import Reservation from "./pages/Consumer/Reservation";
-import ReservationCheck from "./pages/Consumer/ReservationCheck";
-import BookingPage from "./pages/Consumer/BookingPage";
-import ArtDetailPage from "./pages/Consumer/ArtDetailPage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
   { path: "/login", element: <LoginPage /> },
+  { path: "/auth/kakao/callback", element: <KakaoCallbackPage /> },
   { path: "/signup", element: <SignupPage /> },
   {
     path: "/",
     element: <Layout />,
     // errorElement: <NotFoundPage />,
     children: [
+      { index: true, element: <PostLoginRedirect /> },
       //     {
       //     index: true,
       //     element: <HomePage />
