@@ -23,14 +23,26 @@ export default function SignupPage() {
 
   async function handleSendCode() {
     if (!phone) return;
-    await sendPhoneCode(phone);
     setIsSent(true);
+    try {
+      await sendPhoneCode(phone);
+    } catch (e) {
+      // 요청 실패 시에도 isSent 상태는 유지하여 버튼이 다시 활성화되지 않도록 함
+    }
   }
 
   async function handleVerify() {
     if (!phone || !code) return;
-    await verifyPhoneCode(phone, code);
-    setIsVerified(true);
+    try {
+      await verifyPhoneCode(phone, code);
+      setIsVerified(true);
+      if (kakaoId && provider && name) {
+        await postSignup({ kakaoId, provider, name, contact: phone });
+        navigate("/", { replace: true });
+      }
+    } catch (e) {
+      // 인증 실패 시 상태 유지
+    }
   }
 
   async function handleSubmit() {
@@ -87,7 +99,7 @@ export default function SignupPage() {
               휴대폰 인증 <span className="ml-1 text-[#D2636A]">*</span>
             </label>
             <div className="body2 mb-2 text-[var(--color-grey-550)]">
-              하이픈 (-)을 제외하고 숫자만 입력해주세요.
+              하이픈 (-)을 포함하여 숫자만 입력해주세요.
             </div>
             <div className="mb-4 flex gap-2">
               <input
