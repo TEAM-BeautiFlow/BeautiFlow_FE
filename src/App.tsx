@@ -18,6 +18,17 @@ import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
+import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
+import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
+import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
+import OwnerTreatmentsPage from "./pages/Manager/OwnerTreatmentsPage";
+import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
+import TreatmentOptionsPage from "./pages/Consumer/TreatmentOptionsPage";
+import TreatmentBookingPage from "./pages/Consumer/TreatmentBookingPage";
+import Reservation from "./pages/Consumer/Reservation";
+import ReservationCheck from "./pages/Consumer/ReservationCheck";
+import BookingPage from "./pages/Consumer/BookingPage";
+import ArtDetailPage from "./pages/Consumer/ArtDetailPage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -43,6 +54,14 @@ const router = createBrowserRouter([
       {
         path: "user/chat/rooms",
         element: <UserChatListPage />,
+      },
+      {
+        path: "tteesstt",
+        element: <OwnerVerificationPage />,
+      },
+      {
+        path: "test",
+        element: <ArtDetailPage />,
       },
 
       {
@@ -88,6 +107,19 @@ const router = createBrowserRouter([
       { path: "client", element: <ClientListPage /> },
       { path: "client/page", element: <ClientPage /> },
       { path: "client/page/modify", element: <ModifyPage /> },
+      // ⚠️ 추가된 라우트들
+      {
+        path: "reservation_consumer", // 중복 방지를 위해 임시로 path 변경
+        element: <Reservation />,
+      },
+      {
+        path: "art-detail/:shopId/:treatmentId",
+        element: <ArtDetailPage />,
+      },
+      {
+        path: "options/:shopId/:treatmentId",
+        element: <TreatmentOptionsPage />,
+      },
     ],
   },
 ]);
