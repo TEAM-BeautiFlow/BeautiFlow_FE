@@ -1,15 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  updateUserInfo,
+  type UpdateUserInfoRequest,
+} from "@/apis/mypage/mypage";
 import ChevronLeft from "../../../assets/icon_left-chevron.svg";
 
 export default function MypageEdit() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill =
+    (location.state as {
+      name?: string;
+      email?: string;
+      contact?: string;
+    } | null) ?? null;
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
 
+  useEffect(() => {
+    if (prefill) {
+      setName(prefill.name ?? "");
+      setEmail(prefill.email ?? "");
+      setPhone((prefill.contact ?? "").replace(/\D/g, ""));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const isPhoneValid = /^\d{10,11}$/.test(phone);
+
+  const { mutate: saveUserInfo, isPending } = useMutation({
+    mutationFn: (payload: UpdateUserInfoRequest) => updateUserInfo(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userInfo"], exact: true });
+      alert("저장되었습니다.");
+      navigate(-1);
+    },
+    onError: () => {
+      alert("저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    },
+  });
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -24,10 +58,7 @@ export default function MypageEdit() {
       alert("연락처는 하이픈 포함 10~11자리 숫자로 입력해주세요.");
       return;
     }
-    // TODO: API 연동
-    console.log("save profile", { name, email, phone });
-    alert("저장되었습니다.");
-    navigate(-1);
+    saveUserInfo({ name: name.trim(), email: email.trim(), contact: phone });
   };
 
   const sendPhoneVerification = () => {
@@ -52,9 +83,12 @@ export default function MypageEdit() {
           <button
             type="button"
             onClick={handleSave}
-            className="text-sm font-semibold text-violet-400"
+            disabled={isPending}
+            className={`text-sm font-semibold ${
+              isPending ? "text-violet-400/60" : "text-violet-400"
+            }`}
           >
-            저장
+            {isPending ? "저장 중..." : "저장"}
           </button>
         </header>
 

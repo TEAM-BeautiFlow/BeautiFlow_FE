@@ -1,11 +1,29 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getUserInfo, logout } from "@/apis/mypage/mypage";
+import { useAuthStore } from "@/stores/auth";
 import HeartIcon from "../../../assets/line-md_heart.svg";
 import InquiryIcon from "../../../assets/message-text-02.svg";
 import ChevronRight from "../../../assets/icon_right-chevron.svg";
 
 export default function Mypage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const clearAuth = useAuthStore(state => state.clear);
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["userInfo"],
+    queryFn: getUserInfo,
+  });
+  const { mutate: doLogout, isPending: isLoggingOut } = useMutation({
+    mutationFn: () => logout(),
+    onSettled: () => {
+      clearAuth();
+      queryClient.removeQueries({ queryKey: ["userInfo"], exact: true });
+      alert("로그아웃되었습니다.");
+      navigate("/");
+    },
+  });
   return (
     <div className="flex min-h-[812px] min-w-[375px] flex-col items-center justify-center">
       <div className="relative flex w-full max-w-[375px] flex-grow flex-col items-center overflow-hidden bg-[var(--color-grey-1000)] px-5 pt-8 pb-6">
@@ -13,14 +31,18 @@ export default function Mypage() {
         <div className="mb-2 flex w-full items-center">
           <div className="flex items-center gap-2">
             <span className="h1 text-left text-[var(--color-white)]">
-              이하늘 디자이너님
+              {isLoading
+                ? "로딩 중"
+                : user?.name
+                  ? `${user.name} 디자이너님`
+                  : "디자이너님"}
             </span>
             <img src={ChevronRight} alt=">" className="h-5 w-5" />
           </div>
         </div>
         {/* 부가 설명 */}
         <div className="caption1 mb-6 w-full text-[#A1A1A1]">
-          beautiflow@gmail.com
+          {isLoading ? "" : (user?.email ?? "")}
         </div>
         {/* 카드 버튼 2개 */}
         <div className="mb-2 flex w-full">
@@ -42,10 +64,22 @@ export default function Mypage() {
         </div>
         {/* 내계정 */}
         <SectionTitle>내계정</SectionTitle>
-        <MenuItem onClick={() => navigate("/manager/mypage/edit")}>
+        <MenuItem
+          onClick={() =>
+            navigate("/manager/mypage/edit", {
+              state: {
+                name: user?.name ?? "",
+                email: user?.email ?? "",
+                contact: user?.contact ?? "",
+              },
+            })
+          }
+        >
           정보 수정
         </MenuItem>
-        <MenuItem>로그아웃</MenuItem>
+        <MenuItem onClick={() => doLogout()}>
+          {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
+        </MenuItem>
         {/* 고객센터 */}
         <SectionTitle>고객센터</SectionTitle>
         <MenuItem

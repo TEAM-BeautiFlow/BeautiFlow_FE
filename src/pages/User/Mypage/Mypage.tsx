@@ -1,4 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logout } from "@/apis/mypage/mypage";
+import { useAuthStore } from "@/stores/auth";
 import { getKakaoAuthUrl } from "@/apis/login";
 import HeartIcon from "../../../assets/line-md_heart.svg";
 import InquiryIcon from "../../../assets/message-text-02.svg";
@@ -7,6 +10,17 @@ import ChevronRight from "../../../assets/icon_right-chevron.svg";
 export default function Mypage() {
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const clearAuth = useAuthStore(state => state.clear);
+  const { mutate: doLogout, isPending: isLoggingOut } = useMutation({
+    mutationFn: () => logout(),
+    onSettled: () => {
+      clearAuth();
+      setIsLoggedIn(false);
+      queryClient.removeQueries({ queryKey: ["userInfo"], exact: true });
+      alert("로그아웃되었습니다.");
+    },
+  });
 
   useEffect(() => {
     setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
@@ -69,7 +83,9 @@ export default function Mypage() {
         {/* 내계정 */}
         <SectionTitle>내계정</SectionTitle>
         <MenuItem disabled={!isLoggedIn}>정보 수정</MenuItem>
-        <MenuItem disabled={!isLoggedIn}>로그아웃</MenuItem>
+        <MenuItem disabled={!isLoggedIn} onClick={() => doLogout()}>
+          {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
+        </MenuItem>
         <MenuItem disabled={!isLoggedIn}>탈퇴하기</MenuItem>
         {/* 고객센터 */}
         <SectionTitle>고객센터</SectionTitle>
