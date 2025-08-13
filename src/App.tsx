@@ -33,7 +33,7 @@ const router = createBrowserRouter([
       //     element: <HomePage />
       //   },
       {
-        path: "reservation",
+        path: "reservations",
         element: <ReservationWrapper />,
         children: [
           { index: true, element: <ReservationListPage /> },

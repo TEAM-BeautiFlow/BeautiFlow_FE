@@ -18,7 +18,7 @@ const NAV_LINKS: NavItem[] = [
     icon: ChatIcon,
   },
   {
-    to: "/reservation",
+    to: "/reservations",
     label: "예약",
     icon: ReservationIcon,
   },
