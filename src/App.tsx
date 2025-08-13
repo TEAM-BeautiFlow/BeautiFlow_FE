@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReservationListPage from "./pages/User/Reservation/ReservationListPage";
 import ReservationDetailPage from "./pages/User/Reservation/ReservationDetailPage";
 import Layout from "./layout/Layout";
@@ -20,6 +21,10 @@ import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
 import KakaoCallbackPage from "./pages/Login/KakaoCallbackPage";
 import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
+import Mypage from "./pages/User/Mypage/Mypage";
+import ManagerMypage from "./pages/Manager/Mypage/Mypage";
+import ManagerMypageModify from "./pages/Manager/Mypage/MypageModify";
+import ManagerMypageEdit from "./pages/Manager/Mypage/MypageEdit";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -92,12 +97,21 @@ const router = createBrowserRouter([
       { path: "client", element: <ClientListPage /> },
       { path: "client/page", element: <ClientPage /> },
       { path: "client/page/modify", element: <ModifyPage /> },
+      { path: "client/mypage", element: <Mypage /> },
+      { path: "manager/mypage", element: <ManagerMypage /> },
+      { path: "manager/mypage/modify", element: <ManagerMypageModify /> },
+      { path: "manager/mypage/edit", element: <ManagerMypageEdit /> },
     ],
   },
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  const queryClient = new QueryClient();
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }
 
 export default App;
