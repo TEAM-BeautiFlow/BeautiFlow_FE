@@ -1,33 +1,51 @@
 import { useState } from "react";
-import { sendPhoneCode, verifyPhoneCode } from "@/apis/login";
+import { useNavigate } from "react-router-dom";
+import { createShop } from "@/apis/login";
 
-type Props = {
-  onComplete?: (name: string, contact: string) => void;
-};
-
-export default function OnboardShopRegister({ onComplete }: Props) {
+export default function OnboardShopRegister() {
+  const navigate = useNavigate();
   const [shopName, setShopName] = useState("");
   const [shopAddress, setShopAddress] = useState("");
   const [shopAddressDetail, setShopAddressDetail] = useState("");
   const [bizNum, setBizNum] = useState("");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [isCodeSent, setIsCodeSent] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isFormValid = shopName && shopAddress && shopAddressDetail && bizNum;
 
+  async function handleCreateShop() {
+    if (!isFormValid || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const address = `${shopAddress} ${shopAddressDetail}`.trim();
+      await createShop({
+        name: shopName,
+        address,
+        businessRegistrationNumber: bizNum,
+      });
+      navigate("/manager/onboard/shop/fin", { replace: true });
+    } catch (e) {
+      // 실패 시 별도 검증 없이 조용히 유지
+      // 필요 시 오류 표시 추가 가능
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <div className="flex min-h-[812px] min-w-[375px] flex-col items-center justify-center">
+    <div className="flex min-h-[100dvh] min-w-[375px] flex-col items-center">
       <div
-        className="relative flex w-full max-w-[375px] flex-grow flex-col items-center overflow-hidden px-5 pt-8 pb-6"
+        className="relative flex min-h-[100dvh] w-full max-w-[375px] flex-col"
         style={{
           background: "linear-gradient(180deg, #1A1A1A 60%, #1E0C2D 100%)",
         }}
       >
         {/* 상단 네비게이션 */}
-        <div className="mb-8 flex w-full items-center">
-          <button className="mr-2">
+        <div className="mb-8 flex w-full items-center px-5 pt-8">
+          <button
+            className="mr-2"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
             <img
               src="/src/assets/icon_left-chevron.svg"
               alt="뒤로가기"
@@ -39,7 +57,7 @@ export default function OnboardShopRegister({ onComplete }: Props) {
           </div>
         </div>
         {/* 폼 영역 */}
-        <form className="flex w-full flex-1 flex-col gap-6">
+        <form className="flex w-full flex-1 flex-col gap-6 px-5">
           {/* 샵 이름 */}
           <div>
             <label className="label1 mb-2 flex items-center text-[var(--color-white)]">
@@ -53,53 +71,6 @@ export default function OnboardShopRegister({ onComplete }: Props) {
               required
             />
           </div>
-          {/* 휴대폰 인증 */}
-          <div>
-            <label className="label1 mb-2 flex items-center text-[var(--color-white)]">
-              휴대폰 인증 <span className="ml-1 text-[#D2636A]">*</span>
-            </label>
-            <div className="mb-4 flex gap-2">
-              <input
-                className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${phone ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
-                placeholder="연락처를 입력해주세요."
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={async () => {
-                  await sendPhoneCode(phone);
-                  setIsCodeSent(true);
-                }}
-                className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${phone && !isCodeSent ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
-                disabled={!phone || isCodeSent}
-              >
-                번호 인증
-              </button>
-            </div>
-            {isCodeSent && (
-              <div className="mb-4 flex gap-2">
-                <input
-                  className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${code ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
-                  placeholder="인증번호"
-                  value={code}
-                  onChange={e => setCode(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await verifyPhoneCode(phone, code);
-                    setIsPhoneVerified(true);
-                  }}
-                  className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${code ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
-                  disabled={!code || isPhoneVerified}
-                >
-                  확인
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* 샵 주소 */}
           <div>
             <label className="label1 mb-2 flex items-center text-[var(--color-white)]">
@@ -144,13 +115,15 @@ export default function OnboardShopRegister({ onComplete }: Props) {
           </div>
         </form>
         {/* 하단 버튼 */}
-        <button
-          onClick={() => onComplete?.(shopName, shopAddress)}
-          className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${isFormValid ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}
-          disabled={!isFormValid}
-        >
-          샵 생성 완료
-        </button>
+        <div className="w-full px-5 pb-6">
+          <button
+            onClick={handleCreateShop}
+            className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${isFormValid && !isSubmitting ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}
+            disabled={!isFormValid || isSubmitting}
+          >
+            샵 생성 완료
+          </button>
+        </div>
       </div>
     </div>
   );
