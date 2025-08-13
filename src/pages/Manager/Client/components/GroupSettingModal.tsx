@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface GroupSettingModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (selectedGroups: string[]) => void;
+  initialGroups?: string[];
+  initialSelectedGroups?: string[];
+  onAddGroup?: (name: string) => void;
 }
 
 export default function GroupSettingModal({
   visible,
   onClose,
   onConfirm,
+  initialGroups = ["전체", "VIP", "자주 오는 고객"], // 기본값
+  initialSelectedGroups = [], // 기본값
 }: GroupSettingModalProps) {
-  const [groups, setGroups] = useState<string[]>(["전체", "자주 오는 고객"]);
+  const [groups, setGroups] = useState<string[]>(["전체", "VIP"]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
+  // 동기화
+  useEffect(() => {
+    if (visible) {
+      setGroups(initialGroups);
+      setSelectedGroups(initialSelectedGroups);
+      setIsAddingGroup(false);
+      setNewGroupName("");
+    }
+  }, [visible, initialGroups, initialSelectedGroups]);
   if (!visible) return null;
 
   const handleConfirm = () => {
@@ -30,12 +44,15 @@ export default function GroupSettingModal({
   };
 
   const toggleGroup = (group: string) => {
-    setSelectedGroups(
-      prev =>
-        prev.includes(group)
-          ? prev.filter(g => g !== group) // 선택 해제
-          : [...prev, group], // 선택 추가
-    );
+    setSelectedGroups(prev => {
+      if (group === "전체") {
+        return prev.includes("전체") ? [] : ["전체"];
+      }
+      const next = prev.filter(g => g !== "전체"); // '전체' 제거
+      return next.includes(group)
+        ? next.filter(g => g !== group)
+        : [...next, group];
+    });
   };
 
   const handleSaveGroup = () => {

@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ClientHeader from "./components/ClientHeader";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import ClientCard from "./components/ClientCard";
-import type { CustomerList } from "../../../types/chatlist";
+import type { CustomerList } from "../../../types/customer";
 import DeleteModal from "../../../components/DeleteModal";
 import GroupSetModal from "./components/GroupSetModal";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 //dummy
-const dummyCustomers = [
-  { name: "손하늘", tag: "VIP" },
-  { name: "손하늘", tag: "자주 오는 고객" },
-  { name: "손하늘", tag: "VIP" },
-  { name: "손하늘", tag: "미정" },
-  { name: "손하늘", tag: "VIP" },
+const dummyCustomers: CustomerList[] = [
+  { customerId: 1, name: "김하늘", targetGroup: ["VIP"] },
+  {
+    customerId: 2,
+    name: "손하늘",
+    targetGroup: ["자주 오는 고객", "VIP", "블랙리스트"],
+  },
+  { customerId: 3, name: "배하늘", targetGroup: ["VIP"] },
+  { customerId: 4, name: "윤하늘", targetGroup: ["미정"] },
+  { customerId: 5, name: "이하늘", targetGroup: ["VIP"] },
 ];
 
 export default function ClientListPage() {
@@ -21,9 +27,13 @@ export default function ClientListPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerList | null>(
     null,
   );
+  const [deleting, setDeleting] = useState(false);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   const toggleSearch = () => {
     setIsSearchOpen(prev => !prev);
+    if (isSearchOpen) setQuery("");
   };
 
   // 모달
@@ -41,10 +51,112 @@ export default function ClientListPage() {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>(["전체"]);
 
+  // 고객 리스트 불러오기
+  useEffect(() => {
+    const fetchCustomerList = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          console.error("Access Token이 없습니다.");
+          return;
+        }
+
+        const onlyAll =
+          selectedGroups.includes("전체") || selectedGroups.length === 0;
+
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/list`,
+          {
+            params: onlyAll ? {} : { groups: selectedGroups.join(",") },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (Array.isArray(response.data?.data)) {
+          const mapped: CustomerList[] = response.data.data.map((c: any) => ({
+            customerId: c.customerId,
+            name: c.name,
+            targetGroup: Array.isArray(c.targetGroup)
+              ? c.targetGroup
+              : c.targetGroup
+                ? [c.targetGroup]
+                : [],
+          }));
+          setCustomers(mapped);
+        } else {
+          console.warn("고객 리스트 응답이 배열이 아닙니다:", response.data);
+        }
+      } catch (error) {
+        console.error("고객 리스트 불러오기 실패", error);
+      }
+    };
+
+    fetchCustomerList();
+  }, [selectedGroups]);
+
+  // 검색 기능
+  const filteredCustomers = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    const hasAll =
+      selectedGroups.includes("전체") || selectedGroups.length === 0;
+
+    return customers.filter(c => {
+      // 1) 그룹 필터: '전체'면 통과, 아니면 교집합 있는지 확인
+      const tg = Array.isArray(c.targetGroup) ? c.targetGroup : [];
+      const inGroup = hasAll ? true : selectedGroups.some(g => tg.includes(g));
+
+      // 2) 이름 필터: 검색어 비어있으면 통과, 아니면 포함 여부
+      const nameOk =
+        normalized.length === 0 ||
+        (c.name ?? "").toLowerCase().includes(normalized);
+
+      return inGroup && nameOk;
+    });
+  }, [customers, query, selectedGroups]);
+
   // 삭제 기능
-  const handleDeleteCustomer = () => {
-    // 삭제 로직 구현해야함
-    console.log("채팅 삭제됨!");
+  const handleDeleteCustomer = async () => {
+    if (deleting) return; // 중복 클릭 방지
+    if (!selectedCustomer) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Access Token이 없습니다.");
+      return;
+    }
+
+    const id = selectedCustomer.customerId;
+
+    try {
+      setDeleting(true);
+
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // 로컬 목록에서 제거
+      setCustomers(prev => prev.filter(c => c.customerId !== id));
+
+      // 모달 닫기
+      closeBottomSheet();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("고객 삭제 실패", {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+        alert(error.response?.data?.message ?? "삭제에 실패했습니다.");
+      } else {
+        console.error("알 수 없는 오류", error);
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleReset = () => {
@@ -74,6 +186,11 @@ export default function ClientListPage() {
         }
         isSearchOpen={isSearchOpen}
         onRightClick={toggleSearch}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onCloseSearch={() => {
+          setIsSearchOpen(false); /* setQuery(""); */
+        }}
       />
 
       {/* 중간 내용 */}
@@ -154,19 +271,22 @@ export default function ClientListPage() {
 
         {/* 리스트 */}
         <div className="">
-          {customers
-            .filter(customer =>
-              selectedGroups.includes("전체")
-                ? true
-                : selectedGroups.includes(customer.tag || ""),
-            )
-            .map((customer, index) => (
+          {filteredCustomers.length === 0 ? (
+            <div className="body2 text-[var(--color-grey-550)]">
+              일치하는 고객이 없습니다.
+            </div>
+          ) : (
+            filteredCustomers.map(c => (
               <ClientCard
-                key={index}
-                customer={customer}
+                key={c.customerId}
+                customer={c}
                 onRightClick={openBottomSheet}
+                onClick={() =>
+                  navigate(`/mangedCustomer/${c.customerId}`, { state: c })
+                }
               />
-            ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -177,8 +297,8 @@ export default function ClientListPage() {
       {isBottomSheetOpen && selectedCustomer && (
         <DeleteModal
           visible={!!selectedCustomer}
-          targetName={selectedCustomer?.name || ""}
-          onClose={() => setSelectedCustomer(null)}
+          targetName={selectedCustomer?.name ?? ""}
+          onClose={closeBottomSheet}
           onConfirm={handleDeleteCustomer}
         />
       )}
@@ -188,9 +308,11 @@ export default function ClientListPage() {
         visible={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onConfirm={(groups: string[]) => {
-          setSelectedGroups(groups); // 배열로 설정
+          const next = groups.includes("전체") ? ["전체"] : groups;
+          setSelectedGroups(next);
           setIsGroupModalOpen(false);
         }}
+        initialSelectedGroups={selectedGroups}
       />
     </div>
   );

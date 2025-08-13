@@ -1,26 +1,66 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface GroupSettingModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (selectedGroups: string[]) => void;
+  initialSelectedGroups?: string[];
+  initialGroups?: string[];
 }
+const ALL = "전체";
 
 export default function GroupSetModal({
   visible,
   onClose,
   onConfirm,
+  initialSelectedGroups = [ALL],
+  initialGroups = [ALL, "자주 오는 고객", "VIP"],
 }: GroupSettingModalProps) {
-  const [groups, setGroups] = useState<string[]>([
-    "전체",
-    "자주 오는 고객",
-    "VIP",
-  ]);
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [groups, setGroups] = useState<string[]>(initialGroups);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(
+    initialSelectedGroups,
+  );
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
+  useEffect(() => {
+    if (visible) {
+      setSelectedGroups(
+        initialSelectedGroups && initialSelectedGroups.length
+          ? initialSelectedGroups
+          : [ALL],
+      );
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [visible]);
   if (!visible) return null;
+
+  const toggleGroup = (group: string) => {
+    if (group === ALL) {
+      setSelectedGroups([ALL]);
+      return;
+    }
+    setSelectedGroups(prev => {
+      const withoutAll = prev.filter(g => g !== ALL);
+      const exists = withoutAll.includes(group);
+      const next = exists
+        ? withoutAll.filter(g => g !== group)
+        : [...withoutAll, group];
+      return next.length ? next : [ALL]; // 모두 해제되면 '전체'
+    });
+  };
+
+  // const toggleGroup = (group: string) => {
+  //   setSelectedGroups(
+  //     prev =>
+  //       prev.includes(group)
+  //         ? prev.filter(g => g !== group) // 선택 해제
+  //         : [...prev, group], // 선택 추가
+  //   );
+  // };
 
   const handleConfirm = () => {
     onConfirm(selectedGroups);
@@ -28,19 +68,24 @@ export default function GroupSetModal({
   };
 
   const handleReset = () => {
-    setSelectedGroups([]);
+    setSelectedGroups([ALL]);
     setNewGroupName("");
     setIsAddingGroup(false);
   };
 
-  const toggleGroup = (group: string) => {
-    setSelectedGroups(
-      prev =>
-        prev.includes(group)
-          ? prev.filter(g => g !== group) // 선택 해제
-          : [...prev, group], // 선택 추가
-    );
-  };
+  // const canAdd = useMemo(() => {
+  //   const name = newGroupName.trim();
+  //   return !!name && !groups.includes(name) && name !== ALL;
+  // }, [newGroupName, groups]);
+
+  // const addGroup = () => {
+  //   if (!canAdd) return;
+  //   const name = newGroupName.trim();
+  //   setGroups(prev => [...prev, name]);
+  //   setSelectedGroups(prev => (prev.includes(ALL) ? [name] : [...prev, name]));
+  //   setNewGroupName("");
+  //   setIsAddingGroup(false);
+  // };
 
   return (
     <div
@@ -75,7 +120,7 @@ export default function GroupSetModal({
                         stroke={
                           isSelected
                             ? "var(--color-purple)"
-                            : "var(--color-grey-650"
+                            : "var(--color-grey-650)"
                         }
                         stroke-width="1.5"
                         stroke-linecap="round"
