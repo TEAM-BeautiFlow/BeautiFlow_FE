@@ -83,7 +83,7 @@ const router = createBrowserRouter([
         element: <GroupChatPage />,
       },
       {
-        path: "chat/rooms/profile/:opponentId",
+        path: "chat/rooms/profile/:customerId",
         element: <ChatProfile />,
       },
       {

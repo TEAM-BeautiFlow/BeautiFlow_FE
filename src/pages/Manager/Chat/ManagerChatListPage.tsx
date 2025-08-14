@@ -20,6 +20,7 @@ const dummyChats: ChatList[] = [
       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
     lastMessageTime: "2025-07-21T15:00:00",
     unreadCount: 9,
+    isExited: false,
   },
   {
     roomId: 2,
@@ -31,6 +32,7 @@ const dummyChats: ChatList[] = [
       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
     lastMessageTime: "2025-07-21T15:00:00",
     unreadCount: 9,
+    isExited: true,
   },
 ];
 
@@ -39,87 +41,63 @@ export default function ManagerChatListPage() {
   const [chats, setChats] = useState<ChatList[]>(dummyChats);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
-  // useEffect(() => {
-  //   const fetchChatList = async () => {
-  //     try {
-  //       // 개발용 accessToken 임시 저장
-  //       const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6"; // 테스트용 토큰
-  //       if (!localStorage.getItem("accessToken")) {
-  //         localStorage.setItem("accessToken", devToken);
-  //         console.log("개발용 accessToken이 저장되었습니다.");
-  //       }
+  useEffect(() => {
+    const fetchChatList = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          console.error("Access Token이 없습니다.");
+          return;
+        }
 
-  //       const token = localStorage.getItem("accessToken");
-  //       if (!token) {
-  //         console.error("Access Token이 없습니다.");
-  //         return;
-  //       }
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-  //       const response = await axios.get("/chat/rooms", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
+        // 안전하게 배열만 set
+        if (Array.isArray(response.data?.data)) {
+          const activeChats = response.data.data.filter(
+            (chat: ChatList) => !chat.isExited,
+          );
+          setChats(activeChats);
+        } else {
+          console.warn("채팅 리스트 응답이 배열이 아닙니다:", response.data);
+        }
+      } catch (error) {
+        console.error("채팅 리스트 불러오기 실패", error);
+      }
+    };
 
-  //       setChats(response.data);
-  //     } catch (error) {
-  //       console.error("채팅 리스트 불러오기 실패", error);
-  //     }
-  //   };
+    fetchChatList();
+  }, []);
 
-  //   fetchChatList();
-  // }, []);
-
-  // chat room 생성
-  // const handleCreateRoom = async () => {
-  //   try {
-  //     const token = localStorage.getItem("accessToken");
-  //     const shopId = Number(localStorage.getItem("shopId"));
-  //     const designerId = Number(localStorage.getItem("designerId"));
-
-  //     // if (!token || !designerId || !shopId || !selectedCustomerId) {
-  //     if (!token || !designerId || !shopId) {
-  //       console.error("정보가 부족합니다.");
-  //       return;
-  //     }
-
-  //     const response = await axios.post(
-  //       "/chat/rooms",
-  //       {
-  //         shopId,
-  //         customerId: 3, // 임의값
-  //         // customerId: selectedCustomerId, 버튼 클릭 등으로 선택된 고객 정보에서 받아와야 합
-  //         designerId,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     const roomId = response.data.roomId;
-  //     navigate(`/chat/rooms/${roomId}`);
-  //   } catch (error) {
-  //     console.error("채팅방 생성 실패", error);
-  //   }
-  // };
-
-  const handleCreateRoom = () => {
+  const selectCustomer = () => {
     // 이 부분에서 원하는 페이지로 이동
     navigate("/chat/rooms/groupset");
   };
 
   // room 클릭 시 이동
-  const handleChatClick = (roomId: number) => {
-    navigate(`/chat/rooms/${roomId}`);
+  const handleChatClick = (roomId: number, opponentId: number) => {
+    navigate(`/chat/rooms/${roomId}`, {
+      state: {
+        customerId: opponentId,
+      },
+    });
   };
 
   // 모달
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const openBottomSheet = (chat: ChatList) => {
     setSelectedChat(chat);
     setIsBottomSheetOpen(true);
@@ -131,17 +109,51 @@ export default function ManagerChatListPage() {
   };
 
   // 모달2
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const openAlert = (roomId: number) => {
     setSelectedChatId(roomId);
     setIsAlertOpen(true);
+    setIsBottomSheetOpen(false);
   };
-  const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
-  const handleDeleteChat = () => {
-    // 삭제 로직 구현해야함
-    console.log("채팅 삭제됨!");
+  const handleDeleteChat = async () => {
+    if (!selectedChatId) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Access Token이 없습니다.");
+      return;
+    }
+    try {
+      setDeleting(true);
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${selectedChatId}/exit`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setChats(prev => prev.filter(c => c.roomId !== selectedChatId));
+
+      setSelectedChatId(null);
+      setIsAlertOpen(false);
+      setDeleting(false);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("채팅방 나가기 실패", {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+      } else {
+        console.error("알 수 없는 오류", error);
+      }
+    } finally {
+      setDeleting(false); // ⬅️ finally로 이동
+    }
   };
 
   return (
@@ -155,18 +167,20 @@ export default function ManagerChatListPage() {
       </div>
       {/* 채팅 리스트 */}
       <div className="mt-3 flex-1 overflow-y-auto">
-        {chats.map(chat => (
-          <ChatRoomList
-            key={chat.roomId}
-            chat={chat}
-            onRightClick={openBottomSheet}
-            onClick={handleChatClick}
-          />
-        ))}
+        {chats
+          .filter(chat => !chat.isExited)
+          .map(chat => (
+            <ChatRoomList
+              key={chat.roomId}
+              chat={chat}
+              onRightClick={openBottomSheet}
+              onClick={roomId => handleChatClick(roomId, chat.opponentId)}
+            />
+          ))}
       </div>
       {/* 버튼 */}
       <button
-        onClick={handleCreateRoom}
+        onClick={selectCustomer}
         className="absolute right-6 bottom-32 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[var(--color-purple)] shadow-lg"
       >
         <svg
@@ -188,19 +202,24 @@ export default function ManagerChatListPage() {
       </button>
       {/* 하단 */}
       <ManagerNavbar />
+
       {/* 모달 */}
       {isBottomSheetOpen && selectedChat && (
         <DeleteModal
           visible={!!selectedChat}
-          targetName={selectedChat?.opponentName || ""}
-          onClose={() => setSelectedChat(null)}
+          targetName={selectedChat.opponentName ?? ""}
+          onClose={closeBottomSheet}
           onConfirm={() => openAlert(selectedChat.roomId)}
         />
       )}
       <DeleteConfirmModal
         isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
+        onClose={() => {
+          setIsAlertOpen(false);
+          setDeleting(false);
+        }}
         onDelete={handleDeleteChat}
+        confirmDisabled={deleting}
       />
     </div>
   );

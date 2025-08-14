@@ -1,6 +1,105 @@
+import { useEffect, useMemo, useState } from "react";
 import ChatHeader from "./components/ChatHeader";
+import type { CustomerDetail } from "../../../types/customer";
+import axios from "axios";
+import { useLocation, useParams } from "react-router-dom";
+type LocationState = Partial<CustomerDetail>;
 
 export default function ChatProfile() {
+  const { customerId } = useParams<{ customerId: string }>();
+
+  const id = Number(customerId);
+  const location = useLocation();
+  const state = useMemo(
+    () => location.state as LocationState | undefined,
+    [location.state],
+  );
+
+  const [customer, setCustomer] = useState<CustomerDetail | null>(
+    state
+      ? {
+          customerId: state.customerId ?? 0, // number 보장
+          name: state.name ?? "",
+          contact: state.contact ?? "",
+          email: state.email ?? "",
+          groupCodes: state.groupCodes ?? [],
+          styleImageUrls: state.styleImageUrls ?? [],
+          requestNotes: state.requestNotes ?? "",
+          memo: state.memo ?? "",
+        }
+      : null,
+  );
+  if (!customer) {
+    return <div className="p-4 text-gray-400">고객 정보가 없습니다.</div>;
+  }
+
+  const [, setCustLoading] = useState(!state);
+  const [, setCustError] = useState<string | null>(null);
+  // 고객 상세 GET
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setCustLoading(true);
+        setCustError(null);
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          // 토큰 없으면 state만 보여주고 종료
+          setCustLoading(false);
+          if (!state) setCustError("로그인이 필요합니다.");
+          return;
+        }
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        if (cancelled) return;
+
+        const d = res.data?.data;
+        if (!d) {
+          setCustError("고객 정보를 불러오지 못했습니다.");
+          setCustLoading(false);
+          return;
+        }
+
+        const mapped: CustomerDetail = {
+          customerId: d.customerId ?? id,
+          name: d.name ?? state?.name ?? "",
+          contact: d.contact ?? state?.contact,
+          email: d.email ?? state?.email,
+          groupCodes: Array.isArray(d.groupCodes)
+            ? d.groupCodes
+            : d?.groupCodes
+              ? [d.groupCodes]
+              : (state?.groupCodes ?? []),
+          styleImageUrls: Array.isArray(d.styleImageUrls)
+            ? d.styleImageUrls.filter(
+                (u: unknown): u is string => typeof u === "string",
+              )
+            : Array.isArray(state?.styleImageUrls)
+              ? state!.styleImageUrls
+              : [],
+          requestNotes: d.requestNotes ?? state?.requestNotes,
+          memo: d.memo ?? state?.memo,
+        };
+
+        setCustomer(mapped);
+      } catch (e) {
+        console.error("고객 상세 불러오기 실패", e);
+        setCustError("고객 정보를 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) setCustLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
       {/* 상단 헤더 -> 상대방 정보 연결 (API 받은 후 작업) */}
@@ -24,14 +123,72 @@ export default function ChatProfile() {
         onRightClick={() => console.log("아이콘 클릭됨")} // 이부분은 클릭하면 어떻게 되는지..?
       />
       {/* 프로필 */}
-      <div className="my-4 flex flex-col px-5">
-        <div className="mb-4 h-[95px] w-[95px] shrink-0 rounded-[4px] bg-[var(--color-grey-450)]"></div>
-        <span className="label2 text-[var(--color-grey-450)]">
-          #연장맛집 #유지력최고
-        </span>
-        <span className="label2 text-[var(--color-grey-450)]">
-          인생을 디자인합니다. 당신의 모든 취향을 실현시켜 드릴게요:)
-        </span>
+      {/* 개인정보 */}
+      <div className="px-5 pt-3 pb-10">
+        {/* 이름 */}
+        <div className="mb-2 flex justify-between">
+          <span className="h0 text-[var(--color-grey-150)]">
+            {customer.name}
+          </span>
+        </div>
+
+        {/* 이미지 목록 */}
+        {customer.styleImageUrls && customer.styleImageUrls.length > 0 && (
+          <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
+            {customer.styleImageUrls.map((url, index) => (
+              <div
+                key={index}
+                className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
+              >
+                <img
+                  src={url}
+                  alt={`style-${index}`}
+                  className="h-full w-full object-cover"
+                  onError={e => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 내용 */}
+        <div className="mt-4 inline-flex flex-col gap-[6px]">
+          <div className="flex gap-4">
+            <span className="body2 text-[var(--color-grey-550)]">전화번호</span>
+            <div className="body2 text-[var(--color-grey-150)]">
+              {customer.contact}
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <span className="body2 text-[var(--color-grey-550)]">메일주소</span>
+            <div className="body2 text-[var(--color-grey-150)]">
+              {customer.email}
+            </div>
+          </div>
+          {customer.requestNotes && (
+            <div className="flex gap-4">
+              <span className="body2 text-[var(--color-grey-550)]">
+                요청사항
+              </span>
+              <div className="body2 text-[var(--color-grey-150)]">
+                {customer.requestNotes}
+              </div>
+            </div>
+          )}
+          {customer.memo && (
+            <div className="flex gap-4">
+              <span className="body2 text-[var(--color-grey-550)]">
+                기타메모
+              </span>
+              <div className="body2 text-[var(--color-grey-150)]">
+                {customer.memo}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
