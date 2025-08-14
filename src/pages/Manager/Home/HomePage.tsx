@@ -7,6 +7,7 @@ import {
   getTodayReservationCounts,
 } from "@/apis/manager_home/home";
 import { useNavigate } from "react-router-dom";
+import ManagerNavbar from "../../../layout/ManagerNavbar";
 
 const TodaysReservationCard = ({
   title,
@@ -256,6 +257,7 @@ const HomePage = () => {
           })()}
         </section>
       </main>
+      <ManagerNavbar />
     </div>
   );
 };

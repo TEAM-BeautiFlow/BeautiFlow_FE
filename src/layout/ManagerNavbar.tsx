@@ -12,7 +12,7 @@ type NavItem = {
 };
 
 const NAV_LINKS: NavItem[] = [
-  { to: "/reservationlist", label: "예약", icon: ReservationListIcon },
+  { to: "/manager/home", label: "예약", icon: ReservationListIcon },
 
   { to: "/client", label: "고객", icon: ClientIcon },
   {
@@ -23,7 +23,7 @@ const NAV_LINKS: NavItem[] = [
   { to: "/store", label: "매장", icon: StoreIcon },
 
   {
-    to: "/more",
+    to: "/manager/mypage",
     label: "더보기",
     icon: MoreIcon,
   },
@@ -31,7 +31,7 @@ const NAV_LINKS: NavItem[] = [
 
 export default function ManagerNavbar() {
   return (
-    <div className="fixed bottom-0 h-[87px] w-[375px] border-t border-[var(--color-grey-850)] bg-[var(--color-grey-1000)] px-7 py-[18px]">
+    <div className="fixed bottom-0 left-1/2 h-[87px] w-[375px] -translate-x-1/2 border-t border-[var(--color-grey-850)] bg-[var(--color-grey-1000)] px-7 py-[18px]">
       <div className="flex w-full justify-between">
         {NAV_LINKS.map(({ to, label, icon: Icon }) => (
           <NavLink
