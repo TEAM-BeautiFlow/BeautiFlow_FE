@@ -14,7 +14,7 @@ type NavItem = {
 const NAV_LINKS: NavItem[] = [
   { to: "/manager/home", label: "예약", icon: ReservationListIcon },
 
-  { to: "/client", label: "고객", icon: ClientIcon },
+  { to: "/mangedCustomer", label: "고객", icon: ClientIcon },
   {
     to: "/chat/rooms",
     label: "채팅",
