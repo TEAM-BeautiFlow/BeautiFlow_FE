@@ -68,8 +68,8 @@ export default function MypageEdit() {
   };
 
   return (
-    <div className="flex min-h-[812px] min-w-[375px] flex-col items-center justify-center">
-      <div className="relative flex w-full max-w-[375px] flex-grow flex-col overflow-hidden bg-[var(--color-grey-1000)] px-5 pt-8 pb-6 text-[var(--color-white)]">
+    <div className="mx-auto flex min-h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+      <div className="relative flex w-full flex-col overflow-hidden px-5 pt-8 pb-24 text-[var(--color-white)]">
         <header className="mb-6 flex h-12 items-center justify-between border-b border-[#232323]">
           <button
             type="button"

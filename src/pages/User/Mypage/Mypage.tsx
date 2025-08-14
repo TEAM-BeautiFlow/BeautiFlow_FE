@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { logout } from "@/apis/mypage/mypage";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getUserInfo, logout } from "@/apis/mypage/mypage";
 import { useAuthStore } from "@/stores/auth";
 import { getKakaoAuthUrl } from "@/apis/login";
 import HeartIcon from "../../../assets/line-md_heart.svg";
@@ -8,10 +9,16 @@ import InquiryIcon from "../../../assets/message-text-02.svg";
 import ChevronRight from "../../../assets/icon_right-chevron.svg";
 
 export default function Mypage() {
+  const navigate = useNavigate();
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore(state => state.clear);
+  const { data: user } = useQuery({
+    queryKey: ["userInfo"],
+    queryFn: getUserInfo,
+    enabled: Boolean(localStorage.getItem("accessToken")),
+  });
   const { mutate: doLogout, isPending: isLoggingOut } = useMutation({
     mutationFn: () => logout(),
     onSettled: () => {
@@ -50,14 +57,14 @@ export default function Mypage() {
         >
           <div className="flex items-center gap-2">
             <span className="h1 text-left text-[var(--color-white)]">
-              로그인 및 회원가입
+              {user?.name ? `${user.name} 님` : "로그인 및 회원가입"}
             </span>
             <img src={ChevronRight} alt=">" className="h-5 w-5" />
           </div>
         </div>
-        {/* 부가 설명 */}
+        {/* 부가 설명 / 이메일 */}
         <div className="caption1 mb-6 w-full text-[#A1A1A1]">
-          3초 가입으로 더 편리해진 뷰티플로우를 경험해보세요
+          {user?.email ?? "3초 가입으로 더 편리해진 뷰티플로우를 경험해보세요"}
         </div>
         {/* 카드 버튼 2개 */}
         <div className="mb-2 flex w-full">
@@ -82,7 +89,20 @@ export default function Mypage() {
         </div>
         {/* 내계정 */}
         <SectionTitle>내계정</SectionTitle>
-        <MenuItem disabled={!isLoggedIn}>정보 수정</MenuItem>
+        <MenuItem
+          disabled={!isLoggedIn}
+          onClick={() =>
+            navigate("/client/mypage/edit", {
+              state: {
+                name: user?.name ?? "",
+                email: user?.email ?? "",
+                contact: user?.contact ?? "",
+              },
+            })
+          }
+        >
+          정보 수정
+        </MenuItem>
         <MenuItem disabled={!isLoggedIn} onClick={() => doLogout()}>
           {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
         </MenuItem>
