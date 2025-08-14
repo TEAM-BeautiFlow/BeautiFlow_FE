@@ -107,6 +107,7 @@ const router = createBrowserRouter([
       { path: "mangedCustomer/:customerId", element: <ClientPage /> },
       { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
       { path: "client/mypage", element: <Mypage /> },
+      { path: "client/mypage/edit", element: <ManagerMypageEdit /> },
       { path: "manager/mypage", element: <ManagerMypage /> },
       { path: "manager/mypage/modify", element: <ManagerMypageModify /> },
       { path: "manager/mypage/edit", element: <ManagerMypageEdit /> },
