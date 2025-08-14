@@ -1,19 +1,19 @@
 import { useState } from "react";
-import TemplateHeader from "./components/TemplateHeader";
+// import TemplateHeader from "./components/TemplateHeader";
 import ChatHeader from "./components/ChatHeader";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import SendTimingModal from "./components/SendingTimingModal";
 import ActivationModal from "./components/ActivationModal";
 import TargetModal from "./components/TargetModal";
 
-type Props = {
-  onClose: () => void;
-};
-export default function TemplateFormPage({ onClose }: Props) {
-  const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
+// type Props = {
+//   onClose: () => void;
+// };
+export default function TemplateFormPage() {
+  // const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
   const [text, setText] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedTiming, setSelectedTiming] = useState<string>("");
+  // const [selectedTiming, setSelectedTiming] = useState<string>("");
   const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
   const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
   const [selectedTargets, setSelectedTargets] = useState<string[]>(["전체"]);
@@ -189,7 +189,7 @@ export default function TemplateFormPage({ onClose }: Props) {
       <TargetModal
         visible={isTargetModalOpen}
         onClose={() => setIsTargetModalOpen(false)}
-        selected={selectedTargets}
+        // selected={selectedTargets}
         onConfirm={selected => {
           setSelectedTargets(selected);
           setIsTargetModalOpen(false);

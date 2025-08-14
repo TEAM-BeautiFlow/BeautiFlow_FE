@@ -1,10 +1,10 @@
-import ChatHeader from "./components/ChatHeader";
+// import ChatHeader from "./components/ChatHeader";
 
 export default function ChatProfile() {
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
       {/* 상단 헤더 */}
-      <ChatHeader />
+      {/* <ChatHeader /> */}
       {/* 프로필 */}
       <div className="my-4 flex flex-col px-5">
         <div className="mb-4 h-[95px] w-[95px] shrink-0 rounded-[4px] bg-[var(--color-grey-450)]"></div>

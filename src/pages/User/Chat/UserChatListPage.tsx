@@ -7,36 +7,11 @@ import { useNavigate } from "react-router-dom";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import DeleteModal from "../../../components/DeleteModal";
 
-const dummyChats: ChatList[] = [
-  {
-    roomId: 1,
-    shopId: 2,
-    shopName: "샵이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-  },
-  {
-    roomId: 2,
-    shopId: 2,
-    shopName: "샵이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-  },
-];
-
 export default function UserChatListPage() {
-  const [chats] = useState<ChatList[]>(dummyChats);
+  const [chats] = useState<ChatList[]>([]);
   const navigate = useNavigate();
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [, setSelectedChatId] = useState<number | null>();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
   // room 클릭 시 이동
@@ -50,10 +25,10 @@ export default function UserChatListPage() {
     setIsBottomSheetOpen(true);
   };
 
-  const closeBottomSheet = () => {
-    setIsBottomSheetOpen(false);
-    setSelectedChat(null);
-  };
+  // const closeBottomSheet = () => {
+  //   setIsBottomSheetOpen(false);
+  //   setSelectedChat(null);
+  // };
   // 모달2
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const openAlert = (roomId: number) => {
@@ -61,7 +36,7 @@ export default function UserChatListPage() {
     setIsAlertOpen(true);
   };
 
-  const closeAlert = () => setIsAlertOpen(false);
+  // const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
   const handleDeleteChat = () => {
