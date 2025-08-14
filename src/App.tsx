@@ -21,7 +21,6 @@ import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
-import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
 import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
 import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
 import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
@@ -33,6 +32,20 @@ import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
 import AppointmentBooking from "./pages/Consumer/AppointmentBooking";
 import TreatmentBookingPage from "./pages/Consumer/TreatmentBookingPage";
 import ReservationCheck from "./pages/Consumer/ReservationCheck";
+import Mypage from "./pages/User/Mypage/Mypage";
+import EditStyle from "./pages/User/Mypage/EditStyle";
+import ManagerMypage from "./pages/Manager/Mypage/Mypage";
+import ManagerMypageModify from "./pages/Manager/Mypage/MypageModify";
+import ManagerMypageEdit from "./pages/Manager/Mypage/MypageEdit";
+import OnboardFirst from "./pages/Manager/Onboard/components/OnboardFirst";
+import OnboardJoin from "./pages/Manager/Onboard/components/OnboardJoin";
+import OnboardShopRegister from "./pages/Manager/Onboard/components/OnboardShopRegister";
+import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
+import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
+import HomePage from "./pages/Manager/Home/HomePage";
+import OwnerBusinessRegistrationPage from "./pages/Manager/OwnerBusinessRegistrationPage";
+import OwnerStoreIntroPage from "./pages/Manager/OwnerStoreIntroPage";
+import OwnerSalesPage from "./pages/Manager/OwnerSalesPage";
 
 // 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
 // 필요하시면 주석을 해제하고 사용하세요.
@@ -159,16 +172,16 @@ const router = createBrowserRouter([
       { path: "manager/home", element: <HomePage /> },
       {
         path: "manager/reservations/:reservationId",
-        element: <AboutReservationPage />,
+        element: <ReservationDetailPage />,
       },
 
       // --- 요청하신 기능에 필요한 경로 ---
       {
-        path: "owner-verification/:shopId", 
+        path: "owner-verification/:shopId",
         element: <OwnerVerificationPage />,
       },
       {
-        path: "owner-business-registration/:shopId", 
+        path: "owner-business-registration/:shopId",
         element: <OwnerBusinessRegistrationPage />,
       },
       // ⬇️ 수정 페이지 경로들을 추가합니다.
