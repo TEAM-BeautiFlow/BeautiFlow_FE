@@ -72,6 +72,7 @@ export default function Mypage() {
             className="flex flex-1 cursor-pointer flex-col items-center border-r border-[#232323] py-6"
             onClick={() => {
               if (!isLoggedIn) setIsLoginRequiredOpen(true);
+              else navigate("/client/mypage/style");
             }}
           >
             <img src={HeartIcon} alt="선호 스타일" className="mb-2 h-8 w-8" />

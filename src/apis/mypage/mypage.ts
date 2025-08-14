@@ -44,3 +44,55 @@ export async function updateUserInfo(
 export async function logout() {
   await api.post("/users/logout");
 }
+
+// ----- User Style (Preference) -----
+export interface UserStyleImage {
+  id: number;
+  imageUrl: string;
+  originalFileName: string;
+  storedFilePath: string;
+}
+
+export interface UserStyleResponse {
+  styleId: number;
+  userId: number;
+  description: string;
+  images: UserStyleImage[];
+}
+
+export async function createUserStyle(
+  description: string,
+  files: File[],
+): Promise<UserStyleResponse> {
+  const formData = new FormData();
+  const requestPart = new Blob([JSON.stringify({ description })], {
+    type: "application/json",
+  });
+  formData.append("request", requestPart);
+  files.forEach(file => formData.append("images", file));
+
+  const { data } = await api.post<
+    UserStyleResponse | { data: UserStyleResponse }
+  >("/users/style", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = (data as any)?.data ?? data;
+  return payload as UserStyleResponse;
+}
+
+export async function getUserStyle(): Promise<UserStyleResponse | null> {
+  try {
+    const { data } = await api.get<
+      UserStyleResponse | { data: UserStyleResponse }
+    >("/users/style");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = (data as any)?.data ?? data;
+    return payload as UserStyleResponse;
+  } catch (error: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const status = (error as any)?.response?.status;
+    if (status === 404) return null; // 최초 진입(미등록)
+    throw error;
+  }
+}
