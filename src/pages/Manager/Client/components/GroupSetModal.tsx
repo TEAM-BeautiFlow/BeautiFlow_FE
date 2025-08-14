@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface GroupSettingModalProps {
   visible: boolean;
@@ -20,8 +20,14 @@ export default function GroupSetModal({
   const [selectedGroups, setSelectedGroups] = useState<string[]>(
     initialSelectedGroups,
   );
-  const [isAddingGroup, setIsAddingGroup] = useState(false);
-  const [newGroupName, setNewGroupName] = useState("");
+  const [, setIsAddingGroup] = useState(false);
+  const [, setNewGroupName] = useState("");
+
+  useEffect(() => {
+    if (visible) {
+      setGroups(initialGroups);
+    }
+  }, [visible, initialGroups]);
 
   useEffect(() => {
     if (visible) {
@@ -35,7 +41,7 @@ export default function GroupSetModal({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [visible]);
+  }, [visible, initialSelectedGroups]);
   if (!visible) return null;
 
   const toggleGroup = (group: string) => {
@@ -53,15 +59,6 @@ export default function GroupSetModal({
     });
   };
 
-  // const toggleGroup = (group: string) => {
-  //   setSelectedGroups(
-  //     prev =>
-  //       prev.includes(group)
-  //         ? prev.filter(g => g !== group) // 선택 해제
-  //         : [...prev, group], // 선택 추가
-  //   );
-  // };
-
   const handleConfirm = () => {
     onConfirm(selectedGroups);
     onClose();
@@ -72,20 +69,6 @@ export default function GroupSetModal({
     setNewGroupName("");
     setIsAddingGroup(false);
   };
-
-  // const canAdd = useMemo(() => {
-  //   const name = newGroupName.trim();
-  //   return !!name && !groups.includes(name) && name !== ALL;
-  // }, [newGroupName, groups]);
-
-  // const addGroup = () => {
-  //   if (!canAdd) return;
-  //   const name = newGroupName.trim();
-  //   setGroups(prev => [...prev, name]);
-  //   setSelectedGroups(prev => (prev.includes(ALL) ? [name] : [...prev, name]));
-  //   setNewGroupName("");
-  //   setIsAddingGroup(false);
-  // };
 
   return (
     <div

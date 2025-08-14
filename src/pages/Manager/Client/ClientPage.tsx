@@ -3,59 +3,194 @@ import ClientHeader from "./components/ClientHeader";
 import type { Reservations } from "../../../types/reservations";
 import type { CustomerDetail } from "../../../types/customer";
 import ReservationCard from "./components/ReservationCard";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
-const dummyReservations: Reservations[] = [
-  {
-    reservationId: 1,
-    status: "CONFIRMED",
-    shopName: "매장명",
-    designerName: "시술자명",
-    treatmentName: "이달의 아트",
-    optionNames: ["옵션6", "옵션1"],
-    date: "2025-07-06",
-    time: "12:00:00",
-    imageUrl: "https://img.example.com/style.jpg",
-  },
-  {
-    reservationId: 2,
-    status: "PENDING",
-    shopName: "매장명",
-    designerName: "시술자명",
-    treatmentName: "이달의 아트",
-    optionNames: ["옵션6", "옵션1"],
-    date: "2025-07-06",
-    time: "12:00:00",
-    imageUrl: "https://img.example.com/style.jpg",
-  },
-];
+// const dummyReservations: Reservations[] = [
+//   {
+//     reservationId: 1,
+//     status: "CONFIRMED",
+//     shopName: "매장명",
+//     designerName: "시술자명",
+//     treatmentName: "이달의 아트",
+//     optionNames: ["옵션6", "옵션1"],
+//     date: "2025-07-06",
+//     time: "12:00:00",
+//     imageUrl: "https://img.example.com/style.jpg",
+//   },
+//   {
+//     reservationId: 2,
+//     status: "PENDING",
+//     shopName: "매장명",
+//     designerName: "시술자명",
+//     treatmentName: "이달의 아트",
+//     optionNames: ["옵션6", "옵션1"],
+//     date: "2025-07-06",
+//     time: "12:00:00",
+//     imageUrl: "https://img.example.com/style.jpg",
+//   },
+// ];
 
-const dummyCustomers: CustomerDetail[] = [
-  {
-    customerId: 5,
-    name: "심서영",
-    contact: "019-534-6247",
-    email: "beautiflow@gmail.com",
-    targetGroup: ["VIP"],
-  },
-];
+// const dummyCustomers: CustomerDetail[] = [
+//   {
+//     customerId: 5,
+//     name: "이하늘",
+//     contact: "019-534-6247",
+//     email: "beautiflow@gmail.com",
+//     groupCodes: ["VIP"],
+//   },
+
+// ];
+type LocationState = CustomerDetail & { allGroups?: string[] };
 
 export default function ClientPage() {
-  //   const { reservations } = useReservationContext();
-  //   const selectedCustomerId = 1; // 바꿔야함
-  const navigate = useNavigate();
   const { customerId } = useParams<{ customerId: string }>();
   const id = Number(customerId);
+  const navigate = useNavigate();
+  const { state } = useLocation() as { state?: LocationState };
+
   if (!Number.isFinite(id)) {
     return <div className="p-5 text-red-400">잘못된 고객 ID입니다.</div>;
   }
 
-  const customer = dummyCustomers.find(c => c.customerId === id);
+  // 고객 상세 상태
+  const [customer, setCustomer] = useState<CustomerDetail | null>(
+    state ?? null,
+  );
+  const [custLoading, setCustLoading] = useState(!state);
+  const [custError, setCustError] = useState<string | null>(null);
+
+  // 예약 상태
+  const [reservations, setReservations] = useState<Reservations[]>([]);
+  const [resLoading, setResLoading] = useState(true);
+  const [resError, setResError] = useState<string | null>(null);
+
+  // 고객 상세 GET
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setCustLoading(true);
+        setCustError(null);
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          // 토큰 없으면 state만 보여주고 종료
+          setCustLoading(false);
+          if (!state) setCustError("로그인이 필요합니다.");
+          return;
+        }
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        if (cancelled) return;
+
+        const d = res.data?.data;
+        if (!d) {
+          setCustError("고객 정보를 불러오지 못했습니다.");
+          setCustLoading(false);
+          return;
+        }
+
+        const mapped: CustomerDetail = {
+          customerId: d.customerId ?? id,
+          name: d.name ?? state?.name ?? "",
+          contact: d.contact ?? state?.contact,
+          email: d.email ?? state?.email,
+          groupCodes: Array.isArray(d.groupCodes)
+            ? d.groupCodes
+            : d?.groupCodes
+              ? [d.groupCodes]
+              : (state?.groupCodes ?? []),
+          styleImageUrls: Array.isArray(d.styleImageUrls)
+            ? d.styleImageUrls.filter(
+                (u: unknown): u is string => typeof u === "string",
+              )
+            : Array.isArray(state?.styleImageUrls)
+              ? state!.styleImageUrls
+              : [],
+          requestNotes: d.requestNotes ?? state?.requestNotes,
+          memo: d.memo ?? state?.memo,
+        };
+
+        setCustomer(mapped);
+      } catch (e) {
+        console.error("고객 상세 불러오기 실패", e);
+        setCustError("고객 정보를 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) setCustLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // 예약 GET
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setResLoading(true);
+        setResError(null);
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          setResLoading(false);
+          setResError("로그인이 필요합니다.");
+          return;
+        }
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/${id}/reservations`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        if (cancelled) return;
+
+        if (Array.isArray(res.data?.data)) {
+          const mapped: Reservations[] = res.data.data.map((r: any) => ({
+            reservationId: r.reservationId,
+            imageUrl: typeof r.imageUrl === "string" ? r.imageUrl : "",
+            shopName: r.shopName ?? "",
+            designerName: r.designerName ?? "",
+            treatmentName: r.treatmentName ?? "",
+            optionNames: Array.isArray(r.optionNames) ? r.optionNames : [],
+            date: r.date ?? "",
+            time: r.time ?? "",
+            status: r.status,
+          }));
+          setReservations(mapped);
+        } else {
+          console.warn("예약 리스트 응답이 배열이 아닙니다:", res.data);
+          setReservations([]);
+        }
+      } catch (e) {
+        console.error("예약 리스트 불러오기 실패", e);
+        setResError("예약 정보를 불러오지 못했습니다.");
+        setReservations([]);
+      } finally {
+        if (!cancelled) setResLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  // 화면 렌더링 가드
+  if (custLoading && !customer) {
+    return <div className="p-5 text-[var(--color-grey-550)]">불러오는 중…</div>;
+  }
   if (!customer) {
     return (
       <div className="p-5 text-[var(--color-grey-550)]">
-        고객 정보를 찾을 수 없습니다.
+        {custError ?? "고객 정보를 찾을 수 없습니다."}
       </div>
     );
   }
@@ -64,9 +199,8 @@ export default function ClientPage() {
   const handleCreateRoom = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const customerId = customer.customerId; // 확인해야함
-      const shopId = localStorage.getItem("shopId"); // 확인해야함
-      const designerId = localStorage.getItem("designerId"); // 확인해야함
+      const shopId = localStorage.getItem("shopId");
+      const designerId = localStorage.getItem("designerId");
 
       if (!token || !designerId || !shopId) {
         console.error("정보가 부족합니다.");
@@ -75,16 +209,8 @@ export default function ClientPage() {
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
-        {
-          shopId,
-          customerId,
-          designerId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        { shopId, customerId: customer.customerId, designerId },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const roomId = response.data.data.roomId;
@@ -111,7 +237,10 @@ export default function ClientPage() {
         }
         onRightClick={() =>
           navigate(`/mangedCustomer/${customer.customerId}/modify`, {
-            state: customer,
+            state: {
+              ...customer,
+              allGroups: state?.allGroups, // 리스트에서 전달된 allGroups 그대로 유지
+            },
           })
         }
       />
@@ -139,13 +268,15 @@ export default function ClientPage() {
             </svg>
           </div>
         </div>
+
         {/* 그룹 */}
         <div className="body1 mb-4 text-[var(--color-grey-450)]">
-          {!customer.targetGroup.includes("전체") &&
-            customer.targetGroup.map(g => `#${g}`).join(" ")}
+          {!customer.groupCodes?.includes("전체") &&
+            (customer.groupCodes ?? []).map(g => `#${g}`).join(" ")}
         </div>
+
         {/* 이미지 목록 */}
-        {customer.styleImageUrls && (
+        {customer.styleImageUrls && customer.styleImageUrls.length > 0 && (
           <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
             {customer.styleImageUrls.map((url, index) => (
               <div
@@ -156,11 +287,16 @@ export default function ClientPage() {
                   src={url}
                   alt={`style-${index}`}
                   className="h-full w-full object-cover"
+                  onError={e => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
                 />
               </div>
             ))}
           </div>
         )}
+
         {/* 내용 */}
         <div className="mt-4 inline-flex flex-col gap-[6px]">
           <div className="flex gap-4">
@@ -200,17 +336,32 @@ export default function ClientPage() {
 
       <div className="h-[8px] w-[375px] bg-[var(--color-grey-950)]"></div>
 
-      {/* 진행시술 */}
+      {/* 진행 시술 */}
       <div className="flex flex-col gap-2 py-7">
         <span className="label1 px-5 text-[var(--color-grey-150)]">
           진행 시술
         </span>
-        {dummyReservations.map(reservation => (
-          <ReservationCard
-            key={reservation.reservationId}
-            reservation={reservation}
-          />
-        ))}{" "}
+
+        {resLoading ? (
+          <div className="body2 px-5 text-[var(--color-grey-550)]">
+            불러오는 중…
+          </div>
+        ) : resError ? (
+          <div className="body2 px-5 text-[var(--color-grey-550)]">
+            {resError}
+          </div>
+        ) : reservations.length === 0 ? (
+          <div className="body2 px-5 text-[var(--color-grey-550)]">
+            예약이 없습니다.
+          </div>
+        ) : (
+          reservations.map(reservation => (
+            <ReservationCard
+              key={reservation.reservationId}
+              reservation={reservation}
+            />
+          ))
+        )}
       </div>
 
       {/* 하단바 */}

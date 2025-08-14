@@ -24,10 +24,10 @@ export default function ClientCard({
       className="mb-2 flex w-[335px] cursor-pointer items-center justify-between rounded-[4px] bg-[var(--color-grey-950)] px-4 py-3"
     >
       <div className="label1 text-[var(--color-grey-250)]">{customer.name}</div>
-      {!customer.targetGroup.includes("전체") &&
+      {!customer.groupCodes.includes("전체") &&
         (() => {
-          const groups = Array.isArray(customer.targetGroup)
-            ? customer.targetGroup.filter(g => g !== "전체")
+          const groups = Array.isArray(customer.groupCodes)
+            ? customer.groupCodes.filter(g => g !== "전체")
             : [];
           if (groups.length === 0) return null;
 

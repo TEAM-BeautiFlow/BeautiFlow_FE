@@ -11,7 +11,7 @@ export type Customer = {
 export type CustomerList = {
   customerId: number;
   name: string;
-  targetGroup: string[];
+  groupCodes: string[];
 };
 
-export type CustomerDetail = Customer & { targetGroup: string[] };
+export type CustomerDetail = Customer & { groupCodes: string[] };
