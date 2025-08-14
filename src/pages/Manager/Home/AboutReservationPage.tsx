@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getReservationDetail,
+  updateReservationStatus,
+} from "@/apis/manager_home/home";
 
 interface ReservationDetailPageProps {
   onBack?: () => void;
@@ -89,11 +95,31 @@ function StatusModal({
 
 export default function AboutReservationPage({
   onBack,
-  onClose,
   onStatusChange,
   onChat,
 }: ReservationDetailPageProps = {}) {
   const navigate = useNavigate();
+  const params = useParams();
+  const reservationId = useMemo(
+    () => Number(params.reservationId),
+    [params.reservationId],
+  );
+  const queryClient = useQueryClient();
+  const { data: detail } = useQuery({
+    queryKey: ["reservationDetail", reservationId],
+    queryFn: () => getReservationDetail(reservationId),
+    enabled: Number.isFinite(reservationId),
+  });
+  const formatWon = (num?: number) =>
+    typeof num === "number" ? num.toLocaleString("ko-KR") + "원" : "-";
+  const formatTime = (t?: string) => (t ?? "").slice(0, 5);
+  const statusLabel: Record<string, string> = {
+    CONFIRMED: "예약 확정",
+    PENDING: "확정 대기",
+    CANCELLED: "취소",
+    NO_SHOW: "노쇼",
+    COMPLETED: "시술 완료",
+  };
   const [currentStatus, setCurrentStatus] = useState("확정 대기");
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
@@ -114,8 +140,28 @@ export default function AboutReservationPage({
     setCurrentStatus(status);
   };
 
-  const handleModalClose = () => {
-    setIsStatusModalOpen(false);
+  // 확인 버튼에서 닫도록 변경하여 별도 close 핸들러 제거
+
+  const handleStatusSubmit = async () => {
+    if (!Number.isFinite(reservationId)) return;
+    try {
+      const serverKey: Record<string, string> = {
+        "확정 대기": "PENDING",
+        "예약 확정": "CONFIRMED",
+        취소: "CANCELLED",
+        노쇼: "NO_SHOW",
+        "시술 완료": "COMPLETED",
+      };
+      const next = serverKey[currentStatus] ?? currentStatus;
+      await updateReservationStatus(reservationId, next);
+      await queryClient.invalidateQueries({
+        queryKey: ["reservationDetail", reservationId],
+      });
+      setIsStatusModalOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert("상태 변경에 실패했습니다.");
+    }
   };
   return (
     <>
@@ -145,7 +191,9 @@ export default function AboutReservationPage({
         <div className="flex items-center justify-between px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold text-[#b270ea]">
-              {currentStatus}
+              {detail?.status
+                ? (statusLabel[detail.status] ?? detail.status)
+                : currentStatus}
             </h2>
             <p className="mt-1 text-sm leading-[21px] text-[#8e8e8e]">
               예약금 입금 여부를 확인하고
@@ -153,12 +201,14 @@ export default function AboutReservationPage({
               예약 확정 상태로 변경해주세요.
             </p>
           </div>
-          <button
-            onClick={handleStatusChange}
-            className="rounded-lg border border-[#6e6e6e] px-4 py-2 text-sm text-[#f3f3f3]"
-          >
-            상태 변경
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStatusChange}
+              className="rounded-lg border border-[#6e6e6e] px-4 py-2 text-sm text-[#f3f3f3]"
+            >
+              상태 변경
+            </button>
+          </div>
         </div>
 
         {/* Service Info Section */}
@@ -167,26 +217,22 @@ export default function AboutReservationPage({
           <div className="space-y-3 rounded bg-[#3a3a3a] p-4">
             <div>
               <h4 className="text-lg font-semibold text-[#e8e8e8]">
-                이달의 아트 (9월)
+                {detail?.treatmentNames?.join(", ") || "-"}
               </h4>
               <p className="mt-1 text-sm text-[#bdbebd]">
-                2025.07.07 13:00 | 1시간 30분
+                {detail?.date} {formatTime(detail?.startTime)} -{" "}
+                {formatTime(detail?.endTime)}
+                {detail?.durationText ? ` | ${detail.durationText}` : ""}
               </p>
             </div>
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-[#8e8e8e]">젤제거술</span>
-                <span className="font-semibold text-[#f3f3f3]">없음</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8e8e8e]">연장개수</span>
-                <span className="font-semibold text-[#f3f3f3]">1~5개</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8e8e8e]">그외옵션</span>
+                <span className="text-[#8e8e8e]">옵션</span>
                 <span className="font-semibold text-[#f3f3f3]">
-                  네일보습, 케이터링, 데모데이
+                  {detail?.optionNames?.length
+                    ? detail.optionNames.join(", ")
+                    : "없음"}
                 </span>
               </div>
             </div>
@@ -206,7 +252,7 @@ export default function AboutReservationPage({
             <div className="flex items-center justify-between">
               <span className="text-base text-[#bdbebd]">받을 예약금</span>
               <span className="text-base font-semibold text-[#a83dff]">
-                30,000원
+                {formatWon(detail?.paymentInfo?.depositAmount)}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -214,7 +260,7 @@ export default function AboutReservationPage({
                 매장에서 결제할 금액
               </span>
               <span className="text-base font-semibold text-[#f3f3f3]">
-                90,000원
+                {formatWon(detail?.paymentInfo?.shopPayAmount)}
               </span>
             </div>
           </div>
@@ -227,9 +273,9 @@ export default function AboutReservationPage({
               <div className="h-10 w-10 rounded-full bg-[#3a3a3a]"></div>
               <div>
                 <span className="text-base font-semibold text-[#f3f3f3]">
-                  손하늘
+                  {detail?.customerName ?? "-"}
                 </span>
-                <p className="text-sm text-[#8e8e8e]">010-1234-5678</p>
+                <p className="text-sm text-[#8e8e8e]">&nbsp;</p>
               </div>
             </div>
             <button
@@ -248,14 +294,20 @@ export default function AboutReservationPage({
 
           {/* Customer Photos */}
           <div className="mt-4 flex space-x-2">
-            <div className="h-20 w-20 rounded bg-[#3a3a3a]"></div>
-            <div className="h-20 w-20 rounded bg-[#3a3a3a]"></div>
+            {(detail?.imageUrls ?? []).slice(0, 5).map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`style-${idx}`}
+                className="h-20 w-20 rounded object-cover"
+              />
+            ))}
           </div>
 
           {/* Customer Message */}
           <div className="mt-4 rounded bg-[#262626] p-4">
             <p className="text-sm text-[#f3f3f3]">
-              최대한 빠른 시술 부탁드립니다.
+              {detail?.requestNotes || "-"}
             </p>
           </div>
         </div>
@@ -264,7 +316,7 @@ export default function AboutReservationPage({
       {/* Status Modal */}
       <StatusModal
         isOpen={isStatusModalOpen}
-        onClose={handleModalClose}
+        onClose={handleStatusSubmit}
         onStatusSelect={handleStatusSelect}
         currentStatus={currentStatus}
       />

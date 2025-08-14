@@ -29,7 +29,10 @@ export default function ReservationWrapper() {
       }
     };
 
-    fetchReservations();
+    // 현재 경로가 고객 전용 라우트일 때만 로딩 (매니저 상세 진입 시 트리거 방지)
+    if (location.pathname.startsWith("/reservations")) {
+      fetchReservations();
+    }
   }, []);
   return (
     <ReservationContext.Provider value={{ reservations }}>

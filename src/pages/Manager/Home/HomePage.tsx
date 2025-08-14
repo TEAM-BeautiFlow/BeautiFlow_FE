@@ -1,5 +1,12 @@
 import LeftChevronIcon from "../../../assets/icon_left-chevron.svg";
 import RightChevronIcon from "../../../assets/icon_right-chevron.svg";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import {
+  getMonthlyReservations,
+  getTodayReservationCounts,
+} from "@/apis/manager_home/home";
+import { useNavigate } from "react-router-dom";
 
 const TodaysReservationCard = ({
   title,
@@ -17,55 +24,43 @@ const TodaysReservationCard = ({
   </div>
 );
 
-const Calendar = () => {
+const Calendar = ({
+  year,
+  month, // 0-based
+  selectedDate,
+  onSelectDate,
+  onPrev,
+  onNext,
+}: {
+  year: number;
+  month: number;
+  selectedDate: Date;
+  onSelectDate: (date: Date) => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) => {
   const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-  // Dummy calendar days for layout
-  const dates = [
-    null,
-    null,
-    null,
-    null,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    null,
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDate = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const dates: (number | null)[] = [
+    ...Array(firstDay).fill(null),
+    ...Array.from({ length: lastDate }, (_, i) => i + 1),
   ];
+  const pad = (7 - (dates.length % 7)) % 7;
+  for (let i = 0; i < pad; i += 1) dates.push(null);
 
   return (
     <div className="p-4">
       <div className="mb-6 flex items-center justify-between">
-        <button>
+        <button onClick={onPrev}>
           <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
         </button>
-        <h3 className="text-lg font-bold text-white">2025년 6월</h3>
-        <button>
+        <h3 className="text-lg font-bold text-white">
+          {year}년 {month + 1}월
+        </h3>
+        <button onClick={onNext}>
           <img src={RightChevronIcon} alt=">" className="h-6 w-6" />
         </button>
       </div>
@@ -75,19 +70,37 @@ const Calendar = () => {
         ))}
       </div>
       <div className="grid grid-cols-7 items-center gap-y-4 text-center text-sm">
-        {dates.map((date, index) => (
-          <div key={index} className="flex h-8 items-center justify-center">
-            {date && (
-              <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                  date === 25 ? "bg-[#3A3A3A] text-white" : "text-gray-400"
-                }`}
-              >
-                {date}
-              </span>
-            )}
-          </div>
-        ))}
+        {dates.map((date, index) => {
+          const isSelected =
+            date !== null &&
+            selectedDate.getFullYear() === year &&
+            selectedDate.getMonth() === month &&
+            selectedDate.getDate() === date;
+          const isToday =
+            date !== null &&
+            today.getFullYear() === year &&
+            today.getMonth() === month &&
+            today.getDate() === date;
+
+          return (
+            <div key={index} className="flex h-8 items-center justify-center">
+              {date && (
+                <button
+                  onClick={() => onSelectDate(new Date(year, month, date))}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                    isSelected
+                      ? "bg-[#3A3A3A] text-white"
+                      : isToday
+                        ? "text-white"
+                        : "text-gray-400"
+                  }`}
+                >
+                  {date}
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -98,13 +111,15 @@ const ReservationItem = ({
   time,
   customer,
   service,
+  onClick,
 }: {
   status: string;
   time: string;
   customer: string;
   service: string;
+  onClick?: () => void;
 }) => (
-  <div className="border-t border-gray-800 pt-4">
+  <div className="border-t border-gray-800 pt-4" onClick={onClick}>
     <div className="flex items-start justify-between">
       <div>
         <p className="text-sm font-bold text-[#A465FD]">{status}</p>
@@ -139,20 +154,23 @@ const ReservationItem = ({
 );
 
 const HomePage = () => {
-  const reservations = [
-    {
-      status: "예약 확정",
-      time: "09:30 - 10:30",
-      customer: "손하늘",
-      service: "이달의 아트",
-    },
-    {
-      status: "예약 확정",
-      time: "11:00 - 12:30",
-      customer: "손하늘",
-      service: "시술명",
-    },
-  ];
+  const navigate = useNavigate();
+  const [displayedDate, setDisplayedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { data: todayCounts } = useQuery({
+    queryKey: ["todayReservationCounts"],
+    queryFn: getTodayReservationCounts,
+    staleTime: 1000 * 60, // 1분
+  });
+  const currentMonthParam = `${displayedDate.getFullYear()}-${String(
+    displayedDate.getMonth() + 1,
+  ).padStart(2, "0")}`; // 예: 2025-08 형식
+
+  const { data: monthlyReservations } = useQuery({
+    queryKey: ["monthlyReservations", currentMonthParam],
+    queryFn: () => getMonthlyReservations(currentMonthParam, 0, 20, "string"),
+    staleTime: 1000 * 60,
+  });
 
   return (
     <div className="mx-auto min-h-screen max-w-[375px] bg-black px-4 pb-24 text-white">
@@ -160,24 +178,82 @@ const HomePage = () => {
         <section>
           <h2 className="mb-4 text-xl font-bold">오늘의 예약</h2>
           <div className="grid grid-cols-3 gap-3">
-            <TodaysReservationCard title="확정 대기" count={12} />
-            <TodaysReservationCard title="당일 완료" count={12} />
-            <TodaysReservationCard title="당일 취소" count={12} />
+            <TodaysReservationCard
+              title="확정 대기"
+              count={todayCounts?.pending ?? 0}
+            />
+            <TodaysReservationCard
+              title="당일 완료"
+              count={todayCounts?.completed ?? 0}
+            />
+            <TodaysReservationCard
+              title="당일 취소"
+              count={todayCounts?.cancelled ?? 0}
+            />
           </div>
         </section>
 
         <section className="border-t border-gray-800 pt-8">
           <h2 className="mb-4 text-xl font-bold">전체 예약</h2>
-          <Calendar />
+          <Calendar
+            year={displayedDate.getFullYear()}
+            month={displayedDate.getMonth()}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            onPrev={() =>
+              setDisplayedDate(
+                d => new Date(d.getFullYear(), d.getMonth() - 1, 1),
+              )
+            }
+            onNext={() =>
+              setDisplayedDate(
+                d => new Date(d.getFullYear(), d.getMonth() + 1, 1),
+              )
+            }
+          />
         </section>
 
         <section>
-          <h3 className="mb-4 text-lg font-bold">25일 수</h3>
-          <div className="space-y-4">
-            {reservations.map((res, index) => (
-              <ReservationItem key={index} {...res} />
-            ))}
-          </div>
+          {(() => {
+            const y = selectedDate.getFullYear();
+            const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+            const d = String(selectedDate.getDate()).padStart(2, "0");
+            const selectedKey = `${y}-${m}-${d}`;
+            const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][
+              selectedDate.getDay()
+            ];
+
+            const list = (monthlyReservations?.content ?? []).filter(
+              item => item.date === selectedKey,
+            );
+
+            const fmt = (t?: string) => (t ?? "").slice(0, 5);
+
+            return (
+              <>
+                <h3 className="mb-4 text-lg font-bold">
+                  {Number(d)}일 {dayOfWeek}
+                </h3>
+                <div className="space-y-4">
+                  {list.map(item => (
+                    <ReservationItem
+                      key={item.reservationId}
+                      status={item.status}
+                      time={`${fmt(item.startTime)} - ${fmt(item.endTime)}`}
+                      customer={item.customerName}
+                      service={item.treatmentName ?? "-"}
+                      onClick={() =>
+                        navigate(`/manager/reservations/${item.reservationId}`)
+                      }
+                    />
+                  ))}
+                  {list.length === 0 && (
+                    <p className="text-sm text-gray-400">예약이 없습니다.</p>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </section>
       </main>
     </div>
