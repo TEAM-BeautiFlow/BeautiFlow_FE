@@ -38,7 +38,9 @@ export default function SignupPage() {
       setIsVerified(true);
       if (kakaoId && provider && name) {
         await postSignup({ kakaoId, provider, name, contact: phone });
-        navigate("/", { replace: true });
+        const isStaff =
+          typeof provider === "string" && provider.includes("staff");
+        navigate(isStaff ? "/manager/onboard" : "/", { replace: true });
       }
     } catch (e) {
       // 인증 실패 시 상태 유지
@@ -48,7 +50,8 @@ export default function SignupPage() {
   async function handleSubmit() {
     if (!kakaoId || !provider || !name || !phone || !isVerified) return;
     await postSignup({ kakaoId, provider, name, contact: phone });
-    navigate("/", { replace: true });
+    const isStaff = typeof provider === "string" && provider.includes("staff");
+    navigate(isStaff ? "/manager/onboard" : "/", { replace: true });
   }
 
   const canSubmit = !!(name && phone && isVerified);

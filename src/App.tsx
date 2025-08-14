@@ -1,4 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useAuthStore } from "@/stores/auth";
 import ReservationListPage from "./pages/User/Reservation/ReservationListPage";
 import ReservationDetailPage from "./pages/User/Reservation/ReservationDetailPage";
 import Layout from "./layout/Layout";
@@ -31,11 +34,18 @@ import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
 import AppointmentBooking from "./pages/Consumer/AppointmentBooking";
 import TreatmentBookingPage from "./pages/Consumer/TreatmentBookingPage";
 import ReservationCheck from "./pages/Consumer/ReservationCheck";
-
-// 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
-// 필요하시면 주석을 해제하고 사용하세요.
-// import Reservation from "./pages/Consumer/Reservation";
-// import ReservationCheck from "./pages/Consumer/ReservationCheck";
+import Mypage from "./pages/User/Mypage/Mypage";
+import EditStyle from "./pages/User/Mypage/EditStyle";
+import ManagerMypage from "./pages/Manager/Mypage/Mypage";
+import ManagerMypageModify from "./pages/Manager/Mypage/MypageModify";
+import ManagerMypageEdit from "./pages/Manager/Mypage/MypageEdit";
+import OnboardFirst from "./pages/Manager/Onboard/components/OnboardFirst";
+import OnboardJoin from "./pages/Manager/Onboard/components/OnboardJoin";
+import OnboardShopRegister from "./pages/Manager/Onboard/components/OnboardShopRegister";
+import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
+import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
+import HomePage from "./pages/Manager/Home/HomePage";
+import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -53,7 +63,7 @@ const router = createBrowserRouter([
       //     element: <HomePage />
       //   },
       {
-        path: "reservation",
+        path: "reservations",
         element: <ReservationWrapper />,
         children: [
           { index: true, element: <ReservationListPage /> },
@@ -88,7 +98,7 @@ const router = createBrowserRouter([
         element: <GroupChatPage />,
       },
       {
-        path: "chat/rooms/profile/:opponentId",
+        path: "chat/rooms/profile/:customerId",
         element: <ChatProfile />,
       },
       {
@@ -103,9 +113,9 @@ const router = createBrowserRouter([
         path: "templatesform",
         element: (
           <TemplateFormPage
-            onClose={function (): void {
-              throw new Error("Function not implemented.");
-            }}
+          // onClose={function (): void {
+          //   throw new Error("Function not implemented.");
+          // }}
           />
         ),
       },
@@ -143,13 +153,53 @@ const router = createBrowserRouter([
       {
         path: "reservation-check/:shopId/:treatmentId",
         element: <ReservationCheck />,
+      { path: "mangedCustomer", element: <ClientListPage /> },
+      { path: "mangedCustomer/:customerId", element: <ClientPage /> },
+      { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
+      { path: "client/mypage", element: <Mypage /> },
+      { path: "client/mypage/edit", element: <ManagerMypageEdit /> },
+      { path: "client/mypage/style", element: <EditStyle /> },
+      { path: "manager/mypage", element: <ManagerMypage /> },
+      { path: "manager/mypage/modify", element: <ManagerMypageModify /> },
+      { path: "manager/mypage/edit", element: <ManagerMypageEdit /> },
+      { path: "manager/onboard", element: <OnboardFirst /> },
+      { path: "manager/onboard/join", element: <OnboardJoin /> },
+      { path: "manager/onboard/join/fin", element: <OnboardJoinFin /> },
+      { path: "manager/onboard/shop", element: <OnboardShopRegister /> },
+      { path: "manager/onboard/shop/fin", element: <OnboardShopFin /> },
+      { path: "manager/home", element: <HomePage /> },
+      {
+        path: "manager/reservations/:reservationId",
+        element: <AboutReservationPage />,
       },
     ],
   },
 ]);
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 0,
+      staleTime: 60 * 1000,
+    },
+  },
+});
+
 function App() {
-  return <RouterProvider router={router} />;
+  useEffect(() => {
+    // 새로고침 직후에도 토큰을 스토어로 동기화
+    try {
+      useAuthStore.getState().hydrateFromStorage();
+    } catch {}
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }
 
 export default App;

@@ -2,18 +2,84 @@ import { useParams } from "react-router-dom";
 import { useReservationContext } from "../../../context/ReservationContext";
 import UserNavbar from "../../../layout/UserNavbar";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
+import type { Reservation } from "../../../types/reservations";
+import noImage from "../../../assets/no_image.png";
+
+function formatOptionGroups(groups: Reservation["optionGroups"]) {
+  if (!groups || groups.length === 0) return "-";
+  return groups
+    .map(g => {
+      const items = (g.optionItems ?? [])
+        .map(i => i.itemName?.trim())
+        .filter(Boolean) as string[];
+      return items.length ? `${g.groupName}(${items.join(", ")})` : g.groupName;
+    })
+    .join(", ");
+}
 
 export default function ReservationDetailPage() {
   const { reservationId } = useParams();
   const { reservations } = useReservationContext();
-
+  const [, setReservations] = useState<Reservation[]>([]);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const id = Number(reservationId);
   const reservation = reservations.find(r => r.reservationId === id);
+  // status 설정
+  const statusLabels: Record<string, string> = {
+    CONFIRMED: "예약 확정",
+    PENDING: "예약 확인중",
+    COMPLETED: "시술 완료",
+    CANCELLED: "취소 완료",
+    NO_SHOW: "노쇼",
+  };
 
   // 뒤로가기
   const navigate = useNavigate();
   const goBack = () => {
     navigate(-1); // 이전 페이지로 이동
+  };
+
+  // 채팅방 입장
+  const handleCreateRoom = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const customerId = localStorage.getItem("customerId"); // 확인해야함
+      const shopId = reservation?.shopId;
+      const designerId = reservation?.designerId;
+
+      if (!token || !designerId || !shopId) {
+        console.error("정보가 부족합니다.");
+        return;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
+        {
+          shopId,
+          customerId,
+          designerId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const roomId = response.data.data.roomId;
+      navigate(`/chat/rooms/${roomId}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("채팅방 생성 실패", {
+          message: error.message,
+          response: error.response,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+      }
+    }
   };
 
   // 복사기능
@@ -27,12 +93,59 @@ export default function ReservationDetailPage() {
     }
   };
 
+  // 매장 이미지
+  const src =
+    reservation?.shopImageUrl &&
+    reservation.shopImageUrl.trim() &&
+    reservation.shopImageUrl !== "null" &&
+    reservation.shopImageUrl !== "undefined"
+      ? reservation.shopImageUrl
+      : noImage;
+
+  // 예약 취소
+  const handleCancelReservation = async (reservationId: number) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Access Token이 없습니다.");
+      return;
+    }
+    try {
+      setCancellingId(reservationId);
+
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE_URL}/reservations/${reservationId}/cancel`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      setReservations(prev =>
+        prev.map(r =>
+          r.reservationId === reservationId ? { ...r, status: "CANCELLED" } : r,
+        ),
+      );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("예약 취소 실패", {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+        alert("예약 취소에 실패했습니다.");
+      } else {
+        console.error("알 수 없는 오류", error);
+      }
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   if (!reservation) {
     return <div className="p-4 text-white">예약 정보를 찾을 수 없습니다.</div>;
   }
 
   return (
     <div className="mx-auto flex w-[375px] flex-col overflow-y-auto bg-[var(--color-grey-1000)]">
+      {/* 상단 */}
       <div className="mt-14 flex h-[60px] items-center justify-between px-5 py-2.5">
         <div className="flex items-center gap-2.5">
           <button onClick={goBack} className="cursor-pointer">
@@ -58,13 +171,14 @@ export default function ReservationDetailPage() {
             예약 상세내역
           </span>
         </div>
-        <div className="">
+        <div className="cursor-pointer" onClick={handleCreateRoom}>
           <svg
             width="28"
             height="28"
             viewBox="0 0 28 28"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className="transition-colors duration-200 hover:[&>path]:fill-[var(--color-purple)]"
           >
             <path
               d="M14 2.5C20.3513 2.5 25.5 7.64873 25.5 14C25.5 20.3513 20.3513 25.5 14 25.5C12.4722 25.5 11.0112 25.2019 9.6748 24.6592C9.55344 24.6099 9.4805 24.5801 9.42578 24.5596C9.37142 24.5392 9.36896 24.5405 9.38867 24.5449C9.37898 24.5427 9.37343 24.5414 9.37109 24.541H9.35156C9.34573 24.5416 9.3366 24.5431 9.32324 24.5449C9.27713 24.5512 9.21539 24.5616 9.10449 24.5801L4.95312 25.2715C4.75444 25.3046 4.5392 25.3416 4.35547 25.3555C4.167 25.3697 3.88319 25.3726 3.58594 25.2451C3.21258 25.085 2.91502 24.7874 2.75488 24.4141C2.62745 24.1168 2.63031 23.833 2.64453 23.6445C2.6584 23.4608 2.6954 23.2456 2.72852 23.0469L3.41992 18.8955C3.43841 18.7846 3.44883 18.7229 3.45508 18.6768C3.45689 18.6634 3.45838 18.6543 3.45898 18.6484V18.6289C3.45857 18.6266 3.45725 18.621 3.45508 18.6113C3.4595 18.631 3.46084 18.6286 3.44043 18.5742C3.41987 18.5195 3.39011 18.4466 3.34082 18.3252C2.79806 16.9888 2.5 15.5278 2.5 14C2.5 7.64873 7.64873 2.5 14 2.5ZM9 15C8.44772 15 8 15.4477 8 16C8 16.5523 8.44772 17 9 17H18C18.5523 17 19 16.5523 19 16C19 15.4477 18.5523 15 18 15H9ZM9 11C8.44772 11 8 11.4477 8 12C8 12.5523 8.44772 13 9 13H15C15.5523 13 16 12.5523 16 12C16 11.4477 15.5523 11 15 11H9Z"
@@ -77,42 +191,60 @@ export default function ReservationDetailPage() {
       {/* 매장 정보 */}
       <div className="mt-4 flex flex-col">
         <div className="flex h-[177px] flex-col gap-3 px-5 py-4">
-          {/* 상태에 따라 색상 변경 */}
+          {/* status */}
           <span
             className={`body1 flex h-[21px] justify-between ${
-              reservation.status === "예약 확정"
+              reservation.status === "CONFIRMED"
                 ? "text-[#51C879]"
-                : reservation.status === "예약 확인중"
+                : reservation.status === "PENDING"
                   ? "text-[var(--color-purple)]"
-                  : reservation.status === "시술 완료"
+                  : reservation.status === "COMPLETED"
                     ? "text-[var(--color-grey-450)]"
                     : "text-[#D2636A]"
             }`}
           >
-            {reservation.status}
+            {statusLabels[reservation.status]}
             <div className="flex gap-[10px]">
-              <span className="body2 h-[21px] text-[var(--color-grey-550)]">
-                취소하기
+              <span
+                className={`body2 cursor-pointer text-[var(--color-grey-550)] ${
+                  reservation.status === "CONFIRMED" ||
+                  reservation.status === "PENDING"
+                    ? "block"
+                    : "hidden"
+                } ${cancellingId === reservation.reservationId ? "pointer-events-none opacity-50" : ""}`}
+                onClick={() => {
+                  if (cancellingId) return;
+                  if (confirm("이 예약을 취소하시겠습니까?")) {
+                    handleCancelReservation(reservation.reservationId);
+                  }
+                }}
+              >
+                {cancellingId === reservation.reservationId
+                  ? "취소 중..."
+                  : "취소하기"}
               </span>
             </div>
           </span>
+
+          {/* 가게 정보 */}
           <div className="flex h-[112px] gap-4">
             {/* 왼쪽 이미지 */}
-            <div className="h-25 w-25 shrink-0 rounded-[4px] bg-white"></div>
-
+            <div className="h-25 w-25 shrink-0 rounded-[4px] bg-white">
+              <img src={src} className="h-full w-full object-cover" />
+            </div>
             {/* 오른쪽 내용 */}
             <div className="flex-col justify-between">
               {/* 가게명 */}
               <div className="label1 line-clamp-2 text-[var(--color-grey-150)]">
-                {reservation.shopname}
+                {reservation.shopName}
               </div>
               {/* 주소 */}
               <div className="flex h-[36px]">
                 <div className="caption2 text-[var(--color-grey-550)]">
-                  {reservation.address}
+                  {reservation.shopAddress}
                   <button
-                    onClick={() => copyToClipboard(reservation.address)}
-                    className="ml-1 inline-flex translate-y-1"
+                    onClick={() => copyToClipboard(reservation.shopAddress)}
+                    className="ml-1 inline-flex translate-y-1 cursor-pointer"
                   >
                     <svg
                       width="16"
@@ -136,28 +268,31 @@ export default function ReservationDetailPage() {
           </div>
         </div>
       </div>
+
       {/* 예약 정보 */}
       <div className="">
         {/* 제목 */}
         <div className="label1 px-5 py-3 text-[var(--color-grey-150)]">
           예약 정보
         </div>
-
         {/* 테이블 */}
         <div className="mx-[20.5px] border border-[var(--color-grey-850)]">
           {/* 항목들 */}
           {[
-            { label: "시술일시", value: reservation.date },
+            {
+              label: "시술일시",
+              value: `${reservation.reservationDate} • ${reservation.startTime}`,
+            },
             {
               label: "소요시간",
-              value: (
-                <div className="flex items-center gap-[145px]">
-                  <span>1시간 30분</span>
-                </div>
-              ),
+              value: reservation.totalDurationMinutes + "분",
             },
-            { label: "매장이름", value: reservation.shopname },
-            { label: "예약자명", value: reservation.name },
+            {
+              label: "시술가격",
+              value: reservation.totalPrice + "원",
+            },
+            { label: "매장이름", value: reservation.shopName },
+            { label: "시술자명", value: reservation.designerName },
           ].map((item, idx) => (
             <div
               key={idx}
@@ -182,36 +317,50 @@ export default function ReservationDetailPage() {
         </div>
 
         {/* 시술 리스트 */}
-        {[
-          {
-            title: reservation.title,
-            price: "34,000원",
-            time: "소요시간 | 60분",
-          },
-          {
-            title: reservation.title,
-            price: "34,000원",
-            time: "소요시간 | 60분",
-          },
-        ].map((item, idx) => (
+        {reservation.treatments.map((item, idx) => (
           <div key={idx} className="mb-4 flex h-[77px] items-start gap-4 px-5">
             {/* 썸네일 */}
-            <div className="h-[77px] w-[77px] rounded-[4px] bg-white"></div>
-
-            {/* 텍스트 + 시간 */}
-            <div className="flex h-[49px] w-[243px] flex-col justify-between">
-              {/* 시술명 + 가격 */}
-              <div>
-                <div className="label1 text-[var(--color-grey-450)]">
-                  {item.title}
-                </div>
-                <div className="body1 mt-1 text-[var(--color-grey-250)]">
-                  {item.price}
+            <div className="h-[77px] w-[77px] rounded-[4px] bg-white">
+              <img
+                src={item.treatmentImageUrls[0] || noImage}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {/* 오른쪽 내용 */}
+            <div className="flex h-[77px] w-[243px] flex-col justify-between">
+              <div className="">
+                {/* 시술명 + 가격 */}
+                <div className="flex h-[49px] flex-col">
+                  <div className="label1 flex justify-between gap-1 text-[var(--color-grey-450)]">
+                    {item.treatmentName}
+                    {/* 소요시간 */}
+                    <div className="caption1 inline-flex h-[26px] items-center gap-1 self-end rounded-[6px] bg-[var(--color-grey-850)] px-1.5 py-1 text-[var(--color-grey-450)]">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15.1333 7.66667L13.8004 9L12.4666 7.66667M13.9634 8.66667C13.9876 8.44778 14 8.22534 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14C9.88484 14 11.5667 13.1309 12.6667 11.7716M8 4.66667V8L10 9.33333"
+                          stroke="#BDBEBD"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      {item.treatmentDurationMinutes}분
+                    </div>
+                  </div>
+                  <div className="body1 text-[var(--color-grey-250)]">
+                    {item.treatmentPrice}원
+                  </div>
                 </div>
               </div>
-              {/* 소요시간 */}
-              <div className="caption1 inline-flex h-[26px] w-[110px] items-center gap-1 self-end rounded-[6px] bg-[var(--color-grey-850)] px-1.5 py-1 text-[var(--color-grey-450)]">
-                {item.time}
+              {/* 옵션 */}
+              <div className="caption1 mb-[6px] line-clamp-2 text-[var(--color-grey-650)]">
+                {formatOptionGroups(reservation.optionGroups)}
               </div>
             </div>
           </div>
@@ -224,21 +373,24 @@ export default function ReservationDetailPage() {
         <div className="label1 py-3 text-[var(--color-grey-150)]">요청사항</div>
         {/* 이미지 목록 */}
         <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {reservation.styleImageUrls.map((url, index) => (
             <div
               key={index}
-              className="h-20 w-20 min-w-[80px] rounded-[4px] bg-white"
+              className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
             >
-              {/* 여기에 이미지 삽입 가능 */}
+              <img
+                src={url}
+                alt={`style-${index}`}
+                className="h-full w-full object-cover"
+              />
             </div>
           ))}
         </div>
 
         {/* 요청사항 텍스트 박스 */}
-
         <textarea
           className="body2 mt-4 mr-5 mb-20 w-[330px] resize-none rounded-[8px] bg-[var(--color-grey-950)] p-4 text-[var(--color-grey-150)]"
-          rows={4} // 원하는 줄 수
+          rows={4}
           placeholder="최대한 빠른 시술 부탁드립니다."
         />
       </div>

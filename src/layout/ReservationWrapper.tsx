@@ -1,69 +1,41 @@
 import { Outlet } from "react-router-dom";
 import { ReservationContext } from "../context/ReservationContext";
 import type { Reservation } from "../types/reservations";
-
-// 더미 데이터
-const dummyReservations: Reservation[] = [
-  {
-    reservationId: 1,
-    status: "예약 확정",
-    title: "이달의 아트",
-    shopname: "매장명",
-    name: "시술자명",
-    option: "없음",
-    address:
-      "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
-    date: "2025.07.06 · 오후 1시",
-  },
-  {
-    reservationId: 2,
-    status: "예약 확인중",
-    title: "이달의 아트",
-    shopname: "매장명",
-    name: "시술자명",
-    option: "없음",
-    address:
-      "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
-    date: "2025.08.01 · 오후 3시",
-  },
-  {
-    reservationId: 3,
-    status: "시술 완료",
-    title: "이달의 아트",
-    shopname: "매장명",
-    name: "시술자명",
-    option: "없음",
-    address:
-      "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
-    date: "2025.07.06 · 오후 1시",
-  },
-  {
-    reservationId: 4,
-    status: "취소 완료",
-    title: "이달의 아트",
-    shopname: "매장명",
-    name: "시술자명",
-    option: "없음",
-    address:
-      "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
-    date: "2025.07.06 · 오후 1시",
-  },
-  {
-    reservationId: 5,
-    status: "노쇼",
-    title: "이달의 아트",
-    shopname: "매장명",
-    name: "시술자명",
-    option: "없음",
-    address:
-      "짧은 주소 (AK플라자 5호)\n매장 주소 또한 최대 2줄을 유지합니다. (36px)",
-    date: "2025.07.06 · 오후 1시",
-  },
-];
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function ReservationWrapper() {
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const token = localStorage.getItem("accessToken");
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/reservations/my-reservation`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          },
+        );
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setReservations(response.data.data);
+        } else {
+          console.log(response.data.data);
+          setReservations([]);
+        }
+      } catch (err) {
+        console.error("GET /reservations/my-reservation 실패:");
+        setReservations([]);
+      }
+    };
+
+    // 현재 경로가 고객 전용 라우트일 때만 로딩 (매니저 상세 진입 시 트리거 방지)
+    if (location.pathname.startsWith("/reservations")) {
+      fetchReservations();
+    }
+  }, []);
   return (
-    <ReservationContext.Provider value={{ reservations: dummyReservations }}>
+    <ReservationContext.Provider value={{ reservations }}>
       <Outlet />
     </ReservationContext.Provider>
   );
