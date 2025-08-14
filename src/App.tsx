@@ -110,7 +110,7 @@ const router = createBrowserRouter([
       { path: "client", element: <ClientListPage /> },
       { path: "client/page", element: <ClientPage /> },
       { path: "client/page/modify", element: <ModifyPage /> },
-      
+
       // --- 소비자 예약 플로우 라우트 ---
       // {
       //   path: "reservation_consumer", // 시작점으로 보이나 현재 흐름에서는 사용되지 않는 것 같아 주석 처리
@@ -141,6 +141,7 @@ const router = createBrowserRouter([
       {
         path: "reservation-check/:shopId/:treatmentId",
         element: <ReservationCheck />,
+      },
       { path: "mangedCustomer", element: <ClientListPage /> },
       { path: "mangedCustomer/:customerId", element: <ClientPage /> },
       { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
