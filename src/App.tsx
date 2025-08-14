@@ -24,6 +24,7 @@ import SignupPage from "./pages/Signup/SignupPage";
 import KakaoCallbackPage from "./pages/Login/KakaoCallbackPage";
 import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
 import Mypage from "./pages/User/Mypage/Mypage";
+import EditStyle from "./pages/User/Mypage/EditStyle";
 import ManagerMypage from "./pages/Manager/Mypage/Mypage";
 import ManagerMypageModify from "./pages/Manager/Mypage/MypageModify";
 import ManagerMypageEdit from "./pages/Manager/Mypage/MypageEdit";
@@ -108,6 +109,7 @@ const router = createBrowserRouter([
       { path: "client/page/modify", element: <ModifyPage /> },
       { path: "client/mypage", element: <Mypage /> },
       { path: "client/mypage/edit", element: <ManagerMypageEdit /> },
+      { path: "client/mypage/style", element: <EditStyle /> },
       { path: "manager/mypage", element: <ManagerMypage /> },
       { path: "manager/mypage/modify", element: <ManagerMypageModify /> },
       { path: "manager/mypage/edit", element: <ManagerMypageEdit /> },
