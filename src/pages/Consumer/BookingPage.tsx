@@ -1,22 +1,199 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
+import '../../styles/color-system.css';
+import '../../styles/type-system.css';
 
-// VERIFICATION_TAG_BOOKING_PAGE_ULTIMATE_FIX
+import useBookingStore from '../../stores/bookingStore';
+import type { ApiResponse, AvailableDatesResponse, AvailableTimesResponse, Designer } from '../../types/api';
 
 const BookingPage = () => {
-  const [selectedDate, setSelectedDate] = useState(18); // Figma에 18일 선택됨
-  const [selectedMorningTime, setSelectedMorningTime] = useState('');
-  const [selectedAfternoonTime, setSelectedAfternoonTime] = useState('1:00'); // Figma에 1:00 선택됨
-  const [selectedDesigner, setSelectedDesigner] = useState('원장님 손하늘 디자이너'); // Figma에 '원장님 손하늘 디자이너' 선택됨으로 초기 설정
+  const { shopId, treatmentId } = useParams<{ shopId: string, treatmentId: string }>();
+  const navigate = useNavigate();
+  const setDateTimeDesigner = useBookingStore((state) => state.setDateTimeDesigner);
 
-  const morningTimes = ['9:00', '9:30', '10:00', '10:30', '11:00', '11:30'];
-  const afternoonTimes = ['1:00', '1:30', '2:00', '2:30', '3:00', '3:30', '4:00', '4:30', '5:00', '5:30', '6:00', '6:30', '7:00']; // Figma에 12:00, 7:30, 8:00, 8:30 없음
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [availableDates, setAvailableDates] = useState<Record<string, boolean>>({});
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<Record<string, boolean>>({});
+  
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [availableDesigners, setAvailableDesigners] = useState<Designer[]>([]);
+  const [selectedDesignerId, setSelectedDesignerId] = useState<number | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTimeSlotsLoading, setIsTimeSlotsLoading] = useState(false);
+  const [isDesignersLoading, setIsDesignersLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzNDg4NDIwMjEiLCJ1c2VySWQiOjU4LCJpYXQiOjE3NTQ5Njk5MDAsImV4cCI6MTc1NzU2MTkwMH0.BzWPMm9rWf7IlmRSeO7xFySG6lic0NuQha2dDWt8yzY";
+
+  useEffect(() => {
+    const fetchAvailableDates = async () => {
+      if (!shopId) return;
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const response = await axios.get<ApiResponse<AvailableDatesResponse>>(`${API_BASE_URL}/reservations/shops/${shopId}/available-dates`, {
+          params: { year, month },
+          headers,
+        });
+
+        if (response.data.success && response.data.data) {
+          setAvailableDates(response.data.data.availableDates);
+        } else {
+          setAvailableDates({});
+        }
+      } catch (err) {
+        console.error('Error fetching available dates:', err);
+        setError("예약 가능 날짜를 불러오지 못했습니다.");
+        setAvailableDates({});
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAvailableDates();
+  }, [shopId, currentDate]);
+
+  useEffect(() => {
+    const fetchAvailableTimes = async () => {
+      if (!shopId || !treatmentId || !selectedDate) {
+        setAvailableTimeSlots({});
+        return;
+      }
+      try {
+        setIsTimeSlotsLoading(true);
+        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
+        const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+        
+        const response = await axios.get<ApiResponse<AvailableTimesResponse>>(`${API_BASE_URL}/reservations/shops/${shopId}/available-times`, {
+          params: { date: dateString, treatmentId: Number(treatmentId) },
+          headers,
+        });
+
+        if (response.data.success && response.data.data) {
+          setAvailableTimeSlots(response.data.data.timeSlots);
+        } else {
+          setAvailableTimeSlots({});
+        }
+      } catch (err) {
+        console.error('Error fetching available times:', err);
+        setAvailableTimeSlots({});
+      } finally {
+        setIsTimeSlotsLoading(false);
+      }
+    };
+    fetchAvailableTimes();
+  }, [selectedDate, shopId, treatmentId]);
+
+  useEffect(() => {
+    const fetchAvailableDesigners = async () => {
+      if (!shopId || !selectedDate || !selectedTime) {
+        setAvailableDesigners([]);
+        return;
+      }
+      try {
+        setIsDesignersLoading(true);
+        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
+        const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+        
+        const response = await axios.get(`${API_BASE_URL}/reservations/shops/${shopId}/available-designers`, {
+          params: { date: dateString, time: selectedTime },
+          headers,
+        });
+
+        if (response.data && Array.isArray(response.data)) {
+          setAvailableDesigners(response.data);
+        } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          setAvailableDesigners(response.data.data);
+        } else {
+          console.warn('Unexpected designer response format:', response.data);
+          setAvailableDesigners([]);
+        }
+      } catch (err) {
+        console.error('Error fetching available designers:', err);
+        setAvailableDesigners([]);
+      } finally {
+        setIsDesignersLoading(false);
+      }
+    };
+    fetchAvailableDesigners();
+  }, [selectedDate, selectedTime, shopId]);
+
+  const resetSelection = () => {
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setAvailableDesigners([]);
+      setSelectedDesignerId(null);
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    resetSelection();
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    resetSelection();
+  };
+
+  const handleDateSelect = (date: Date) => {
+    if (selectedDate?.getTime() === date.getTime()) {
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setAvailableDesigners([]);
+      setSelectedDesignerId(null);
+    } else {
+      setSelectedDate(date);
+      setSelectedTime(null);
+      setAvailableDesigners([]);
+      setSelectedDesignerId(null);
+    }
+  };
+  
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+    setSelectedDesignerId(null);
+  };
+
+  // 다음 단계로 넘어가는 함수 (이미지 업로드 로직 제거)
+  const handleNextStep = () => {
+    if (selectedDate && selectedTime && selectedDesignerId) {
+      const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+      
+      setDateTimeDesigner({
+        date: dateString,
+        time: selectedTime,
+        designerId: selectedDesignerId,
+        referenceImages: [], // 이미지를 선택하지 않으므로 빈 배열 전달
+      });
+
+      navigate(`/appointment-booking/${shopId}/${treatmentId}`);
+    } else {
+      alert("날짜, 시간, 디자이너를 모두 선택해주세요.");
+    }
+  };
 
   const generateCalendar = () => {
     const days = [];
     const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
-    // 요일 헤더
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const totalDaysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    const startDayOfWeek = firstDayOfMonth.getDay();
+
+    const selectedDateString = selectedDate 
+      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      : null;
+
     daysOfWeek.forEach(day => {
       days.push(
         <div key={day} className="text-center caption2" style={{ color: 'var(--color-grey-450)', fontWeight: 'var(--font-weight-medium)' }}>
@@ -25,56 +202,52 @@ const BookingPage = () => {
       );
     });
 
-    // 9월 1일이 토요일이라고 가정 (Figma 달력 레이아웃에 맞춤)
-    // 9월 1일이 토요일이므로, 이전 요일은 빈 칸으로 채움 (금요일까지 5칸)
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < startDayOfWeek; i++) {
         days.push(<div key={`empty-${i}`}></div>);
     }
 
-    const today = 17; // Figma에 17일이 오늘로 표시됨
-    const totalDaysInMonth = 30; // 9월은 30일까지
-
-    // 날짜들 (9월 기준)
     for (let i = 1; i <= totalDaysInMonth; i++) {
-      const isSelected = selectedDate === i;
-      const isToday = i === today;
-      let isDisabled = false; // 기본적으로 비활성화 아님
-
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+      const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      
+      const isSelected = selectedDateString === dateString;
+      const isToday = date.toDateString() === today.toDateString();
+      const isPast = date < startOfToday;
+      const isAvailable = availableDates[dateString] && !isPast;
+      let isDisabled = !isAvailable;
+      
       let bgColor = 'transparent';
       let textColor = 'var(--color-white)';
       let fontWeight = 'var(--font-weight-medium)';
-      let borderColor = 'transparent'; // 기본 테두리 없음
+      let borderColor = 'transparent';
 
       if (isSelected) {
-        bgColor = 'var(--color-dark-purple)'; // 클릭된 날짜: 보라색 원
+        bgColor = 'var(--color-dark-purple)';
         textColor = 'var(--color-white)';
         fontWeight = 'var(--font-weight-semibold)';
-        borderColor = 'var(--color-purple) '; // 선택된 날짜 테두리
-      } else if (isToday) { 
-        bgColor = 'var(--color-grey-850)'; // 오늘 날짜: 진한 회색 원
+        borderColor = 'var(--color-purple)';
+      } else if (isToday) {
+        bgColor = 'var(--color-grey-850)';
         textColor = 'var(--color-white)';
         fontWeight = 'var(--font-weight-semibold)';
-        borderColor = 'var(--color-grey-850)'; // 오늘 날짜 테두리
-      } else if (i < today) { // 오늘 이전의 날짜
-        textColor = 'var(--color-grey-650)'; // 비활성화된 회색 숫자
-        isDisabled = true;
-      } else { // 오늘 이후의 날짜 (선택된 날짜 제외)
-        textColor = 'var(--color-white)'; // 흰색 숫자
+        borderColor = 'var(--color-grey-850)';
+      } else if (isDisabled) {
+        textColor = 'var(--color-grey-650)';
       }
       
       days.push(
         <div
           key={i}
-          className={`text-center py-2.5 text-sm cursor-pointer rounded-full transition-all label1`}
+          className={`text-center py-2.5 text-sm rounded-full transition-all label1 ${!isDisabled ? 'cursor-pointer' : 'cursor-default'}`}
           style={{
             color: textColor,
             backgroundColor: bgColor,
-            borderColor: borderColor, // 테두리 색상 적용
-            borderWidth: (isSelected || isToday) ? '1.5px' : '0', // 선택/오늘일 때만 테두리 두께 적용
+            borderColor: borderColor,
+            borderWidth: (isSelected || isToday) ? '1.5px' : '0',
             borderStyle: 'solid',
             fontWeight: fontWeight
           }}
-          onClick={() => !isDisabled && setSelectedDate(i)}
+          onClick={() => !isDisabled && handleDateSelect(date)}
         >
           {i}
         </div>
@@ -82,25 +255,25 @@ const BookingPage = () => {
     }
     return days;
   };
-
+  
   const TimeSlot = ({ time, isSelected, onClick, isDisabled = false }: {
     time: string;
     isSelected: boolean;
     onClick: () => void;
     isDisabled?: boolean;
   }) => {
-    let bgColor = 'var(--color-grey-950)'; // Default unselected
+    let bgColor = 'var(--color-grey-950)';
     let textColor = 'var(--color-white)';
-    let borderColor = 'var(--color-grey-850)'; // Default unselected border (lighter grey than background)
+    let borderColor = 'var(--color-grey-850)';
 
     if (isSelected) {
       bgColor = 'var(--color-dark-purple)';
       textColor = 'var(--color-white)';
-      borderColor = 'var(--color-purple)'; // Darker purple border
+      borderColor = 'var(--color-purple)';
     } else if (isDisabled) {
-      bgColor = 'var(--color-grey-850)'; // Disabled background
-      textColor = 'var(--color-grey-650)'; // Disabled text
-      borderColor = 'var(--color-black)'; // Darkest grey border (Figma color-grey-1000에 가까움)
+      bgColor = 'var(--color-grey-850)';
+      textColor = 'var(--color-grey-650)';
+      borderColor = 'var(--color-black)';
     }
 
     return (
@@ -109,9 +282,9 @@ const BookingPage = () => {
         style={{
           backgroundColor: bgColor,
           color: textColor,
-          borderColor: borderColor, // Apply border color
-          borderWidth: '1.5px', // Apply border width (Figma에 맞춰 1.5px)
-          borderStyle: 'solid', // Apply border style
+          borderColor: borderColor,
+          borderWidth: '1.5px',
+          borderStyle: 'solid',
           fontWeight: 'var(--font-weight-medium)'
         }}
         onClick={onClick}
@@ -121,176 +294,174 @@ const BookingPage = () => {
       </button>
     );
   };
-
-  const DesignerCard = ({ name, description, isSelected, onClick }: {
-    name: string;
-    description: string;
+  
+  const DesignerCard = ({ designer, isSelected, onClick }: {
+    designer: Designer;
     isSelected: boolean;
     onClick: () => void;
   }) => (
     <div
       className={`p-4 rounded-lg border cursor-pointer transition-all`}
       style={{
-        // 사용자 요청에 따라 색상 변경: Primary/Purple 배경, Secondary/Dark Purple 테두리
-        borderColor: isSelected ? 'var(--color-dark-purple)' : 'var(--color-grey-850)', // 선택 시 Dark Purple 테두리
-        backgroundColor: isSelected ? 'var(--color-purple)' : 'var(--color-black)' // 선택 시 Primary Purple 배경
+        borderColor: isSelected ? 'var(--color-purple)' : 'var(--color-grey-850)',
+        backgroundColor: isSelected ? 'var(--color-dark-purple)' : 'var(--color-black)'
       }}
       onClick={onClick}
     >
-      <div className="flex items-start space-x-3"> {/* items-start로 변경하여 이미지와 텍스트 상단 정렬 */}
-        {/* 디자이너 이미지 플레이스홀더 및 체크마크 */}
+      <div className="flex items-start space-x-3">
         <div 
-          className="w-24 h-24 rounded-md flex-shrink-0 relative overflow-hidden flex items-center justify-center" // w-24 h-24, rounded-md (네모)
+          className="w-24 h-24 rounded-md flex-shrink-0 relative overflow-hidden flex items-center justify-center bg-cover bg-center"
           style={{ 
-            backgroundColor: isSelected ? 'var(--color-light-purple)' : 'var(--color-grey-350)' // 선택 시 보라색 배경
+            backgroundImage: designer.profileImageUrl ? `url(${designer.profileImageUrl})` : 'none',
+            backgroundColor: 'var(--color-grey-350)'
           }}
         >
-            {/* Figma의 투명한 격자무늬 패턴 재현 (선택되지 않았을 때만) */}
-            {!isSelected && (
-                <div className="absolute inset-0 opacity-10" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.3' fill-rule='evenodd'%3E%3Cpath d='m0 20l20-20h-20zm20 0v-20h-20z'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: '20px 20px'
-                }}></div>
-            )}
-            {/* 선택 시 흰색 체크마크 */}
-            {isSelected && (
-                <Check className="w-10 h-10" style={{ color: 'var(--color-white)' }} /> // 체크마크 크기 조정
-            )}
+          {!designer.profileImageUrl && (
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-grey-650)' }}>
+              <span className="text-xl" style={{ color: 'var(--color-white)' }}>
+                {designer.name ? designer.name.charAt(0) : '?'}
+              </span>
+            </div>
+          )}
+          
+          {isSelected && (
+            <div className="absolute inset-0 bg-purple-500 bg-opacity-50 flex items-center justify-center rounded-md">
+              <Check className="w-10 h-10" style={{ color: 'var(--color-white)' }} />
+            </div>
+          )}
         </div>
-        <div className="flex-1 flex flex-col"> {/* 설명 텍스트를 세로로 정렬 */}
-          <h4 className="label1 flex items-center mb-1" style={{ color: 'var(--color-white)', fontWeight: 'var(--font-weight-semibold)' }}> {/* mb-1로 이름 아래 간격 추가 */}
-            {/* '원장님' 태그 조건부 렌더링 */}
-            {name.startsWith('원장님') && (
-                <span className="caption2 px-2 py-0.5 rounded-full mr-2" style={{ backgroundColor: 'var(--color-grey-750)', color: 'var(--color-white)', fontWeight: 'var(--font-weight-medium)' }}>원장님</span>
+        <div className="flex-1 flex flex-col">
+          <h4 className="label1 flex items-center mb-1" style={{ color: 'var(--color-white)', fontWeight: 'var(--font-weight-semibold)' }}>
+            {designer.isOwner && (
+              <span className="caption2 px-2 py-0.5 rounded-full mr-2" style={{ backgroundColor: 'var(--color-grey-750)', color: 'var(--color-white)', fontWeight: 'var(--font-weight-medium)' }}>원장님</span>
             )}
-            {name.replace('원장님 ', '')} {/* '원장님' 텍스트 제거 후 이름 표시 */}
+            {designer.name || '이름 없음'}
           </h4>
-          <p className="caption2" style={{ color: 'var(--color-grey-450)', lineHeight: '1.5' }}> {/* Font style refined */}
-            {description.split('#')[1] && `#${description.split('#')[1]}`} {/* 첫 번째 #태그만 표시 */}
-          </p>
-          <p className="caption2" style={{ color: 'var(--color-grey-450)', lineHeight: '1.5' }}> {/* Font style refined */}
-            {description.split('#')[2] && `#${description.split('#')[2]}`} {/* 두 번째 #태그만 표시 */}
-          </p>
-          <p className="caption2" style={{ color: 'var(--color-grey-450)', lineHeight: '1.5' }}> {/* Font style refined */}
-            {description.split('#')[3] && description.split('#')[3]} {/* 나머지 설명 */}
+          <p className="caption2" style={{ color: 'var(--color-grey-450)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+            {designer.intro || '소개가 없습니다.'}
           </p>
         </div>
       </div>
     </div>
   );
 
+  const getMorningTimes = () => {
+    return Object.keys(availableTimeSlots).filter(time => parseInt(time.split(':')[0]) < 12).sort();
+  };
+  const getAfternoonTimes = () => {
+    return Object.keys(availableTimeSlots).filter(time => parseInt(time.split(':')[0]) >= 12).sort();
+  };
+
   return (
     <div className="max-w-sm mx-auto min-h-screen" style={{ backgroundColor: 'var(--color-black)' }}>
-      {/* Status Bar */}
-      <div className="flex justify-between items-center px-4 py-2" style={{ backgroundColor: 'var(--color-black)', color: 'var(--color-white)', fontSize: '16px', fontWeight: '600' }}>
-        <span>9:41</span>
-        <div className="flex items-center space-x-1">
-          <div className="flex space-x-1">
-            <div className="w-1 h-1 bg-white rounded-full"></div>
-            <div className="w-1 h-1 bg-white rounded-full"></div>
-            <div className="w-1 h-1 bg-white rounded-full"></div>
-            <div className="w-1 h-1 bg-white rounded-full"></div>
-          </div>
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M2 17h20v2H2zm1.15-4.05L4 11.47l.85 1.48L5.8 12l-.65-1.05zM7.2 12l-.65 1.05L7.4 14.5l.85-1.48L7.2 12zm2.8 0l-.65 1.05L10.2 14.5l.85-1.48L10 12zm2.8 0l-.65 1.05L12.8 14.5l.85-1.48L12.8 12zm2.8 0l-.65 1.05L15.6 14.5l.85-1.48L15.6 12zm2.8 0l-.65 1.05L18.4 14.5l.85-1.48L18.4 12z"/>
-          </svg>
-          <div className="w-6 h-3 border border-white rounded-sm">
-            <div className="w-full h-full bg-white rounded-sm"></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--color-black)' }}>
-        <ChevronLeft className="w-6 h-6" style={{ color: 'var(--color-white)' }} />
+      <div className="px-4 py-3 flex items-center justify-between sticky top-0 bg-black z-10">
+        <ChevronLeft className="w-6 h-6 cursor-pointer" onClick={() => navigate(-1)} />
         <h1 className="title1" style={{ color: 'var(--color-white)' }}>시술 예약하기</h1>
-        <X className="w-6 h-6" style={{ color: 'var(--color-white)' }} />
+        <X className="w-6 h-6 cursor-pointer" onClick={() => navigate('/')} />
       </div>
 
-      {/* Content */}
-      <div className="px-5 py-4">
-        {/* Date Selection */}
+      <div className="px-5 py-4 pb-32">
         <div className="mb-8">
           <h2 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>시술 일시</h2>
           
-          {/* Month Navigator */}
           <div className="flex items-center justify-center mb-6">
-            <ChevronLeft className="w-5 h-5" style={{ color: 'var(--color-grey-450)' }} />
-            <span className="title1 mx-4" style={{ color: 'var(--color-white)' }}>2024년 9월</span>
-            <ChevronRight className="w-5 h-5" style={{ color: 'var(--color-grey-450)' }} />
+            <ChevronLeft className="w-5 h-5 cursor-pointer" style={{ color: 'var(--color-grey-450)' }} onClick={handlePrevMonth} />
+            <span className="title1 mx-4" style={{ color: 'var(--color-white)' }}>
+              {`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`}
+            </span>
+            <ChevronRight className="w-5 h-5 cursor-pointer" style={{ color: 'var(--color-grey-450)' }} onClick={handleNextMonth} />
           </div>
 
-          {/* Calendar */}
-          <div className="grid grid-cols-7 gap-1 mb-6">
-            {generateCalendar()}
-          </div>
+          {isLoading ? (
+            <p className="text-center" style={{ color: 'var(--color-grey-450)' }}>달력을 불러오는 중...</p>
+          ) : (
+            <div className="grid grid-cols-7 gap-1 mb-6">
+              {generateCalendar()}
+            </div>
+          )}
         </div>
 
-        {/* Time Selection */}
-        <div className="mb-8">
-          <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>오전</h3>
-          <div className="grid grid-cols-4 gap-2 mb-6"> {/* grid-cols-4로 변경 */}
-            {morningTimes.map((time) => (
-              <TimeSlot
-                key={time}
-                time={time}
-                isSelected={selectedMorningTime === time}
-                onClick={() => {
-                  setSelectedMorningTime(time);
-                  setSelectedAfternoonTime('');
-                }}
-                isDisabled={time === '11:30'} // Figma에 11:30 비활성화
-              />
-            ))}
-          </div>
+        {selectedDate && (
+          <div className="mb-8">
+            <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>오전</h3>
+            {isTimeSlotsLoading ? (
+              <p className="text-center" style={{ color: 'var(--color-grey-450)' }}>시간대를 불러오는 중...</p>
+            ) : (
+              <div className="grid grid-cols-4 gap-2 mb-6">
+                {getMorningTimes().map((time) => (
+                  <TimeSlot
+                    key={time}
+                    time={time}
+                    isSelected={selectedTime === time}
+                    onClick={() => handleTimeSelect(time)}
+                    isDisabled={!availableTimeSlots[time]}
+                  />
+                ))}
+              </div>
+            )}
 
-          <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>오후</h3>
-          <div className="grid grid-cols-4 gap-2 mb-8"> {/* grid-cols-4로 변경 */}
-            {afternoonTimes.map((time) => (
-              <TimeSlot
-                key={time}
-                time={time}
-                isSelected={selectedAfternoonTime === time}
-                onClick={() => {
-                  setSelectedAfternoonTime(time);
-                  setSelectedMorningTime('');
-                }}
-                isDisabled={['3:00', '3:30'].includes(time)} // Figma에 3:00, 3:30 비활성화
-              />
-            ))}
+            <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>오후</h3>
+            {isTimeSlotsLoading ? (
+               <p className="text-center" style={{ color: 'var(--color-grey-450)' }}>시간대를 불러오는 중...</p>
+            ) : (
+              <div className="grid grid-cols-4 gap-2 mb-8">
+                {getAfternoonTimes().map((time) => (
+                  <TimeSlot
+                    key={time}
+                    time={time}
+                    isSelected={selectedTime === time}
+                    onClick={() => handleTimeSelect(time)}
+                    isDisabled={!availableTimeSlots[time]}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Designer Selection */}
-        <div className="mb-32"> {/* 하단 버튼 공간 확보를 위해 mb-32 */}
-          <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>디자이너 선택</h3>
-          <div className="space-y-4">
-            <DesignerCard
-              name="원장님 손하늘 디자이너"
-              description="#연장맛집 #유지력최고 인생을 디자인합니다. 당신의 모든 취향을 실현시켜 드릴게요 :)"
-              isSelected={selectedDesigner === '원장님 손하늘 디자이너'}
-              onClick={() => setSelectedDesigner('원장님 손하늘 디자이너')}
-            />
-            <DesignerCard
-              name="손하늘 디자이너"
-              description="#연장맛집 #유지력최고 인생을 디자인합니다. 당신의 모든 취향을 실현시켜 드릴게요 :)"
-              isSelected={selectedDesigner === '손하늘 디자이너'}
-              onClick={() => setSelectedDesigner('손하늘 디자이너')}
-            />
-          </div>
-        </div>
+        {selectedTime && (
+            <div className="mb-8">
+            <h3 className="label1" style={{ color: 'var(--color-white)', marginBottom: '16px' }}>디자이너 선택</h3>
+            {isDesignersLoading ? (
+                <p className="text-center" style={{ color: 'var(--color-grey-450)' }}>선택하신 시간에 예약 가능한 디자이너를 찾고 있습니다...</p>
+            ) : (
+                <div className="space-y-4">
+                    {availableDesigners.length > 0 ? (
+                        availableDesigners.map((designer) => (
+                            <DesignerCard
+                                key={designer.id}
+                                designer={designer}
+                                isSelected={selectedDesignerId === designer.id}
+                                onClick={() => setSelectedDesignerId(designer.id)}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-center" style={{ color: 'var(--color-grey-450)' }}>예약 가능한 디자이너가 없습니다.</p>
+                    )}
+                </div>
+            )}
+            </div>
+        )}
 
-        {/* Bottom Button */}
-        <div className="fixed bottom-0 left-0 right-0 w-full max-w-sm mx-auto px-5 py-4" style={{ backgroundColor: 'var(--color-black)' }}>
-          <button className="w-full py-4 rounded-lg label1" 
-                  style={{ 
-                    background: 'linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)',
-                    color: 'var(--color-white)',
-                    fontWeight: 'var(--font-weight-semibold)'
-                  }}>
-            다음으로
-          </button> 
-        </div>
+        {/* 참고 이미지 추가 섹션 제거됨 */}
+        
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 w-full max-w-sm mx-auto px-5 py-4" style={{ backgroundColor: 'var(--color-black)' }}>
+          <button 
+              className="w-full py-4 rounded-lg label1 transition-opacity flex items-center justify-center"
+              style={{
+                  background: 'linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)',
+                  color: 'var(--color-white)',
+                  fontWeight: 'var(--font-weight-semibold)',
+                  opacity: (!selectedDate || !selectedTime || !selectedDesignerId) ? 0.5 : 1,
+                  cursor: (!selectedDate || !selectedTime || !selectedDesignerId) ? 'not-allowed' : 'pointer'
+              }}
+              disabled={!selectedDate || !selectedTime || !selectedDesignerId}
+              onClick={handleNextStep}
+          >
+              다음으로
+          </button>
       </div>
     </div>
   );
