@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface SelectedOption {
   optionGroupId: number;
@@ -28,15 +28,19 @@ interface BookingState {
 // 스토어에서 사용할 액션(함수)들의 타입
 interface BookingActions {
   // --- (추가) 시술 정보 저장 액션 ---
-  setTreatmentInfo: (payload: { name: string; price: number; imageUrl: string }) => void;
+  setTreatmentInfo: (payload: {
+    name: string;
+    price: number;
+    imageUrl: string;
+  }) => void;
   // --------------------------------
 
   setTreatmentId: (id: number) => void;
   setSelectedOptions: (options: SelectedOption[]) => void;
   // --- (수정) 참고 이미지 URL들도 함께 저장 ---
-  setDateTimeDesigner: (payload: { 
-    date: string; 
-    time: string; 
+  setDateTimeDesigner: (payload: {
+    date: string;
+    time: string;
     designerId: number;
     referenceImages?: string[]; // 선택적 필드로 추가
   }) => void;
@@ -61,7 +65,7 @@ const initialState: BookingState = {
   date: null,
   time: null,
   designerId: null,
-  requestNotes: '',
+  requestNotes: "",
   styleImageFiles: [],
   // --- (추가) ---
   referenceImageUrls: [],
@@ -69,40 +73,44 @@ const initialState: BookingState = {
 };
 
 // Zustand 스토어 생성
-const useBookingStore = create<BookingState & BookingActions>((set) => ({
+const useBookingStore = create<BookingState & BookingActions>(set => ({
   ...initialState,
 
   // --- Actions ---
 
   // (추가) 시술 이름, 가격, 이미지를 저장하는 액션
-  setTreatmentInfo: (payload) => set({
-    treatmentName: payload.name,
-    treatmentPrice: payload.price,
-    treatmentImageUrl: payload.imageUrl,
-  }),
+  setTreatmentInfo: payload =>
+    set({
+      treatmentName: payload.name,
+      treatmentPrice: payload.price,
+      treatmentImageUrl: payload.imageUrl,
+    }),
 
-  setTreatmentId: (id) => set({ treatmentId: id }),
+  setTreatmentId: id => set({ treatmentId: id }),
 
-  setSelectedOptions: (options) => set({ selectedOptions: options }),
+  setSelectedOptions: options => set({ selectedOptions: options }),
 
   // --- (수정) 참고 이미지도 함께 저장 ---
-  setDateTimeDesigner: (payload) => set({
-    date: payload.date,
-    time: payload.time,
-    designerId: payload.designerId,
-    referenceImageUrls: payload.referenceImages || [],
-  }),
+  setDateTimeDesigner: payload =>
+    set({
+      date: payload.date,
+      time: payload.time,
+      designerId: payload.designerId,
+      referenceImageUrls: payload.referenceImages || [],
+    }),
   // ----------------------------------
 
-  setRequestInfo: (payload) => set({
-    requestNotes: payload.notes,
-    styleImageFiles: payload.files,
-  }),
+  setRequestInfo: payload =>
+    set({
+      requestNotes: payload.notes,
+      styleImageFiles: payload.files,
+    }),
 
   // --- (추가) 참고 이미지 URL들만 별도로 설정 ---
-  setReferenceImages: (urls) => set({
-    referenceImageUrls: urls,
-  }),
+  setReferenceImages: urls =>
+    set({
+      referenceImageUrls: urls,
+    }),
   // -------------------------------------------
 
   // 모든 상태를 초기값으로 되돌리는 액션
