@@ -2,12 +2,14 @@ interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDelete: () => void;
+  confirmDisabled?: boolean;
 }
 
 export default function DeleteConfirmModal({
   isOpen,
   onClose,
   onDelete,
+  confirmDisabled = false,
 }: DeleteConfirmModalProps) {
   if (!isOpen) return null;
 
@@ -35,11 +37,9 @@ export default function DeleteConfirmModal({
 
         <div className="flex flex-col gap-4">
           <button
-            onClick={() => {
-              onDelete();
-              onClose();
-            }}
-            className="cursor-pointer text-[14px] font-semibold text-[#D2636A]"
+            onClick={onDelete}
+            className="cursor-pointer text-[14px] font-semibold text-[#D2636A] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={confirmDisabled}
           >
             삭제
           </button>

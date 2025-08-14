@@ -83,7 +83,7 @@ const router = createBrowserRouter([
         element: <GroupChatPage />,
       },
       {
-        path: "chat/rooms/profile/:opponentId",
+        path: "chat/rooms/profile/:customerId",
         element: <ChatProfile />,
       },
       {
@@ -98,9 +98,9 @@ const router = createBrowserRouter([
         path: "templatesform",
         element: (
           <TemplateFormPage
-            onClose={function (): void {
-              throw new Error("Function not implemented.");
-            }}
+          // onClose={function (): void {
+          //   throw new Error("Function not implemented.");
+          // }}
           />
         ),
       },

@@ -2,8 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import ManagerNavbar from "./layout/ManagerNavbar.tsx";
-import { BrowserRouter } from "react-router-dom";
 
 // sockjs-client가 global을 기대하는 경우를 위해 안전 매핑
 // 브라우저 환경에서만 실행됨
