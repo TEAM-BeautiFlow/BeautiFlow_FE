@@ -19,7 +19,7 @@ export default function ChatRoomList({
         onRightClick(chat);
       }}
       onClick={() => onClick(chat.roomId)}
-      className="flex items-center justify-between px-5 py-4"
+      className="flex cursor-pointer items-center justify-between px-5 py-4"
     >
       <div className="h-10 w-10 self-start rounded-full">
         <svg

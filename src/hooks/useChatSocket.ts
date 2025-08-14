@@ -15,7 +15,7 @@ export default function useChatSocket(
       localStorage.setItem("accessToken", devToken);
       console.log("개발용 accessToken이 저장되었습니다.");
     }
-    localStorage.setItem("senderID", "3"); // 토큰에 맞는 sendId 넣어주세요 실제로는 localStorage에서 id 가져올 예정입니다
+    localStorage.setItem("senderId", "3"); // 토큰에 맞는 sendId 넣어주세요 실제로는 localStorage에서 id 가져올 예정입니다
     localStorage.setItem("senderType", "DESIGNER"); // 이것도 !
 
     const token = localStorage.getItem("accessToken");

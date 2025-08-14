@@ -83,7 +83,10 @@ const router = createBrowserRouter([
         path: "user/chat/rooms/:roomId",
         element: <UserChatPage />,
       },
-
+      {
+        path: "user/chat/rooms/profile/:designerId",
+        element: <ChatProfile />,
+      },
       {
         path: "chat/rooms",
         element: <ManagerChatListPage />,
@@ -101,10 +104,7 @@ const router = createBrowserRouter([
         path: "chat/rooms/profile/:customerId",
         element: <ChatProfilePage />,
       },
-      {
-        path: "chat/rooms/profile",
-        element: <ChatProfile />,
-      },
+
       {
         path: "templates",
         element: <TemplateListPage />,
