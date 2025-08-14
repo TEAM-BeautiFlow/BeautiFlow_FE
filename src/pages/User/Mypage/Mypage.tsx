@@ -36,8 +36,8 @@ export default function Mypage() {
   }
 
   return (
-    <div className="flex min-h-[812px] min-w-[375px] flex-col items-center justify-center">
-      <div className="relative flex w-full max-w-[375px] flex-grow flex-col items-center overflow-hidden bg-[var(--color-grey-1000)] px-5 pt-8 pb-6">
+    <div className="mx-auto flex min-h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+      <div className="relative flex w-full flex-col items-center overflow-hidden px-5 pt-8 pb-24">
         {/* 상단 네비게이션 */}
         <div
           className="mb-2 flex w-full cursor-pointer items-center"
