@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ChatTabBar from "./components/ChatTabBar";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
 import type { ChatList } from "../../../types/chatlist";
 import ChatRoomList from "./components/ChatRoomList";
 import DeleteModal from "../../../components/DeleteModal";
@@ -36,9 +36,8 @@ const dummyChats: ChatList[] = [
 
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats, setChats] = useState<ChatList[]>(dummyChats);
+  const [chats] = useState<ChatList[]>(dummyChats);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   // 채팅 리스트 불러오기
@@ -125,18 +124,16 @@ export default function ManagerChatListPage() {
     setIsBottomSheetOpen(true);
   };
 
-  const closeBottomSheet = () => {
-    setIsBottomSheetOpen(false);
-    setSelectedChat(null);
-  };
+  // const closeBottomSheet = () => {
+  //   setIsBottomSheetOpen(false);
+  //   setSelectedChat(null);
+  // };
 
   // 모달2
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const openAlert = (roomId: number) => {
-    setSelectedChatId(roomId);
+  const openAlert = (_roomId: number) => {
     setIsAlertOpen(true);
   };
-  const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
   const handleDeleteChat = () => {

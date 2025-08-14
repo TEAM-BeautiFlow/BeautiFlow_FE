@@ -1,19 +1,13 @@
 import { useState } from "react";
-import TemplateHeader from "./components/TemplateHeader";
 import ChatHeader from "./components/ChatHeader";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import SendTimingModal from "./components/SendingTimingModal";
 import ActivationModal from "./components/ActivationModal";
 import TargetModal from "./components/TargetModal";
 
-type Props = {
-  onClose: () => void;
-};
-export default function TemplateFormPage({ onClose }: Props) {
-  const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
+export default function TemplateFormPage() {
   const [text, setText] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedTiming, setSelectedTiming] = useState<string>("");
   const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
   const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
   const [selectedTargets, setSelectedTargets] = useState<string[]>(["전체"]);
@@ -68,9 +62,9 @@ export default function TemplateFormPage({ onClose }: Props) {
               <path
                 d="M6 9L12 15L18 9"
                 stroke="#BDBEBD"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>
@@ -106,9 +100,9 @@ export default function TemplateFormPage({ onClose }: Props) {
                 <path
                   d="M6 9L12 15L18 9"
                   stroke="#BDBEBD"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>
@@ -149,9 +143,9 @@ export default function TemplateFormPage({ onClose }: Props) {
               <path
                 d="M6 9L12 15L18 9"
                 stroke="#BDBEBD"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>
@@ -189,7 +183,6 @@ export default function TemplateFormPage({ onClose }: Props) {
       <TargetModal
         visible={isTargetModalOpen}
         onClose={() => setIsTargetModalOpen(false)}
-        selected={selectedTargets}
         onConfirm={selected => {
           setSelectedTargets(selected);
           setIsTargetModalOpen(false);

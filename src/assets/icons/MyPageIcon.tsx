@@ -6,6 +6,7 @@ export default function MyPageIcon(props: React.SVGProps<SVGSVGElement>) {
       viewBox="0 0 29 28"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M14.7502 17.5C11.0517 17.5 7.76275 19.2857 5.66881 22.057C5.21814 22.6534 4.9928 22.9516 5.00018 23.3547C5.00587 23.666 5.20141 24.0589 5.44641 24.2511C5.76354 24.5 6.203 24.5 7.08192 24.5H22.4184C23.2973 24.5 23.7368 24.5 24.0539 24.2511C24.2989 24.0589 24.4944 23.666 24.5001 23.3547C24.5075 22.9516 24.2822 22.6534 23.8315 22.057C21.7376 19.2857 18.4486 17.5 14.7502 17.5Z"
@@ -18,16 +19,16 @@ export default function MyPageIcon(props: React.SVGProps<SVGSVGElement>) {
       <path
         d="M14.7502 17.5C11.0517 17.5 7.76275 19.2857 5.66881 22.057C5.21814 22.6534 4.9928 22.9516 5.00018 23.3547C5.00587 23.666 5.20141 24.0589 5.44641 24.2511C5.76354 24.5 6.203 24.5 7.08192 24.5H22.4184C23.2973 24.5 23.7368 24.5 24.0539 24.2511C24.2989 24.0589 24.4944 23.666 24.5001 23.3547C24.5075 22.9516 24.2822 22.6534 23.8315 22.057C21.7376 19.2857 18.4486 17.5 14.7502 17.5Z"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M14.7502 14C17.6496 14 20.0002 11.6495 20.0002 8.75C20.0002 5.8505 17.6496 3.5 14.7502 3.5C11.8507 3.5 9.50015 5.8505 9.50015 8.75C9.50015 11.6495 11.8507 14 14.7502 14Z"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

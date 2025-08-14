@@ -36,7 +36,6 @@ export default function UserChatListPage() {
   const [chats] = useState<ChatList[]>(dummyChats);
   const navigate = useNavigate();
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
   // room 클릭 시 이동
@@ -50,18 +49,15 @@ export default function UserChatListPage() {
     setIsBottomSheetOpen(true);
   };
 
-  const closeBottomSheet = () => {
-    setIsBottomSheetOpen(false);
-    setSelectedChat(null);
-  };
+  // const closeBottomSheet = () => {
+  //   setIsBottomSheetOpen(false);
+  //   setSelectedChat(null);
+  // };
   // 모달2
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const openAlert = (roomId: number) => {
-    setSelectedChatId(roomId);
+  const openAlert = (_roomId: number) => {
     setIsAlertOpen(true);
   };
-
-  const closeAlert = () => setIsAlertOpen(false);
 
   // 삭제 기능
   const handleDeleteChat = () => {

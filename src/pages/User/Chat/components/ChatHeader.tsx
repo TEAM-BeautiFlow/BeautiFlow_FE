@@ -36,16 +36,20 @@ export default function ChatHeader({
             <path
               d="M15 18L9 12L15 6"
               stroke="#F3F3F3"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </button>
       </div>
       <div className="flex flex-col items-center">
-        <span className="caption2 text-[var(--color-grey-650)]">샵 이름</span>
-        <span className="label1 text-[var(--color-grey-150)]">상대방 이름</span>
+        <span className="caption2 text-[var(--color-grey-650)]">
+          {shopName}
+        </span>
+        <span className="label1 text-[var(--color-grey-150)]">
+          {opponentName}
+        </span>
       </div>
       <button onClick={goToProfile} className="cursor-pointer">
         <svg

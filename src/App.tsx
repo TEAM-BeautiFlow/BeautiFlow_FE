@@ -35,6 +35,7 @@ import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
 import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
 import HomePage from "./pages/Manager/Home/HomePage";
 import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
+import OwnerEditTreatmentPage from "./pages/Manager/OwnerEditTreatmentPage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -96,13 +97,7 @@ const router = createBrowserRouter([
       },
       {
         path: "templatesform",
-        element: (
-          <TemplateFormPage
-            onClose={function (): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-        ),
+        element: <TemplateFormPage />,
       },
       { path: "mangedCustomer", element: <ClientListPage /> },
       { path: "mangedCustomer/:customerId", element: <ClientPage /> },
@@ -123,6 +118,7 @@ const router = createBrowserRouter([
         path: "manager/reservations/:reservationId",
         element: <AboutReservationPage />,
       },
+      { path: "manager/editTreatment", element: <OwnerEditTreatmentPage /> },
     ],
   },
 ]);

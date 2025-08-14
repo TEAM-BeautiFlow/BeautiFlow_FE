@@ -1,7 +1,6 @@
 import { useState } from "react";
 import ChatTabBar from "./components/ChatTabBar";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
-import { useNavigate } from "react-router-dom";
 import TemplateFormPage from "./TemplateFormPage";
 import TemplateCard from "./components/TemplateCard";
 
@@ -51,7 +50,7 @@ export default function TemplateListPage() {
       {/* 조건부로 TemplateFormPage 띄우기 */}
       {isTemplateFormOpen && (
         <div className="absolute top-0 left-0 z-50 h-full w-full">
-          <TemplateFormPage onClose={() => setIsTemplateFormOpen(false)} />
+          <TemplateFormPage />
         </div>
       )}
     </div>

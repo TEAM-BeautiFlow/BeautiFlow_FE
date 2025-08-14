@@ -8,7 +8,6 @@ interface Message {
 }
 
 export default function UserChatPage() {
-  const [isOptionOpen, setIsOptionOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
   const handleSend = (text: string) => {
@@ -18,7 +17,11 @@ export default function UserChatPage() {
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
       {/* 상단 헤더 -> api 에 따라서 고쳐야함 */}
-      <ChatHeader />
+      <ChatHeader
+        shopName="샵 이름"
+        opponentName="상대방 이름"
+        opponentId={1}
+      />
 
       {/* 채팅 메시지 */}
       <div className="mt-3 flex-1 gap-2.5 space-y-2 overflow-y-auto px-5 py-2">
@@ -47,10 +50,7 @@ export default function UserChatPage() {
       </div>
 
       {/* 하단 입력창 */}
-      <ChatInput
-        onSend={handleSend}
-        onClick={() => setIsOptionOpen(prev => !prev)}
-      />
+      <ChatInput onSend={handleSend} onClick={() => {}} />
     </div>
   );
 }
