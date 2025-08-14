@@ -99,11 +99,11 @@ const router = createBrowserRouter([
       },
       {
         path: "chat/rooms/profile/:customerId",
-        element: <ChatProfile />,
+        element: <ChatProfilePage />,
       },
       {
         path: "chat/rooms/profile",
-        element: <ChatProfilePage />,
+        element: <ChatProfile />,
       },
       {
         path: "templates",

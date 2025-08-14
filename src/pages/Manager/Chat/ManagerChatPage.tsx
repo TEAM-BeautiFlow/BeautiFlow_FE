@@ -12,7 +12,11 @@ interface Message {
   text: string;
   imageUrl?: string;
 }
-type LocationState = { customerId?: number; opponentId?: number };
+type LocationState = {
+  customerId?: number;
+  opponentId?: number;
+  name?: string;
+};
 
 export default function ManagerChatPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -21,6 +25,8 @@ export default function ManagerChatPage() {
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const derivedCustomerId = state?.customerId ?? state?.opponentId ?? null;
   const [customerId] = useState<number | null>(derivedCustomerId);
+  const name = state?.name ?? "";
+
   const navigate = useNavigate();
 
   // fetch
@@ -141,14 +147,20 @@ export default function ManagerChatPage() {
       console.warn("customerId가 없어 프로필로 이동 불가");
       return;
     }
-    navigate(`/chat/rooms/profile/${customerId}`);
+
+    navigate(`/chat/rooms/profile/${customerId}`, {
+      state: {
+        customerId,
+        name: name,
+      },
+    });
   };
 
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
       {/* 상단 */}
       <ChatHeader
-        title="상대방 이름"
+        title={name || "상대방 이름"}
         rightContent={
           <svg
             width="40"

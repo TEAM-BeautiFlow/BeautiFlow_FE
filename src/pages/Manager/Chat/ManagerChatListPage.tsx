@@ -15,7 +15,7 @@ const dummyChats: ChatList[] = [
     shopId: 2,
     shopName: "가게이름",
     opponentId: 1,
-    opponentName: "상대방 이름",
+    opponentName: "바보 이름",
     lastMessageContent:
       "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
     lastMessageTime: "2025-07-21T15:00:00",
@@ -89,10 +89,15 @@ export default function ManagerChatListPage() {
   };
 
   // room 클릭 시 이동
-  const handleChatClick = (roomId: number, opponentId: number) => {
+  const handleChatClick = (
+    roomId: number,
+    opponentId: number,
+    opponentName: string,
+  ) => {
     navigate(`/chat/rooms/${roomId}`, {
       state: {
         customerId: opponentId,
+        name: opponentName,
       },
     });
   };
@@ -174,7 +179,9 @@ export default function ManagerChatListPage() {
               key={chat.roomId}
               chat={chat}
               onRightClick={openBottomSheet}
-              onClick={roomId => handleChatClick(roomId, chat.opponentId)}
+              onClick={roomId =>
+                handleChatClick(roomId, chat.opponentId, chat.opponentName)
+              }
             />
           ))}
       </div>
