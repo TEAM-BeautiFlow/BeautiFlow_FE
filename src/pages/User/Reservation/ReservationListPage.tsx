@@ -10,11 +10,11 @@ export default function ReservationListPage() {
 
   const filteredReservations = reservations.filter(r => {
     if (activeTab === "예정") {
-      return r.status === "예약 확정" || r.status === "예약 확인중";
+      return r.status === "CONFIRMED" || r.status === "PENDING";
     } else if (activeTab === "완료") {
-      return r.status === "시술 완료";
+      return r.status === "COMPLETED";
     } else if (activeTab === "취소") {
-      return r.status === "취소 완료" || r.status === "노쇼";
+      return r.status === "CANCELLED" || r.status === "NO_SHOW";
     }
   });
 
