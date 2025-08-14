@@ -343,4 +343,4 @@ const AppointmentBooking = () => {
   );
 };
 
-export default AppointmentBooking;
+export default AppointmentBookingPage;

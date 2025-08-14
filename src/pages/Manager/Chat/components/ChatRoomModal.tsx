@@ -1,4 +1,19 @@
+import { useRef } from "react";
+
+// 이미지 보내기 기능 추가해야함
 export default function ChatRoomModal() {
+  //   onPickImage,
+  // }: {
+  //   onPickImage: (file: File) => void;
+  // }) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  // const openPicker = () => fileRef.current?.click();
+
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const f = e.target.files?.[0];
+  //   if (f) onPickImage(f);
+  //   e.target.value = ""; // 같은 파일 연속 선택시 onChange 보장
+  // };
   return (
     <div className="flex h-[291px] border-t border-[var(--color-grey-950)] px-5 py-4">
       <div className="flex gap-5">
@@ -21,6 +36,13 @@ export default function ChatRoomModal() {
           </div>
           <span className="caption1 text-white">이미지</span>
         </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          // onChange={handleChange}
+        />
 
         {/* 템플릿 메시지 */}
         <div className="flex h-[84px] flex-col items-center justify-between px-3 py-2">
