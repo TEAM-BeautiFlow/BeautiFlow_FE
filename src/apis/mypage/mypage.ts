@@ -13,6 +13,7 @@ export interface UserInfo {
   name: string;
   contact: string;
   email: string;
+  shopId: number[];
   shopMembers?: ShopMember[];
 }
 
