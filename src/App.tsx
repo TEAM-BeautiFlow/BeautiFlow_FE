@@ -46,6 +46,8 @@ import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
 import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
 import HomePage from "./pages/Manager/Home/HomePage";
 import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
+import TermsPage from "./pages/Terms/TermsPage";
+import PrivacyPage from "./pages/Privacy/PrivacyPage";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -173,6 +175,8 @@ const router = createBrowserRouter([
         path: "manager/reservations/:reservationId",
         element: <AboutReservationPage />,
       },
+      { path: "terms", element: <TermsPage /> },
+      { path: "privacy", element: <PrivacyPage /> },
     ],
   },
 ]);

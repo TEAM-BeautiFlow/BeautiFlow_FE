@@ -78,15 +78,17 @@ export default function Mypage() {
             <img src={HeartIcon} alt="선호 스타일" className="mb-2 h-8 w-8" />
             <span className="body1 text-[var(--color-white)]">선호 스타일</span>
           </div>
-          <div
-            className="flex flex-1 cursor-pointer flex-col items-center py-6"
-            onClick={() => {
-              if (!isLoggedIn) setIsLoginRequiredOpen(true);
-            }}
+          <button
+            type="button"
+            className="flex flex-1 flex-col items-center py-6 transition-colors hover:bg-[var(--color-grey-900)]"
+            onClick={() =>
+              window.open("https://open.kakao.com/o/sEpQVpMh", "_blank")
+            }
+            aria-label="문의하기"
           >
             <img src={InquiryIcon} alt="문의하기" className="mb-2 h-8 w-8" />
             <span className="body1 text-[var(--color-white)]">문의하기</span>
-          </div>
+          </button>
         </div>
         {/* 내계정 */}
         <SectionTitle>내계정</SectionTitle>
@@ -128,8 +130,10 @@ export default function Mypage() {
         </MenuItem>
         {/* 약관 */}
         <SectionTitle>약관</SectionTitle>
-        <MenuItem>이용약관</MenuItem>
-        <MenuItem>개인정보처리방침</MenuItem>
+        <MenuItem onClick={() => navigate("/terms")}>이용약관</MenuItem>
+        <MenuItem onClick={() => navigate("/privacy")}>
+          개인정보처리방침
+        </MenuItem>
       </div>
       {isLoginRequiredOpen ? (
         <LoginRequiredModal
