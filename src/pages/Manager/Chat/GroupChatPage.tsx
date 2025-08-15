@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ChatHeader from "./components/ChatHeader";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-
+import { getUserInfo } from "@/apis/mypage/mypage";
 export default function GroupChat() {
   const [text, setText] = useState("");
   const location = useLocation();
@@ -20,11 +20,34 @@ export default function GroupChat() {
       customerNames.length - 2
     }명`;
   };
+  const userIdRef = useRef<number | null>(null);
+  const shopIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) {
+          userIdRef.current = userInfo.id;
+          shopIdRef.current = userInfo.shopMembers?.[0]?.shopId ?? null;
+          if (shopIdRef.current) {
+            localStorage.setItem("shopId", String(shopIdRef.current));
+          }
+        }
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const ensureRoom = async (customerId: number): Promise<number> => {
     const token = localStorage.getItem("accessToken");
-    const shopId = Number(localStorage.getItem("shopId"));
-    const designerId = Number(localStorage.getItem("designerId"));
+    const shopId = shopIdRef.current;
+    const designerId = userIdRef.current;
     if (!token || !shopId || !designerId)
       throw new Error("shopId/designerId/token 누락");
 
@@ -51,7 +74,8 @@ export default function GroupChat() {
     new Promise<void>((resolve, reject) => {
       const token = localStorage.getItem("accessToken");
       if (!token) return reject(new Error("token 누락"));
-
+      const senderId = userIdRef.current;
+      const senderType = localStorage.getItem("loginProvider") ?? "STAFF";
       const WS_ENDPOINT = `${import.meta.env.VITE_API_BASE_URL}/connect`; // 훅과 동일
       const DESTINATION = `/publish/${roomId}`; // 훅과 동일
 
@@ -66,8 +90,8 @@ export default function GroupChat() {
               headers: { Authorization: `Bearer ${token}` },
               body: JSON.stringify({
                 roomId,
-                senderId: localStorage.getItem("senderId"),
-                senderType: localStorage.getItem("senderType"),
+                senderId,
+                senderType,
                 content,
                 imageUrl: null,
               }),
@@ -108,8 +132,8 @@ export default function GroupChat() {
     const token = localStorage.getItem("accessToken");
     if (!token) throw new Error("token 누락");
 
-    const senderType = localStorage.getItem("senderType");
-    const senderId = localStorage.getItem("senderId");
+    const senderType = localStorage.getItem("senderType") ?? "STAFF";
+    const senderId = userIdRef.current;
 
     await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import useChatSocket from "../../../hooks/useChatSocket";
 import ChatHeader from "./components/ChatHeader";
@@ -6,13 +6,18 @@ import ChatInput from "./components/ChatInput";
 import ChatRoomModal from "./components/ChatRoomModal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 interface Message {
   sender: "me" | "you";
   text: string;
   imageUrl?: string;
 }
-type LocationState = { customerId?: number; opponentId?: number };
+type LocationState = {
+  customerId?: number;
+  opponentId?: number;
+  name?: string;
+};
 
 export default function ManagerChatPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -21,6 +26,8 @@ export default function ManagerChatPage() {
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const derivedCustomerId = state?.customerId ?? state?.opponentId ?? null;
   const [customerId] = useState<number | null>(derivedCustomerId);
+  const name = state?.name ?? "";
+
   const navigate = useNavigate();
 
   // fetch
@@ -71,19 +78,37 @@ export default function ManagerChatPage() {
     ]);
   };
 
+  // userInfo.id 가져오기
+  const userIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) userIdRef.current = userInfo.id;
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // WebSocket 연결 + 전송 함수
   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
 
   // 메시지 전송
   const handleSend = async (text: string) => {
     const token = localStorage.getItem("accessToken");
-    const senderType = localStorage.getItem("senderType");
-    const senderId = localStorage.getItem("senderId");
-    sendMessage(text);
+    const senderType = localStorage.getItem("loginProvider");
+    const senderId = userIdRef.current;
+    if (!userIdRef.current) {
+      console.warn("User ID not loaded");
+      return;
+    }
 
-    // 프런트 확인용(지우기)
-    // setMessages(prev => [...prev, { sender: "me", text }]);
-    console.log("전송된 메시지:", text);
+    sendMessage(text);
 
     // 저장 API 호출
     try {
@@ -141,14 +166,20 @@ export default function ManagerChatPage() {
       console.warn("customerId가 없어 프로필로 이동 불가");
       return;
     }
-    navigate(`/chat/rooms/profile/${customerId}`);
+
+    navigate(`/chat/rooms/profile/${customerId}`, {
+      state: {
+        customerId,
+        name: name,
+      },
+    });
   };
 
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
       {/* 상단 */}
       <ChatHeader
-        title="상대방 이름"
+        title={name || "상대방 이름"}
         rightContent={
           <svg
             width="40"

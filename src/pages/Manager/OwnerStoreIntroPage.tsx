@@ -1,12 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
-import { ChevronLeft, X, Plus } from 'lucide-react';
-import '../../styles/color-system.css';
-import '../../styles/type-system.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import {
+  ChevronLeft,
+  X,
+  Plus,
+  Home,
+  User,
+  MessageSquare,
+  Calendar,
+  MoreHorizontal,
+} from "lucide-react";
+import "../../styles/color-system.css";
+import "../../styles/type-system.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+const ACCESS_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
 
 interface ShopImage {
   id: number;
@@ -18,7 +28,7 @@ const OwnerStoreIntroPage = () => {
   const { shopId } = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [introText, setIntroText] = useState('');
+  const [introText, setIntroText] = useState("");
   const [existingImages, setExistingImages] = useState<ShopImage[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
@@ -30,12 +40,15 @@ const OwnerStoreIntroPage = () => {
     const fetchShopIntro = async () => {
       if (!shopId) return;
       try {
-        const response = await axios.get(`${API_BASE_URL}/shops/manage/${shopId}`, {
-          headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-        });
+        const response = await axios.get(
+          `${API_BASE_URL}/shops/manage/${shopId}`,
+          {
+            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+          },
+        );
         if (response.data && response.data.data) {
           const { introduction, shopImages } = response.data.data;
-          setIntroText(introduction || '');
+          setIntroText(introduction || "");
           setExistingImages(shopImages || []);
         }
       } catch (error) {
@@ -54,17 +67,17 @@ const OwnerStoreIntroPage = () => {
     };
 
     const formData = new FormData();
-    formData.append('requestDto', JSON.stringify(requestDto));
-    
+    formData.append("requestDto", JSON.stringify(requestDto));
+
     newImages.forEach(file => {
-      formData.append('newImages', file);
+      formData.append("newImages", file);
     });
 
     try {
       await axios.patch(`${API_BASE_URL}/shops/manage/${shopId}`, formData, {
         headers: {
           // ✅ FormData를 사용할 때 Content-Type은 axios가 자동으로 설정하도록 비워둡니다.
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
         },
       });
       alert("매장 소개가 성공적으로 저장되었습니다.");
@@ -100,106 +113,232 @@ const OwnerStoreIntroPage = () => {
 
   const displayedImages = [
     ...existingImages.map(img => ({ ...img, isNew: false })),
-    ...newImages.map((file, index) => ({ id: index, imageUrl: URL.createObjectURL(file), isNew: true }))
+    ...newImages.map((file, index) => ({
+      id: index,
+      imageUrl: URL.createObjectURL(file),
+      isNew: true,
+    })),
   ];
 
   return (
-    <div className="max-w-sm mx-auto min-h-screen" style={{ 
-      backgroundColor: 'var(--color-black)',
-      color: 'var(--color-white)',
-      fontFamily: 'Pretendard, sans-serif'
-    }}>
+    <div
+      className="mx-auto min-h-screen max-w-sm"
+      style={{
+        backgroundColor: "var(--color-black)",
+        color: "var(--color-white)",
+        fontFamily: "Pretendard, sans-serif",
+      }}
+    >
+      {/* Status Bar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 20px",
+          fontSize: "16px",
+          fontWeight: "600",
+        }}
+      >
+        <span>9:41</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <div style={{ display: "flex", gap: "2px" }}>
+            <div
+              style={{
+                width: "4px",
+                height: "4px",
+                backgroundColor: "white",
+                borderRadius: "50%",
+              }}
+            ></div>
+            <div
+              style={{
+                width: "4px",
+                height: "4px",
+                backgroundColor: "white",
+                borderRadius: "50%",
+              }}
+            ></div>
+            <div
+              style={{
+                width: "4px",
+                height: "4px",
+                backgroundColor: "white",
+                borderRadius: "50%",
+              }}
+            ></div>
+            <div
+              style={{
+                width: "4px",
+                height: "4px",
+                backgroundColor: "white",
+                borderRadius: "50%",
+              }}
+            ></div>
+          </div>
+          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+            <rect
+              x="1"
+              y="3"
+              width="18"
+              height="6"
+              rx="2"
+              stroke="white"
+              strokeWidth="1"
+            />
+            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
+          </svg>
+        </div>
+      </div>
+
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '20px 20px 24px',
-      }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 20px 24px",
+          marginTop: "8px",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
           <ChevronLeft size={24} color="var(--color-white)" />
         </button>
-        <h1 className="title1" style={{ color: 'var(--color-white)', margin: 0 }}>
+        <h1
+          className="title1"
+          style={{ color: "var(--color-white)", margin: 0 }}
+        >
           매장 소개
         </h1>
-        <button className="label1" style={{ color: 'var(--color-light-purple)', fontWeight: 'var(--font-weight-semibold)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleSave}>
+        <button
+          className="label1"
+          style={{
+            color: "var(--color-light-purple)",
+            fontWeight: "var(--font-weight-semibold)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+          onClick={handleSave}
+        >
           저장
         </button>
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: '0 20px 32px' }}>
+      <div style={{ padding: "0 20px 32px" }}>
         {/* 한 줄 소개 입력 필드 */}
-        <div style={{ marginBottom: '24px' }}>
-          <label htmlFor="introText" className="label1" style={{ color: 'var(--color-white)', marginBottom: '8px', display: 'block' }}>
+        <div style={{ marginBottom: "24px" }}>
+          <label
+            htmlFor="introText"
+            className="label1"
+            style={{
+              color: "var(--color-white)",
+              marginBottom: "8px",
+              display: "block",
+            }}
+          >
             한 줄 소개
           </label>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: "relative" }}>
             <textarea
               id="introText"
               placeholder="한 줄 소개를 입력해주세요"
               value={introText}
-              onChange={(e) => setIntroText(e.target.value)}
+              onChange={e => setIntroText(e.target.value)}
               maxLength={MAX_LENGTH_INTRO}
               className="body2"
               style={{
-                width: '100%',
-                minHeight: '80px',
-                backgroundColor: 'var(--color-grey-850)',
-                border: '1px solid var(--color-grey-750)',
-                borderRadius: '8px',
-                padding: '16px',
-                color: 'var(--color-white)',
-                fontFamily: 'Pretendard, sans-serif',
-                outline: 'none',
-                resize: 'none'
+                width: "100%",
+                minHeight: "80px",
+                backgroundColor: "var(--color-grey-850)",
+                border: "1px solid var(--color-grey-750)",
+                borderRadius: "8px",
+                padding: "16px",
+                color: "var(--color-white)",
+                fontSize: "14px",
+                fontFamily: "Pretendard, sans-serif",
+                outline: "none",
+                resize: "none",
               }}
             />
-            <span className="caption2" style={{ 
-              position: 'absolute',
-              bottom: '16px',
-              right: '16px',
-              color: 'var(--color-grey-450)'
-            }}>
+            <span
+              className="caption2"
+              style={{
+                position: "absolute",
+                bottom: "12px",
+                right: "16px",
+                color: "var(--color-grey-450)",
+              }}
+            >
               {introText.length}/{MAX_LENGTH_INTRO}
             </span>
           </div>
         </div>
-
         {/* 대표 사진 업로드 섹션 */}
-        <div style={{ marginBottom: '32px' }}>
-          <label className="label1" style={{ color: 'var(--color-white)', marginBottom: '8px', display: 'block' }}>
+        <div style={{ marginBottom: "32px" }}>
+          <label
+            className="label1"
+            style={{
+              color: "var(--color-white)",
+              marginBottom: "8px",
+              display: "block",
+            }}
+          >
             대표 사진
           </label>
-          <p className="caption2" style={{ color: 'var(--color-grey-450)', marginBottom: '16px' }}>
+          <p
+            className="caption2"
+            style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}
+          >
             고객이 매장 페이지 진입 시 적용된 사진으로 보이는 이미지예요. <br />
             (권장 규격 16:9, 5MB 이하)
           </p>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {displayedImages.map((image, index) => (
-              <div key={image.isNew ? `new-${index}` : `existing-${image.id}`} style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '8px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <img src={image.imageUrl} alt={`매장 이미지 ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button 
-                  onClick={() => image.isNew ? removeNewImage(image.id) : removeExistingImage(image.id)}
+              <div
+                key={image.isNew ? `new-${index}` : `existing-${image.id}`}
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "8px",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={image.imageUrl}
+                  alt={`매장 이미지 ${index + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                <button
+                  onClick={() =>
+                    image.isNew
+                      ? removeNewImage(image.id)
+                      : removeExistingImage(image.id)
+                  }
                   style={{
-                    position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
+                    position: "absolute",
+                    top: "4px",
+                    right: "4px",
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
                   }}
                 >
                   <X size={12} color="var(--color-white)" />
@@ -212,36 +351,84 @@ const OwnerStoreIntroPage = () => {
               <button
                 onClick={handleImageUploadClick}
                 style={{
-                  width: '80px',
-                  height: '80px',
-                  backgroundColor: 'var(--color-grey-850)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--color-grey-750)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  gap: '4px'
+                  width: "80px",
+                  height: "80px",
+                  backgroundColor: "var(--color-grey-850)",
+                  borderRadius: "8px",
+                  border: "1px solid var(--color-grey-750)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  gap: "4px",
                 }}
               >
                 <Plus size={20} color="var(--color-grey-450)" />
-                <span className="caption2" style={{ color: 'var(--color-grey-450)' }}>
+                <span
+                  className="caption2"
+                  style={{ color: "var(--color-grey-450)" }}
+                >
                   사진 {displayedImages.length}/{MAX_IMAGES}
                 </span>
               </button>
             )}
           </div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
+          <input
+            type="file"
+            ref={fileInputRef}
             onChange={handleFileChange}
-            multiple 
+            multiple
             accept="image/*"
-            style={{ display: 'none' }} 
+            style={{ display: "none" }}
           />
         </div>
       </div>
+
+      {/* Bottom Navigation Bar */}
+      <nav
+        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
+        style={{
+          backgroundColor: "var(--color-black)",
+          borderTop: "1px solid var(--color-grey-850)",
+        }}
+      >
+        <button
+          className="flex flex-col items-center gap-1 text-sm font-medium"
+          style={{ color: "var(--color-grey-450)" }}
+        >
+          <Calendar size={24} />
+          예약
+        </button>
+        <button
+          className="flex flex-col items-center gap-1 text-sm font-medium"
+          style={{ color: "var(--color-grey-450)" }}
+        >
+          <User size={24} />
+          고객
+        </button>
+        <button
+          className="flex flex-col items-center gap-1 text-sm font-medium"
+          style={{ color: "var(--color-grey-450)" }}
+        >
+          <MessageSquare size={24} />
+          채팅
+        </button>
+        <button
+          className="flex flex-col items-center gap-1 text-sm font-medium"
+          style={{ color: "var(--color-light-purple)" }}
+        >
+          <Home size={24} />
+          매장
+        </button>
+        <button
+          className="flex flex-col items-center gap-1 text-sm font-medium"
+          style={{ color: "var(--color-grey-450)" }}
+        >
+          <MoreHorizontal size={24} />
+          더보기
+        </button>
+      </nav>
     </div>
   );
 };

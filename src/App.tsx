@@ -24,6 +24,9 @@ import SignupPage from "./pages/Signup/SignupPage";
 import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
 import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
 import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
+import OwnerBusinessRegistrationPage from "./pages/Manager/OwnerBusinessRegistrationPage";
+import OwnerStoreIntroPage from "./pages/Manager/OwnerStoreIntroPage";
+import OwnerSalesPage from "./pages/Manager/OwnerSalesPage";
 import TreatmentOptionsPage from "./pages/Consumer/TreatmentOptionsPage";
 import BookingPage from "./pages/Consumer/BookingPage";
 import ArtDetailPage from "./pages/Consumer/ArtDetailPage";
@@ -43,9 +46,9 @@ import OnboardShopRegister from "./pages/Manager/Onboard/components/OnboardShopR
 import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
 import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
 import HomePage from "./pages/Manager/Home/HomePage";
-import OwnerBusinessRegistrationPage from "./pages/Manager/OwnerBusinessRegistrationPage";
-import OwnerStoreIntroPage from "./pages/Manager/OwnerStoreIntroPage";
-import OwnerSalesPage from "./pages/Manager/OwnerSalesPage";
+import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
+import TermsPage from "./pages/Terms/TermsPage";
+import PrivacyPage from "./pages/Privacy/PrivacyPage";
 
 // 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
 // 필요하시면 주석을 해제하고 사용하세요.
@@ -84,7 +87,10 @@ const router = createBrowserRouter([
         path: "user/chat/rooms/:roomId",
         element: <UserChatPage />,
       },
-
+      {
+        path: "user/chat/rooms/profile/:designerId",
+        element: <ChatProfile />,
+      },
       {
         path: "chat/rooms",
         element: <ManagerChatListPage />,
@@ -100,12 +106,9 @@ const router = createBrowserRouter([
       },
       {
         path: "chat/rooms/profile/:customerId",
-        element: <ChatProfile />,
-      },
-      {
-        path: "chat/rooms/profile",
         element: <ChatProfilePage />,
       },
+
       {
         path: "templates",
         element: <TemplateListPage />,
@@ -201,6 +204,8 @@ const router = createBrowserRouter([
         path: "owner/hours/:shopId",
         element: <OwnerBusinessHoursPage />,
       },
+      { path: "terms", element: <TermsPage /> },
+      { path: "privacy", element: <PrivacyPage /> },
     ],
   },
 ]);

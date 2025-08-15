@@ -14,6 +14,7 @@ export default function ChatProfile() {
     () => location.state as LocationState | undefined,
     [location.state],
   );
+  const { name } = location.state || {};
 
   const [customer, setCustomer] = useState<CustomerDetail | null>(
     state
@@ -29,9 +30,6 @@ export default function ChatProfile() {
         }
       : null,
   );
-  if (!customer) {
-    return <div className="p-4 text-gray-400">고객 정보가 없습니다.</div>;
-  }
 
   const [, setCustLoading] = useState(!state);
   const [, setCustError] = useState<string | null>(null);
@@ -102,9 +100,8 @@ export default function ChatProfile() {
 
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
-      {/* 상단 헤더 -> 상대방 정보 연결 (API 받은 후 작업) */}
       <ChatHeader
-        title="상대방 이름"
+        title={name || "상대방 이름"}
         rightContent={
           <svg
             width="40"
@@ -120,76 +117,86 @@ export default function ChatProfile() {
             />
           </svg>
         }
-        onRightClick={() => console.log("아이콘 클릭됨")} // 이부분은 클릭하면 어떻게 되는지..?
+        onRightClick={() => console.log("아이콘 클릭됨")}
       />
       {/* 프로필 */}
       {/* 개인정보 */}
-      <div className="px-5 pt-3 pb-10">
-        {/* 이름 */}
-        <div className="mb-2 flex justify-between">
-          <span className="h0 text-[var(--color-grey-150)]">
-            {customer.name}
-          </span>
+      {!customer ? (
+        <div className="px-5 pt-3 text-[var(--color-grey-450)]">
+          고객 정보가 없습니다.
         </div>
+      ) : (
+        <div className="px-5 pt-3 pb-10">
+          {/* 이름 */}
+          <div className="mb-2 flex justify-between">
+            <span className="h0 text-[var(--color-grey-150)]">
+              {customer.name}
+            </span>
+          </div>
 
-        {/* 이미지 목록 */}
-        {customer.styleImageUrls && customer.styleImageUrls.length > 0 && (
-          <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
-            {customer.styleImageUrls.map((url, index) => (
-              <div
-                key={index}
-                className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
-              >
-                <img
-                  src={url}
-                  alt={`style-${index}`}
-                  className="h-full w-full object-cover"
-                  onError={e => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* 내용 */}
-        <div className="mt-4 inline-flex flex-col gap-[6px]">
-          <div className="flex gap-4">
-            <span className="body2 text-[var(--color-grey-550)]">전화번호</span>
-            <div className="body2 text-[var(--color-grey-150)]">
-              {customer.contact}
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <span className="body2 text-[var(--color-grey-550)]">메일주소</span>
-            <div className="body2 text-[var(--color-grey-150)]">
-              {customer.email}
-            </div>
-          </div>
-          {customer.requestNotes && (
-            <div className="flex gap-4">
-              <span className="body2 text-[var(--color-grey-550)]">
-                요청사항
-              </span>
-              <div className="body2 text-[var(--color-grey-150)]">
-                {customer.requestNotes}
-              </div>
+          {/* 이미지 목록 */}
+          {customer.styleImageUrls && customer.styleImageUrls.length > 0 && (
+            <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
+              {customer.styleImageUrls.map((url, index) => (
+                <div
+                  key={index}
+                  className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
+                >
+                  <img
+                    src={url}
+                    alt={`style-${index}`}
+                    className="h-full w-full object-cover"
+                    onError={e => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                </div>
+              ))}
             </div>
           )}
-          {customer.memo && (
+
+          {/* 내용 */}
+          <div className="mt-4 inline-flex flex-col gap-[6px]">
             <div className="flex gap-4">
               <span className="body2 text-[var(--color-grey-550)]">
-                기타메모
+                전화번호
               </span>
               <div className="body2 text-[var(--color-grey-150)]">
-                {customer.memo}
+                {customer.contact}
               </div>
             </div>
-          )}
+            <div className="flex gap-4">
+              <span className="body2 text-[var(--color-grey-550)]">
+                메일주소
+              </span>
+              <div className="body2 text-[var(--color-grey-150)]">
+                {customer.email}
+              </div>
+            </div>
+            {customer.requestNotes && (
+              <div className="flex gap-4">
+                <span className="body2 text-[var(--color-grey-550)]">
+                  요청사항
+                </span>
+                <div className="body2 text-[var(--color-grey-150)]">
+                  {customer.requestNotes}
+                </div>
+              </div>
+            )}
+            {customer.memo && (
+              <div className="flex gap-4">
+                <span className="body2 text-[var(--color-grey-550)]">
+                  기타메모
+                </span>
+                <div className="body2 text-[var(--color-grey-150)]">
+                  {customer.memo}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

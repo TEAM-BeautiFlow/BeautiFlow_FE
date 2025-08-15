@@ -626,7 +626,7 @@ const OwnerEditTreatmentPage = () => {
             옵션 추가
           </label>
           <div className="space-y-6">
-            {options.map((option, index) => (
+            {options.map(option => (
               <div
                 key={option.id}
                 style={{

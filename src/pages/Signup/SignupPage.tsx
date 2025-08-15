@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { sendPhoneCode, verifyPhoneCode, postSignup } from "@/apis/login";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/auth";
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
+  const { isAuthenticated, provider: authProvider } = useAuthStore();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -20,6 +22,15 @@ export default function SignupPage() {
     if (k) setKakaoId(k);
     if (p) setProvider(p);
   }, [search]);
+
+  // 기존 회원 체크: 이미 토큰이 있다면 (= 기존 회원) 적절한 페이지로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated && authProvider) {
+      const isStaff =
+        typeof authProvider === "string" && authProvider.includes("staff");
+      navigate(isStaff ? "/manager/home" : "/client/mypage", { replace: true });
+    }
+  }, [isAuthenticated, authProvider, navigate]);
 
   async function handleSendCode() {
     if (!phone) return;
@@ -37,10 +48,22 @@ export default function SignupPage() {
       await verifyPhoneCode(phone, code);
       setIsVerified(true);
       if (kakaoId && provider && name) {
-        await postSignup({ kakaoId, provider, name, contact: phone });
-        const isStaff =
-          typeof provider === "string" && provider.includes("staff");
-        navigate(isStaff ? "/manager/onboard" : "/", { replace: true });
+        try {
+          await postSignup({ kakaoId, provider, name, contact: phone });
+          const isStaff =
+            typeof provider === "string" && provider.includes("staff");
+          navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
+            replace: true,
+          });
+        } catch (signupError) {
+          // 이미 존재하는 사용자인 경우 로그인 처리로 리다이렉트
+          console.error("회원가입 실패:", signupError);
+          const isStaff =
+            typeof provider === "string" && provider.includes("staff");
+          navigate(isStaff ? "/manager/home" : "/client/mypage", {
+            replace: true,
+          });
+        }
       }
     } catch (e) {
       // 인증 실패 시 상태 유지
@@ -49,9 +72,22 @@ export default function SignupPage() {
 
   async function handleSubmit() {
     if (!kakaoId || !provider || !name || !phone || !isVerified) return;
-    await postSignup({ kakaoId, provider, name, contact: phone });
-    const isStaff = typeof provider === "string" && provider.includes("staff");
-    navigate(isStaff ? "/manager/onboard" : "/", { replace: true });
+    try {
+      await postSignup({ kakaoId, provider, name, contact: phone });
+      const isStaff =
+        typeof provider === "string" && provider.includes("staff");
+      navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
+        replace: true,
+      });
+    } catch (signupError) {
+      // 이미 존재하는 사용자인 경우 로그인 처리로 리다이렉트
+      console.error("회원가입 실패:", signupError);
+      const isStaff =
+        typeof provider === "string" && provider.includes("staff");
+      navigate(isStaff ? "/manager/home" : "/client/mypage", {
+        replace: true,
+      });
+    }
   }
 
   const canSubmit = !!(name && phone && isVerified);
