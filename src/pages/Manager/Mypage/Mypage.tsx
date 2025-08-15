@@ -57,10 +57,17 @@ export default function Mypage() {
               디자이너 정보 수정
             </span>
           </button>
-          <div className="flex flex-1 flex-col items-center py-6">
+          <button
+            type="button"
+            onClick={() =>
+              window.open("https://open.kakao.com/o/sEpQVpMh", "_blank")
+            }
+            className="flex flex-1 flex-col items-center py-6 transition-colors hover:bg-[var(--color-grey-900)]"
+            aria-label="문의하기"
+          >
             <img src={InquiryIcon} alt="문의하기" className="mb-2 h-8 w-8" />
             <span className="body1 text-[var(--color-white)]">문의하기</span>
-          </div>
+          </button>
         </div>
         {/* 내계정 */}
         <SectionTitle>내계정</SectionTitle>
@@ -100,8 +107,10 @@ export default function Mypage() {
         </MenuItem>
         {/* 약관 */}
         <SectionTitle>약관</SectionTitle>
-        <MenuItem>이용약관</MenuItem>
-        <MenuItem>개인정보처리방침</MenuItem>
+        <MenuItem onClick={() => navigate("/terms")}>이용약관</MenuItem>
+        <MenuItem onClick={() => navigate("/privacy")}>
+          개인정보처리방침
+        </MenuItem>
         <SectionTitle>탈퇴하기</SectionTitle>
       </div>
     </div>

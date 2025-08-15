@@ -46,15 +46,19 @@ export default function PostLoginRedirect() {
             navigate(`/signup?${qs.toString()}`, { replace: true });
           } else {
             try {
-              // 기존 유저도 postLoginRedirect 무시하고 루트로 가기 위해 제거
+              // 기존 유저도 postLoginRedirect 무시하고 적절한 페이지로 가기 위해 제거
               localStorage.removeItem("postLoginRedirect");
               // 전역 상태에 토큰 저장 (localStorage 동기 반영됨)
               useAuthStore.getState().setTokens({ accessToken, refreshToken });
               // 유저 정보도 함께 저장
               useAuthStore.getState().setUserInfo({ kakaoId, provider });
             } catch {}
-            // 루트로 돌아가며 쿼리 정리
-            navigate("/", { replace: true });
+            // 기존 회원도 역할에 따라 적절한 페이지로 리다이렉트
+            const isStaff =
+              typeof provider === "string" && provider.includes("staff");
+            navigate(isStaff ? "/manager/home" : "/client/mypage", {
+              replace: true,
+            });
           }
         } catch (e) {
           // 실패 시 로그인 화면으로 복귀
