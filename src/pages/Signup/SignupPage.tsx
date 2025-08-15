@@ -51,30 +51,30 @@ export default function SignupPage() {
         const loginResult = await login(loginKey!);
         console.log("✅ 기존 회원 확인 성공:", loginResult);
 
-        // 토큰과 사용자 정보를 Zustand store와 localStorage에 저장
-        if (loginResult?.accessToken && loginResult?.refreshToken) {
-          // Zustand store에 저장
-          setTokens({
-            accessToken: loginResult.accessToken,
-            refreshToken: loginResult.refreshToken,
-          });
-          setUserInfo({
-            kakaoId: loginResult.kakaoId,
-            provider: loginResult.provider?.startsWith("kakao-")
-              ? loginResult.provider
-              : `kakao-${loginResult.provider}`,
-          });
+        // 토큰과 사용자 정보를 Zustand store와 localStorage에 저장 (각각 존재 여부에 따라)
+        setUserInfo({
+          kakaoId: loginResult.kakaoId,
+          provider: loginResult.provider?.startsWith("kakao-")
+            ? loginResult.provider
+            : `kakao-${loginResult.provider}`,
+        });
 
-          // localStorage에 저장
+        if (loginResult.kakaoId) {
           localStorage.setItem("kakaoId", loginResult.kakaoId);
-          if (loginResult.provider) {
-            const prov = loginResult.provider.startsWith("kakao-")
-              ? loginResult.provider
-              : `kakao-${loginResult.provider}`;
-            localStorage.setItem("loginProvider", prov);
-            localStorage.setItem("provider", prov);
-          }
+        }
+        if (loginResult.provider) {
+          const prov = loginResult.provider.startsWith("kakao-")
+            ? loginResult.provider
+            : `kakao-${loginResult.provider}`;
+          localStorage.setItem("loginProvider", prov);
+          localStorage.setItem("provider", prov);
+        }
+        if (loginResult.accessToken) {
+          setTokens({ accessToken: loginResult.accessToken });
           localStorage.setItem("accessToken", loginResult.accessToken);
+        }
+        if (loginResult.refreshToken) {
+          setTokens({ refreshToken: loginResult.refreshToken });
           localStorage.setItem("refreshToken", loginResult.refreshToken);
         }
 
@@ -151,30 +151,30 @@ export default function SignupPage() {
       });
       console.log("✅ 회원가입 성공:", result);
 
-      // 회원가입 성공 시 토큰과 사용자 정보 저장
-      if (result?.accessToken && result?.refreshToken) {
-        // Zustand store에 저장
-        setTokens({
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-        });
-        setUserInfo({
-          kakaoId: result.kakaoId,
-          provider: result.provider?.startsWith("kakao-")
-            ? result.provider
-            : `kakao-${result.provider}`,
-        });
+      // 회원가입 성공 시 토큰과 사용자 정보 저장 (각 토큰 존재 시 저장)
+      setUserInfo({
+        kakaoId: result.kakaoId,
+        provider: result.provider?.startsWith("kakao-")
+          ? result.provider
+          : `kakao-${result.provider}`,
+      });
 
-        // localStorage에 저장
+      if (result.kakaoId) {
         localStorage.setItem("kakaoId", result.kakaoId);
-        if (result.provider) {
-          const prov = result.provider.startsWith("kakao-")
-            ? result.provider
-            : `kakao-${result.provider}`;
-          localStorage.setItem("loginProvider", prov);
-          localStorage.setItem("provider", prov);
-        }
+      }
+      if (result.provider) {
+        const prov = result.provider.startsWith("kakao-")
+          ? result.provider
+          : `kakao-${result.provider}`;
+        localStorage.setItem("loginProvider", prov);
+        localStorage.setItem("provider", prov);
+      }
+      if (result.accessToken) {
+        setTokens({ accessToken: result.accessToken });
         localStorage.setItem("accessToken", result.accessToken);
+      }
+      if (result.refreshToken) {
+        setTokens({ refreshToken: result.refreshToken });
         localStorage.setItem("refreshToken", result.refreshToken);
       }
 
