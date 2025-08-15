@@ -36,7 +36,6 @@ export default function Mypage() {
 
   function handleKakaoLogin() {
     try {
-      localStorage.setItem("postLoginRedirect", "/signup");
       localStorage.setItem("loginProvider", "kakao-customer");
     } catch {}
     const url = getKakaoAuthUrl("customer");

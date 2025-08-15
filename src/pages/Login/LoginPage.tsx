@@ -8,7 +8,6 @@ export default function LoginPage() {
   function handleKakaoLogin() {
     // 로그인 완료 후 이동할 경로를 저장 (서버 사이드 OAuth 플로우에서도 동작)
     try {
-      localStorage.setItem("postLoginRedirect", "/signup");
       localStorage.setItem("loginProvider", "kakao-customer");
     } catch {}
     const url = getKakaoAuthUrl("customer");
@@ -17,7 +16,6 @@ export default function LoginPage() {
 
   function handleStaffLogin() {
     try {
-      localStorage.setItem("postLoginRedirect", "/signup");
       localStorage.setItem("loginProvider", "kakao-staff");
     } catch {}
     const url = getKakaoAuthUrl("staff");

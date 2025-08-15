@@ -24,28 +24,13 @@ export default function SignupPage() {
   const [provider, setProvider] = useState<string | null>(null);
 
   useEffect(() => {
-    // URL에서 kakaoId 또는 loginKey 파라미터 확인
-    const k = search.get("kakaoId");
-    const loginKey = search.get("loginKey");
+    // URL 또는 localStorage에서 kakaoId / loginKey / provider를 확보
+    const lk = search.get("loginKey") ?? localStorage.getItem("loginKey");
     const p = localStorage.getItem("loginProvider");
 
-    // kakaoId가 없으면 loginKey를 kakaoId로 사용
-    if (k) {
-      setKakaoId(k);
-    } else if (loginKey) {
-      setKakaoId(loginKey);
-    }
-
-    setLoginKey(loginKey);
-
-    // provider 설정 (localStorage에서 확인 후 기본값: customer)
-    const storedProvider = localStorage.getItem("loginprovider");
-    if (p) {
-      setProvider(p);
-    } else if (storedProvider) {
-      setProvider(storedProvider);
-      console.log("localStorage에서 provider 설정:", storedProvider);
-    }
+    if (lk) setLoginKey(lk);
+    if (p) setProvider(p);
+    setKakaoId(lk);
   }, [search]);
 
   // 페이지 진입 시 기존 회원 확인
