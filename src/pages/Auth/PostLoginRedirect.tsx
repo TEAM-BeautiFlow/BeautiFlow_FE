@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { login as requestLogin } from "@/apis/login";
+import { getUserInfo } from "@/apis/mypage/mypage";
 import { useAuthStore } from "@/stores/auth";
 
 export default function PostLoginRedirect() {
@@ -52,6 +53,18 @@ export default function PostLoginRedirect() {
               useAuthStore.getState().setTokens({ accessToken, refreshToken });
               // 유저 정보도 함께 저장
               useAuthStore.getState().setUserInfo({ kakaoId, provider });
+
+              // 사용자 정보를 가져와서 shopId 저장
+              try {
+                const userInfo = await getUserInfo();
+                if (userInfo.shopId) {
+                  useAuthStore
+                    .getState()
+                    .setUserInfo({ shopId: userInfo.shopId });
+                }
+              } catch (error) {
+                console.warn("사용자 정보 조회 실패:", error);
+              }
             } catch {}
             // 기존 회원도 역할에 따라 적절한 페이지로 리다이렉트
             const isStaff =
