@@ -8,6 +8,7 @@ import {
 } from "@/apis/manager_home/home";
 import { useNavigate } from "react-router-dom";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
+import Header from "@/layout/Header";
 
 const TodaysReservationCard = ({
   title,
@@ -187,8 +188,10 @@ const HomePage = () => {
   });
 
   return (
-    <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] px-4 pb-24 text-[var(--color-grey-150)]">
-      <main className="flex flex-col gap-8 pt-6">
+    <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
+      <Header />
+
+      <main className="flex flex-col gap-8 px-4 pt-6">
         <section>
           <h2 className="title1 mb-4">오늘의 예약</h2>
           <div className="grid grid-cols-3 gap-3">

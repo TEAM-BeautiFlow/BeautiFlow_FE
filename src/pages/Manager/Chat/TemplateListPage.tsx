@@ -4,6 +4,7 @@ import ManagerNavbar from "../../../layout/ManagerNavbar";
 // import { useNavigate } from "react-router-dom";
 import TemplateFormPage from "./TemplateFormPage";
 import TemplateCard from "./components/TemplateCard";
+import Header from "@/layout/Header";
 
 export default function TemplateListPage() {
   const [activeTab, setActiveTab] = useState("템플릿");
@@ -12,9 +13,8 @@ export default function TemplateListPage() {
   return (
     <div className="relative mx-auto h-screen w-[375px] bg-[var(--color-grey-1000)]">
       <div className="">
-        <h1 className="mx-1 h-[101px] px-4 pt-18 pb-10 text-2xl font-bold tracking-tighter text-[var(--color-purple)] transition-colors">
-          BEAUTIFLOW
-        </h1>
+        <Header />
+
         <ChatTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 
