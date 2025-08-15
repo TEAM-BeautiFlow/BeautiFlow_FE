@@ -19,7 +19,7 @@ export default function ChatHeader({
   };
 
   return (
-    <div className="mt-14 flex h-[60px] items-center justify-between px-5 py-2.5">
+    <div className="mt-14 flex h-[60px] items-center justify-between px-5 py-3">
       {/* 왼쪽: 뒤로가기 버튼 */}
       <div className="flex items-center gap-2.5">
         <button onClick={goBack} className="cursor-pointer">
