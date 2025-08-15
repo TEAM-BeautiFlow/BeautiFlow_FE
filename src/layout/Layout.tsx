@@ -14,7 +14,6 @@ export default function Layout() {
   const showManagerNavbar =
     (path.startsWith("/manager") ||
       path.startsWith("/client") ||
-      path.startsWith("/chat") ||
       path.startsWith("/templates")) &&
     !showUserNavbar;
 
