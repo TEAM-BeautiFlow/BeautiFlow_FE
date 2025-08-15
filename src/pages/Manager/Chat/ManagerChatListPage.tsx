@@ -7,6 +7,7 @@ import axios from "axios";
 import type { ChatList } from "../../../types/chatlist";
 import ChatRoomList from "./components/ChatRoomList";
 import DeleteModal from "../../../components/DeleteModal";
+import Header from "@/layout/Header";
 
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
@@ -141,9 +142,7 @@ export default function ManagerChatListPage() {
     <div className="relative mx-auto h-screen w-[375px] bg-[var(--color-grey-1000)]">
       {/* 상단 */}
       <div className="">
-        <h1 className="mx-1 h-[101px] px-4 pt-18 pb-10 text-2xl font-bold tracking-tighter text-[var(--color-purple)] transition-colors">
-          BEAUTIFLOW
-        </h1>
+        <Header />
         <ChatTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
       {/* 채팅 리스트 */}

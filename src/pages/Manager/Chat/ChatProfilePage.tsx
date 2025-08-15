@@ -99,7 +99,7 @@ export default function ChatProfile() {
   }, [id]);
 
   return (
-    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
+    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
       <ChatHeader
         title={name || "상대방 이름"}
         rightContent={
