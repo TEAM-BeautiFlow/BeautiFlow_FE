@@ -52,27 +52,34 @@ import PrivacyPage from "./pages/Privacy/PrivacyPage";
 import MainPage from "./pages/MainPage";
 import Reservation from "./pages/Consumer/Reservation";
 
-
-// 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
-// 필요하시면 주석을 해제하고 사용하세요.
-// import Reservation from "./pages/Consumer/Reservation";
-// import ReservationCheck from "./pages/Consumer/ReservationCheck";
-
 const router = createBrowserRouter([
-  // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
+  // 레이아웃 바깥 경로 (로그인, 회원가입 등)
   { path: "/login", element: <LoginPage /> },
   { path: "/auth/kakao/callback", element: <KakaoCallbackPage /> },
   { path: "/signup", element: <SignupPage /> },
   {
     path: "/",
     element: <Layout />,
-    // errorElement: <NotFoundPage />,
     children: [
       { index: true, element: <MainPage /> },
-      //     {
-      //     index: true,
-      //     element: <HomePage />
-      //   },
+      
+      // --- ✅ 소비자 예약 플로우 라우트 (7단계 순차 연결) ---
+      // 1단계: 매장 메인 페이지 (시술 목록)
+      { path: "user/store/:shopId", element: <Reservation /> },
+      // 2단계: 시술 상세 정보
+      { path: "user/store/art-detail/:shopId/:treatmentId", element: <ArtDetailPage /> },
+      // 3단계: 시술 옵션 선택
+      { path: "user/store/treatment-options/:shopId/:treatmentId", element: <TreatmentOptionsPage /> },
+      // 4단계: 날짜, 시간, 디자이너 선택
+      { path: "user/store/booking/:shopId/:treatmentId", element: <BookingPage /> },
+      // 5단계: 요청사항 입력 및 최종 예약 처리
+      { path: "user/store/appointment-booking/:shopId/:treatmentId", element: <AppointmentBooking /> },
+      // 6단계: 예약 정보 확인 및 약관 동의
+      { path: "user/store/treatment-booking/:shopId", element: <TreatmentBookingPage /> },
+      // 7단계: 최종 결제 정보 확인 (예약금)
+      { path: "user/store/reservation-check/:shopId", element: <ReservationCheck /> },
+
+      // --- 유저(소비자) 기능 라우트 ---
       {
         path: "reservations",
         element: <ReservationWrapper />,
@@ -81,92 +88,25 @@ const router = createBrowserRouter([
           { path: ":reservationId", element: <ReservationDetailPage /> },
         ],
       },
-      {
-        path: "user/chat/rooms",
-        element: <UserChatListPage />,
-      },
-
-      {
-        path: "user/chat/rooms/:roomId",
-        element: <UserChatPage />,
-      },
-      {
-        path: "user/chat/rooms/profile/:designerId",
-        element: <ChatProfile />,
-      },
-      {
-        path: "chat/rooms",
-        element: <ManagerChatListPage />,
-      },
-      { path: "chat/rooms/groupset", element: <GroupSet /> },
-      {
-        path: "chat/rooms/:roomId",
-        element: <ManagerChatPage />,
-      },
-      {
-        path: "chat/rooms/groupchat",
-        element: <GroupChatPage />,
-      },
-      {
-        path: "chat/rooms/profile/:customerId",
-        element: <ChatProfilePage />,
-      },
-
-      {
-        path: "templates",
-        element: <TemplateListPage />,
-      },
-      {
-        path: "templatesform",
-        element: (
-          <TemplateFormPage
-          // onClose={function (): void {
-          //   throw new Error("Function not implemented.");
-          // }}
-          />
-        ),
-      },
-      { path: "client", element: <ClientListPage /> },
-      { path: "client/page", element: <ClientPage /> },
-      { path: "client/page/modify", element: <ModifyPage /> },
-
-      // --- 소비자 예약 플로우 라우트 ---
-      {
-        path: "reservation_consumer", // 시작점으로 보이나 현재 흐름에서는 사용되지 않는 것 같아 주석 처리
-        element: <Reservation />,
-      },
-      {
-        path: "art-detail/:shopId/:treatmentId",
-        element: <ArtDetailPage />,
-      },
-      {
-        path: "options/:shopId/:treatmentId",
-        element: <TreatmentOptionsPage />,
-      },
-      {
-        path: "booking/:shopId/:treatmentId",
-        element: <BookingPage />,
-      },
-      // ⚠️ 수정: 새 라우트 추가
-      // BookingPage 다음 단계인 최종 예약 정보 확인 페이지
-      {
-        path: "appointment-booking/:shopId/:treatmentId",
-        element: <AppointmentBooking />,
-      },
-      {
-        path: "booking-confirmation/:shopId/:treatmentId",
-        element: <TreatmentBookingPage />,
-      },
-      {
-        path: "reservation-check/:shopId/:treatmentId",
-        element: <ReservationCheck />,
-      },
-      { path: "mangedCustomer", element: <ClientListPage /> },
-      { path: "mangedCustomer/:customerId", element: <ClientPage /> },
-      { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
+      { path: "user/chat/rooms", element: <UserChatListPage /> },
+      { path: "user/chat/rooms/:roomId", element: <UserChatPage /> },
+      { path: "user/chat/rooms/profile/:designerId", element: <ChatProfile /> },
       { path: "client/mypage", element: <Mypage /> },
       { path: "client/mypage/edit", element: <ManagerMypageEdit /> },
       { path: "client/mypage/style", element: <EditStyle /> },
+
+      // --- 사장님(Manager) 기능 라우트 ---
+      { path: "manager/home", element: <HomePage /> },
+      { path: "chat/rooms", element: <ManagerChatListPage /> },
+      { path: "chat/rooms/groupset", element: <GroupSet /> },
+      { path: "chat/rooms/:roomId", element: <ManagerChatPage /> },
+      { path: "chat/rooms/groupchat", element: <GroupChatPage /> },
+      { path: "chat/rooms/profile/:customerId", element: <ChatProfilePage /> },
+      { path: "templates", element: <TemplateListPage /> },
+      { path: "templatesform", element: <TemplateFormPage /> },
+      { path: "mangedCustomer", element: <ClientListPage /> },
+      { path: "mangedCustomer/:customerId", element: <ClientPage /> },
+      { path: "mangedCustomer/:customerId/modify", element: <ModifyPage /> },
       { path: "manager/mypage", element: <ManagerMypage /> },
       { path: "manager/mypage/modify", element: <ManagerMypageModify /> },
       { path: "manager/mypage/edit", element: <ManagerMypageEdit /> },
@@ -175,38 +115,15 @@ const router = createBrowserRouter([
       { path: "manager/onboard/join/fin", element: <OnboardJoinFin /> },
       { path: "manager/onboard/shop", element: <OnboardShopRegister /> },
       { path: "manager/onboard/shop/fin", element: <OnboardShopFin /> },
-      { path: "manager/home", element: <HomePage /> },
-      {
-        path: "manager/reservations/:reservationId",
-        element: <ReservationDetailPage />,
-      },
-
-      // --- 요청하신 기능에 필요한 경로 ---
-      {
-        path: "owner-verification/:shopId",
-        element: <OwnerVerificationPage />,
-      },
-      {
-        path: "owner-business-registration/:shopId",
-        element: <OwnerBusinessRegistrationPage />,
-      },
-      // ⬇️ 수정 페이지 경로들을 추가합니다.
-      {
-        path: "owner/store-info/:shopId",
-        element: <OwnerStoreInfoPage />,
-      },
-      {
-        path: "owner/store-intro/:shopId",
-        element: <OwnerStoreIntroPage />,
-      },
-      {
-        path: "owner/sales/:shopId",
-        element: <OwnerSalesPage />,
-      },
-      {
-        path: "owner/hours/:shopId",
-        element: <OwnerBusinessHoursPage />,
-      },
+      { path: "manager/reservations/:reservationId", element: <ReservationDetailPage /> },
+      { path: "owner/verification/:shopId", element: <OwnerVerificationPage /> },
+      { path: "owner/business-registration/:shopId", element: <OwnerBusinessRegistrationPage /> },
+      { path: "owner/store-info/:shopId", element: <OwnerStoreInfoPage /> },
+      { path: "owner/store-intro/:shopId", element: <OwnerStoreIntroPage /> },
+      { path: "owner/sales/:shopId", element: <OwnerSalesPage /> },
+      { path: "owner/hours/:shopId", element: <OwnerBusinessHoursPage /> },
+      
+      // --- 약관 페이지 ---
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
     ],
@@ -226,7 +143,6 @@ const queryClient = new QueryClient({
 
 function App() {
   useEffect(() => {
-    // 새로고침 직후에도 토큰을 스토어로 동기화
     try {
       useAuthStore.getState().hydrateFromStorage();
     } catch {}
