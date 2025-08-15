@@ -35,7 +35,12 @@ export async function postSignup(params: {
   contact: string;
   email: string;
 }) {
+  console.log("📡 API 호출 시작 - postSignup:", params);
+  console.log("📡 요청 URL:", `/users/signup`);
+
   const { data } = await api.post("/users/signup", params);
+  console.log("📡 API 응답 받음:", data);
+
   const payload = data?.data ?? data;
   if (payload?.accessToken) {
     localStorage.setItem("accessToken", payload.accessToken);

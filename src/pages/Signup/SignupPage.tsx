@@ -18,10 +18,33 @@ export default function SignupPage() {
   const [provider, setProvider] = useState<string | null>(null);
 
   useEffect(() => {
+    // URL에서 kakaoId 또는 loginKey 파라미터 확인
     const k = search.get("kakaoId");
+    const loginKey = search.get("loginKey");
     const p = search.get("provider") || localStorage.getItem("loginProvider");
-    if (k) setKakaoId(k);
-    if (p) setProvider(p);
+
+    console.log("URL 파라미터 확인:", {
+      kakaoId: k,
+      loginKey: loginKey,
+      provider: p,
+    });
+
+    // kakaoId가 없으면 loginKey를 kakaoId로 사용
+    if (k) {
+      setKakaoId(k);
+    } else if (loginKey) {
+      setKakaoId(loginKey);
+      console.log("loginKey를 kakaoId로 설정:", loginKey);
+    }
+
+    // provider 설정 (기본값: customer)
+    if (p) {
+      setProvider(p);
+    } else if (loginKey) {
+      // loginKey가 있으면 기본적으로 customer로 설정
+      setProvider("customer");
+      console.log("기본 provider 설정: customer");
+    }
   }, [search]);
 
   // 기존 회원 체크: 이미 토큰이 있다면 (= 기존 회원) 적절한 페이지로 리다이렉트
@@ -55,23 +78,41 @@ export default function SignupPage() {
   }
 
   async function handleSubmit() {
-    if (!kakaoId || !provider || !name || !phone || !isVerified) return;
+    console.log("🔥 handleSubmit 함수 호출됨!");
+    console.log("현재 상태:", {
+      kakaoId,
+      provider,
+      name,
+      phone,
+      isVerified,
+      canSubmit,
+    });
+
+    if (!kakaoId || !provider || !name || !phone || !isVerified) {
+      console.log("❌ 필수 조건 미충족으로 함수 종료");
+      return;
+    }
+
+    console.log("✅ 회원가입 API 호출 시작");
     try {
-      await postSignup({
+      const result = await postSignup({
         kakaoId,
         provider,
         name,
         contact: phone,
         email: "test@test.com",
       });
+      console.log("✅ 회원가입 성공:", result);
+
       const isStaff =
         typeof provider === "string" && provider.includes("staff");
       navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
         replace: true,
       });
     } catch (signupError) {
+      console.error("❌ 회원가입 실패:", signupError);
+
       // 이미 존재하는 사용자인 경우 로그인 처리로 리다이렉트
-      console.error("회원가입 실패:", signupError);
       const isStaff =
         typeof provider === "string" && provider.includes("staff");
       navigate(isStaff ? "/manager/home" : "/client/mypage", {
@@ -164,9 +205,15 @@ export default function SignupPage() {
         </div>
         {/* 하단 버튼 */}
         <button
-          onClick={handleSubmit}
-          className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${canSubmit ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}
-          disabled={!canSubmit}
+          onClick={e => {
+            console.log("🚀 회원가입 완료 버튼 클릭됨!", {
+              canSubmit,
+              disabled: !canSubmit,
+              event: e,
+            });
+            handleSubmit();
+          }}
+          className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] bg-[var(--color-purple)] text-[var(--color-white)] transition-colors duration-200`}
         >
           회원가입 완료
         </button>
