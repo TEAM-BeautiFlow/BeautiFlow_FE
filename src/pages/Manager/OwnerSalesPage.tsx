@@ -22,7 +22,7 @@ const OwnerSalesPage = () => {
   const [depositAmount, setDepositAmount] = useState("");
   const [accountHolder, setAccountHolder] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const MAX_LENGTH = 50;
 
@@ -140,10 +140,10 @@ const OwnerSalesPage = () => {
       console.log("저장 응답:", response.data);
       alert("매출 관리 정보가 성공적으로 저장되었습니다.");
       navigate(-1);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("매출 관리 정보 저장 실패:", error);
-      if (error.response) {
-        console.error("에러 응답:", error.response.data);
+      if (error && typeof error === "object" && "response" in error) {
+        console.error("에러 응답:", (error as any).response?.data);
       }
       alert("저장에 실패했습니다. 다시 시도해주세요.");
     }

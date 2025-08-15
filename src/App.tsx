@@ -46,7 +46,7 @@ import OnboardShopRegister from "./pages/Manager/Onboard/components/OnboardShopR
 import OnboardShopFin from "./pages/Manager/Onboard/components/OnboardShopFin";
 import OnboardJoinFin from "./pages/Manager/Onboard/components/OnboardJoinFin";
 import HomePage from "./pages/Manager/Home/HomePage";
-import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
+
 import TermsPage from "./pages/Terms/TermsPage";
 import PrivacyPage from "./pages/Privacy/PrivacyPage";
 

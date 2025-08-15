@@ -75,7 +75,7 @@ interface Notice {
 }
 
 // --- 데이터 형식 변환을 위한 맵 (OwnerBusinessHoursPage에서 재사용) ---
-const cycleUiMap = {
+const cycleUiMap: Record<string, string> = {
   WEEKLY: "매주",
   BIWEEKLY: "격주",
   FIRST_WEEK: "매달 첫째 주",
@@ -85,7 +85,7 @@ const cycleUiMap = {
   FIFTH_WEEK: "매달 다섯째 주",
 };
 
-const dayUiMap = {
+const dayUiMap: Record<string, string> = {
   MON: "월요일",
   TUE: "화요일",
   WED: "수요일",
@@ -105,9 +105,9 @@ const OwnerVerificationPage = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
 
-  const [businessLicenseStatus, setBusinessLicenseStatus] = useState<
-    "미인증" | "확인중" | "인증완료"
-  >("미인증");
+  const [businessLicenseStatus] = useState<"미인증" | "확인중" | "인증완료">(
+    "미인증",
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [isServiceLoading, setIsServiceLoading] = useState(false);
