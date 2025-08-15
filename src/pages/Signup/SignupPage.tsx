@@ -78,6 +78,18 @@ export default function SignupPage() {
           localStorage.setItem("refreshToken", loginResult.refreshToken);
         }
 
+        // 신규 사용자라면 회원가입 폼 유지 (리다이렉트 금지)
+        const isNewUser =
+          loginResult?.isNewUser === true ||
+          loginResult?.isNewUser === "true" ||
+          loginResult?.isNewUser === "Y" ||
+          loginResult?.isNewUser === "YES" ||
+          loginResult?.isNewUser === "1";
+        if (isNewUser) {
+          console.log("🆕 신규 사용자이므로 회원가입 페이지에 머뭅니다.");
+          return;
+        }
+
         // 기존 회원이므로 provider에 따라 적절한 페이지로 리다이렉트
         const normalizedProvider = loginResult.provider?.startsWith("kakao-")
           ? loginResult.provider
