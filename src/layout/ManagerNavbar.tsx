@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAuthStore } from "../stores/auth";
 import ReservationListIcon from "../assets/icons/ReservationListIcon";
 import ClientIcon from "../assets/icons/ClientIcon";
 import ChatIcon from "../assets/icons/ChatIcon";
@@ -11,25 +12,34 @@ type NavItem = {
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
 };
 
-const NAV_LINKS: NavItem[] = [
-  { to: "/manager/home", label: "예약", icon: ReservationListIcon },
-
-  { to: "/mangedCustomer", label: "고객", icon: ClientIcon },
-  {
-    to: "/chat/rooms",
-    label: "채팅",
-    icon: ChatIcon,
-  },
-  { to: "/owner/store-info/:shopId", label: "매장", icon: StoreIcon },
-
-  {
-    to: "/manager/mypage",
-    label: "더보기",
-    icon: MoreIcon,
-  },
-];
-
 export default function ManagerNavbar() {
+  const { shopId } = useAuthStore();
+
+  // shopId 배열의 첫 번째 값을 사용 (일반적으로 메인 샵)
+  const currentShopId = shopId && shopId.length > 0 ? shopId[0] : null;
+
+  const NAV_LINKS: NavItem[] = [
+    { to: "/manager/home", label: "예약", icon: ReservationListIcon },
+    { to: "/mangedCustomer", label: "고객", icon: ClientIcon },
+    {
+      to: "/chat/rooms",
+      label: "채팅",
+      icon: ChatIcon,
+    },
+    {
+      to: currentShopId
+        ? `/owner/store-info/${currentShopId}`
+        : "/owner/store-info",
+      label: "매장",
+      icon: StoreIcon,
+    },
+    {
+      to: "/manager/mypage",
+      label: "더보기",
+      icon: MoreIcon,
+    },
+  ];
+
   return (
     <div className="fixed bottom-0 left-1/2 h-[87px] w-[375px] -translate-x-1/2 border-t border-[var(--color-grey-850)] bg-[var(--color-grey-1000)] px-7 py-[18px]">
       <div className="flex w-full justify-between">
