@@ -9,7 +9,7 @@ export function getKakaoAuthUrl(role: KakaoLoginRole = "customer") {
   if (!base) {
     console.warn("VITE_API_BASE_URL이 설정되어 있지 않습니다.");
   }
-  return `${base}/oauth2/authorization/${registrationId}`;
+  return `${base}/login/oauth2/code/${registrationId}`;
 }
 
 // 백엔드로 코드 전달해 토큰/세션 발급
