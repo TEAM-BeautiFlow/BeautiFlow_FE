@@ -3,6 +3,7 @@ import noImage from "../../../assets/no_image.png";
 import { useLocation } from "react-router-dom";
 import { type UserStyleResponse, getUserStyle } from "@/apis/mypage/mypage";
 import { useState, useEffect } from "react";
+import UserNavbar from "@/layout/UserNavbar";
 
 type LocationState = {
   designerId?: number;
@@ -65,6 +66,7 @@ export default function ChatProfile() {
           {style?.description || "잘 부탁드립니다:)"}
         </span>
       </div>
+      <UserNavbar />
     </div>
   );
 }

@@ -23,7 +23,6 @@ export default function UserChatPage() {
   const { state } = useLocation() as { state?: LocationState };
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const [, setIsOptionOpen] = useState(false);
   const designerId = state?.designerId ?? "";
   const designerName = state?.designerName ?? "";
   const shopName = state?.shopName ?? "";
@@ -131,6 +130,12 @@ export default function UserChatPage() {
     }
   };
 
+  // 이미지 보내기
+  const handleImageSend = (file: File) => {
+    console.log("선택한 이미지 파일:", file);
+    // 여기에 업로드 로직 추가 가능
+  };
+
   // 프로필 이동
   const goToProfile = () => {
     if (!designerId) {
@@ -147,7 +152,7 @@ export default function UserChatPage() {
     });
   };
   return (
-    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] pb-11">
       {/* 상단 헤더 -> api 에 따라서 고쳐야함 */}
       <ChatHeader
         shopName={shopName}
@@ -196,10 +201,7 @@ export default function UserChatPage() {
       </div>
 
       {/* 하단 입력창 */}
-      <ChatInput
-        onSend={handleSend}
-        onClick={() => setIsOptionOpen(prev => !prev)}
-      />
+      <ChatInput onSend={handleSend} onClick={handleImageSend} />
     </div>
   );
 }
