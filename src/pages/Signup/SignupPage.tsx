@@ -29,12 +29,12 @@ export default function SignupPage() {
 
   useEffect(() => {
     // URL에서 kakaoId 또는 loginKey 파라미터 확인
-    const k = search.get("kakaoId");
+    const k = search.get("loginKey");
     const loginKey = search.get("loginKey");
-    const p = search.get("provider") || localStorage.getItem("loginProvider");
+    const p = search.get("provider") || "customer";
 
     console.log("URL 파라미터 확인:", {
-      kakaoId: k,
+      kakaoId: loginKey,
       loginKey: loginKey,
       provider: p,
     });
@@ -65,6 +65,49 @@ export default function SignupPage() {
       navigate(isStaff ? "/manager/home" : "/client/mypage", { replace: true });
     }
   }, [isAuthenticated, authProvider, navigate]);
+
+  // 페이지 진입 시 기존 회원 확인
+  useEffect(() => {
+    if (!kakaoId || !provider) return;
+
+    async function checkExistingUser() {
+      console.log("✅ 페이지 진입 시 기존 회원 확인 중...", {
+        kakaoId,
+        provider,
+      });
+
+      try {
+        // 기존 회원인지 확인 (login API 호출)
+        const loginResult = await login(kakaoId!);
+        console.log("✅ 기존 회원 확인 성공:", loginResult);
+
+        // 토큰과 사용자 정보 저장
+        if (loginResult?.accessToken && loginResult?.refreshToken) {
+          setTokens({
+            accessToken: loginResult.accessToken,
+            refreshToken: loginResult.refreshToken,
+          });
+          setUserInfo({
+            kakaoId: loginResult.kakaoId,
+            provider: loginResult.provider,
+          });
+        }
+
+        // 기존 회원이므로 바로 리다이렉트
+        const isStaff =
+          typeof loginResult.provider === "string" &&
+          loginResult.provider.includes("staff");
+        navigate(isStaff ? "/manager/home" : "/client/mypage", {
+          replace: true,
+        });
+      } catch (loginError) {
+        console.log("🔍 기존 회원이 아님, 회원가입 폼 표시:", loginError);
+        // 기존 회원이 아니므로 회원가입 폼을 그대로 표시
+      }
+    }
+
+    checkExistingUser();
+  }, [kakaoId, provider, setTokens, setUserInfo, navigate]);
 
   async function handleSendCode() {
     if (!phone) return;
@@ -103,73 +146,38 @@ export default function SignupPage() {
       return;
     }
 
-    console.log("✅ 기존 회원 확인 중...");
     try {
-      // 먼저 기존 회원인지 확인 (login API 호출)
-      const loginResult = await login(kakaoId);
-      console.log("✅ 기존 회원 확인 성공:", loginResult);
+      console.log("✅ 회원가입 API 호출 시작");
+      const signupResult = await postSignup({
+        kakaoId,
+        provider,
+        name,
+        contact: phone,
+        email: "test@test.com",
+      });
+      console.log("✅ 회원가입 성공:", signupResult);
 
-      // 토큰과 사용자 정보 저장
-      if (loginResult?.accessToken && loginResult?.refreshToken) {
+      // 회원가입 성공 시 토큰과 사용자 정보 저장
+      if (signupResult?.accessToken && signupResult?.refreshToken) {
         setTokens({
-          accessToken: loginResult.accessToken,
-          refreshToken: loginResult.refreshToken,
+          accessToken: signupResult.accessToken,
+          refreshToken: signupResult.refreshToken,
         });
         setUserInfo({
-          kakaoId: loginResult.kakaoId,
-          provider: loginResult.provider,
+          kakaoId: signupResult.kakaoId,
+          provider: signupResult.provider,
         });
       }
 
-      // 기존 회원이므로 바로 리다이렉트
       const isStaff =
-        typeof loginResult.provider === "string" &&
-        loginResult.provider.includes("staff");
-      navigate(isStaff ? "/manager/home" : "/client/mypage", {
+        typeof provider === "string" && provider.includes("staff");
+      navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
         replace: true,
       });
-    } catch (loginError) {
-      console.log("🔍 기존 회원이 아님, 회원가입 진행:", loginError);
+    } catch (signupError) {
+      console.error("❌ 회원가입 실패:", signupError);
 
-      // 기존 회원이 아니므로 회원가입 진행
-      try {
-        console.log("✅ 회원가입 API 호출 시작");
-        const signupResult = await postSignup({
-          kakaoId,
-          provider,
-          name,
-          contact: phone,
-          email: "test@test.com",
-        });
-        console.log("✅ 회원가입 성공:", signupResult);
-
-        // 회원가입 성공 시 토큰과 사용자 정보 저장
-        if (signupResult?.accessToken && signupResult?.refreshToken) {
-          setTokens({
-            accessToken: signupResult.accessToken,
-            refreshToken: signupResult.refreshToken,
-          });
-          setUserInfo({
-            kakaoId: signupResult.kakaoId,
-            provider: signupResult.provider,
-          });
-        }
-
-        const isStaff =
-          typeof provider === "string" && provider.includes("staff");
-        navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
-          replace: true,
-        });
-      } catch (signupError) {
-        console.error("❌ 회원가입 실패:", signupError);
-
-        // 회원가입 실패 시에도 기존 회원일 가능성이 있으므로 홈으로 이동
-        const isStaff =
-          typeof provider === "string" && provider.includes("staff");
-        navigate(isStaff ? "/manager/home" : "/client/mypage", {
-          replace: true,
-        });
-      }
+      // 회원가입 실패 시 에러 처리 (필요에 따라 사용자에게 에러 메시지 표시)
     }
   }
 
