@@ -4,15 +4,11 @@ import {
   ChevronLeft,
   Plus,
   Minus,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
   ChevronDown,
   X,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -23,40 +19,36 @@ interface TreatmentImage {
 }
 
 interface TreatmentOption {
-  id: number | null; // 새로 추가된 옵션은 id가 없을 수 있습니다.
+  id: number | null;
   name: string;
-  duration: number; // API 명세에 따라 time -> duration으로 변경
+  duration: number;
   price: number;
 }
 
 const OwnerEditTreatmentPage = () => {
   const navigate = useNavigate();
-  // 🔽 2. shopId와 treatmentId를 URL 파라미터에서 가져옵니다.
   const { shopId, treatmentId } = useParams();
 
   // --- 상태 관리 ---
   const [treatmentName, setTreatmentName] = useState("");
-  const [category, setCategory] = useState("HAND"); // API 명세에 맞게 영문으로 관리
+  const [category, setCategory] = useState("HAND");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState(0);
   const [description, setDescription] = useState("");
   
-  // 이미지 상태 관리
   const [existingImages, setExistingImages] = useState<TreatmentImage[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
 
   const [options, setOptions] = useState<TreatmentOption[]>([]);
-  const [nextOptionId, setNextOptionId] = useState(1); // 임시 ID 발급용
+  const [nextOptionId, setNextOptionId] = useState(1);
 
-  // 로딩 및 에러 상태
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const MAX_LENGTH_NAME = 50;
   const MAX_LENGTH_DESCRIPTION = 500;
 
-  // 🔽 3. 컴포넌트 마운트 시 기존 시술 정보를 불러옵니다.
   useEffect(() => {
     const fetchTreatmentData = async () => {
       if (!shopId || !treatmentId) {
@@ -75,7 +67,6 @@ const OwnerEditTreatmentPage = () => {
           setDescription(data.description || "");
           setExistingImages(data.images || []);
           
-          // API에서 받은 옵션 데이터 형식에 맞게 변환
           const formattedOptions = data.options?.map((opt: any) => ({
             id: opt.optionId,
             name: opt.name,
@@ -95,7 +86,6 @@ const OwnerEditTreatmentPage = () => {
     fetchTreatmentData();
   }, [shopId, treatmentId]);
 
-  // 🔽 4. 저장 핸들러에 API 연동 로직을 구현합니다.
   const handleSave = async () => {
     if (!shopId || !treatmentId) return;
 
@@ -108,8 +98,7 @@ const OwnerEditTreatmentPage = () => {
       deleteImageIds,
       options: options.map(({ id, ...rest }) => ({
         ...rest,
-        // 기존 옵션(id가 숫자)은 id를 보내고, 새 옵션(id가 null)은 보내지 않음
-        optionId: typeof id === 'number' ? id : null,
+        optionId: typeof id === 'number' && id > 0 ? id : null,
       })),
     };
 
@@ -128,8 +117,6 @@ const OwnerEditTreatmentPage = () => {
       alert("저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
-  // --- 이하 핸들러 함수들은 기존 로직을 대부분 유지하며 일부 수정 ---
 
   const handleDurationChange = (type: "increase" | "decrease") => {
     setDuration(prev => {
@@ -161,7 +148,6 @@ const OwnerEditTreatmentPage = () => {
   const addOption = () => {
     setOptions(prev => [
       ...prev,
-      // 새 옵션은 임시로 음수 ID를 부여하여 key로 사용하고, 서버 전송 시에는 id를 null로 보냅니다.
       { id: -nextOptionId, name: "", duration: 0, price: 0 },
     ]);
     setNextOptionId(prev => prev + 1);
@@ -191,7 +177,7 @@ const OwnerEditTreatmentPage = () => {
   const displayedImages = [
     ...existingImages.map(img => ({ ...img, isNew: false })),
     ...newImages.map((file, index) => ({
-      id: index, // 임시 ID
+      id: index,
       imageUrl: URL.createObjectURL(file),
       isNew: true,
     })),
@@ -245,7 +231,8 @@ const OwnerEditTreatmentPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 100px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {/* 시술명 */}
         <div style={{ marginBottom: "24px" }}>
           <label htmlFor="treatmentName" className="label1 block mb-2 text-white">
@@ -427,31 +414,8 @@ const OwnerEditTreatmentPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button className="flex flex-col items-center gap-1 text-sm font-medium text-[color:var(--color-grey-450)]">
-          <Calendar size={24} /> 예약
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium text-[color:var(--color-grey-450)]">
-          <User size={24} /> 고객
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium text-[color:var(--color-grey-450)]">
-          <MessageSquare size={24} /> 채팅
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium text-[color:var(--color-light-purple)]">
-          <Home size={24} /> 매장
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium text-[color:var(--color-grey-450)]">
-          <MoreHorizontal size={24} /> 더보기
-        </button>
-      </nav>
+      
+      <ManagerNavbar />
     </div>
   );
 };

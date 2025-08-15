@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
 } from "lucide-react";
-// 🔽 1. 일관성을 위해 api 인스턴스를 import 합니다.
-import api from "@/apis/axiosInstance"; // 실제 파일 경로에 맞게 수정해주세요.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
-
-// ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
 const OwnerSalesPage = () => {
   const navigate = useNavigate();
@@ -37,7 +28,6 @@ const OwnerSalesPage = () => {
 
       try {
         setIsLoading(true);
-        // 🔽 3. api 인스턴스를 사용하여 GET 요청을 보냅니다.
         const response = await api.get(`/shops/manage/${shopId}`);
 
         if (response.data && response.data.data) {
@@ -92,12 +82,9 @@ const OwnerSalesPage = () => {
     };
 
     const formData = new FormData();
-    // 백엔드 API 명세에 따라 Blob으로 감싸지 않고 바로 JSON 문자열을 추가합니다.
-    // 대부분의 경우 이 방식이 더 일반적입니다.
     formData.append("requestDto", JSON.stringify(requestDto));
 
     try {
-      // 🔽 4. api 인스턴스를 사용하여 PATCH 요청을 보냅니다.
       await api.patch(`/shops/manage/${shopId}`, formData);
 
       alert("매출 관리 정보가 성공적으로 저장되었습니다.");
@@ -164,76 +151,13 @@ const OwnerSalesPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar (이하 JSX 부분은 수정사항 없음) */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect
-              x="1"
-              y="3"
-              width="18"
-              height="6"
-              rx="2"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
         <button
@@ -269,7 +193,8 @@ const OwnerSalesPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {/* 예약금액 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label
@@ -383,50 +308,7 @@ const OwnerSalesPage = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <Calendar size={24} />
-          예약
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <User size={24} />
-          고객
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MessageSquare size={24} />
-          채팅
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-light-purple)" }}
-        >
-          <Home size={24} />
-          매장
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MoreHorizontal size={24} />
-          더보기
-        </button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };

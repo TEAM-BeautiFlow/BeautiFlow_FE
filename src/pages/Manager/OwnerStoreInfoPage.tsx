@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-// 🔽 1. 지적해주신 대로 import 경로와 변수명을 수정했습니다.
-import api from "@/apis/axiosInstance"; // 실제 파일 경로에 맞게 수정해주세요.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
-
-// ❌ 2. 컴포넌트 내에 하드코딩된 API 관련 상수를 모두 제거합니다.
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
 const OwnerStoreInfoPage = () => {
   const navigate = useNavigate();
@@ -24,7 +20,6 @@ const OwnerStoreInfoPage = () => {
     const fetchShopInfo = async () => {
       if (!shopId) return;
       try {
-        // 🔽 3. 변수명을 'api'로 변경하여 요청합니다.
         const response = await api.get(`/shops/manage/${shopId}`);
         if (response.data && response.data.data) {
           const { shopName, contact, address } = response.data.data;
@@ -51,7 +46,6 @@ const OwnerStoreInfoPage = () => {
       address,
     };
 
-    // FormData를 사용하는 로직은 백엔드 API의 요구사항일 수 있으므로 그대로 유지합니다.
     const formData = new FormData();
     formData.append(
       "requestDto",
@@ -59,7 +53,6 @@ const OwnerStoreInfoPage = () => {
     );
 
     try {
-      // 🔽 4. 변수명을 'api'로 변경하여 PATCH 요청을 보냅니다.
       await api.patch(`/shops/manage/${shopId}`, formData);
       
       alert("매장 정보가 성공적으로 저장되었습니다.");
@@ -79,7 +72,7 @@ const OwnerStoreInfoPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Header (이하 JSX 부분은 수정사항 없음) */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -120,8 +113,8 @@ const OwnerStoreInfoPage = () => {
         </button>
       </div>
 
-      {/* Content Area */}
-      <main style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <main style={{ padding: "0 20px 110px" }}>
         {/* 매장명 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label
@@ -249,6 +242,8 @@ const OwnerStoreInfoPage = () => {
           </div>
         </div>
       </main>
+      
+      <ManagerNavbar />
     </div>
   );
 };

@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
 const OwnerEditAnnouncementPage = () => {
   const navigate = useNavigate();
-  // 🔽 2. shopId와 noticeId를 URL 파라미터에서 가져옵니다.
   const { shopId, noticeId } = useParams();
 
   // --- 상태 관리 ---
@@ -25,9 +20,8 @@ const OwnerEditAnnouncementPage = () => {
 
   const MAX_LENGTH_TITLE = 50;
   const MAX_LENGTH_CONTENT = 500;
-  const isEditing = !!noticeId; // noticeId 유무로 수정 모드인지 생성 모드인지 판단
+  const isEditing = !!noticeId;
 
-  // 🔽 3. 수정 모드일 경우, 기존 공지사항 데이터를 불러옵니다.
   useEffect(() => {
     if (isEditing) {
       const fetchNoticeData = async () => {
@@ -37,7 +31,6 @@ const OwnerEditAnnouncementPage = () => {
           return;
         }
         try {
-          // GET 요청 시에는 /shops/{shopId}/notices/{noticeId} 엔드포인트를 사용할 것으로 가정합니다.
           const response = await api.get(`/shops/${shopId}/notices/${noticeId}`);
           if (response.data && response.data.data) {
             const { title, content } = response.data.data;
@@ -53,12 +46,10 @@ const OwnerEditAnnouncementPage = () => {
       };
       fetchNoticeData();
     } else {
-      // 생성 모드에서는 데이터를 불러올 필요가 없으므로 로딩 상태를 바로 해제합니다.
       setIsLoading(false);
     }
   }, [shopId, noticeId, isEditing]);
 
-  // 🔽 4. 저장 핸들러에 API 연동 로직을 구현합니다.
   const handleSave = async () => {
     if (!shopId) {
       alert("매장 정보가 없어 저장할 수 없습니다.");
@@ -73,15 +64,13 @@ const OwnerEditAnnouncementPage = () => {
 
     try {
       if (isEditing) {
-        // 수정 모드: PATCH 요청
         await api.patch(`/shops/manage/${shopId}/notices/${noticeId}`, payload);
         alert("공지사항이 성공적으로 수정되었습니다.");
       } else {
-        // 생성 모드: POST 요청
         await api.post(`/shops/manage/${shopId}/notices`, payload);
         alert("공지사항이 성공적으로 등록되었습니다.");
       }
-      navigate(-1); // 저장 후 이전 페이지로 이동
+      navigate(-1);
     } catch (err) {
       console.error("공지사항 저장 실패:", err);
       alert("저장에 실패했습니다. 다시 시도해주세요.");
@@ -105,40 +94,13 @@ const OwnerEditAnnouncementPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar (이하 JSX는 기존 구조 유지) */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect x="1" y="3" width="18" height="6" rx="2" stroke="white" strokeWidth="1" />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
         <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
@@ -163,7 +125,8 @@ const OwnerEditAnnouncementPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {/* 제목 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label htmlFor="title" className="label1" style={{ color: "var(--color-white)", marginBottom: "8px", display: "block" }}>
@@ -227,30 +190,7 @@ const OwnerEditAnnouncementPage = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <Calendar size={24} /> 예약
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <User size={24} /> 고객
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <MessageSquare size={24} /> 채팅
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-light-purple)" }}>
-          <Home size={24} /> 매장
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <MoreHorizontal size={24} /> 더보기
-        </button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };

@@ -3,14 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
   Camera,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
   X,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -28,7 +24,6 @@ const OwnerBusinessRegistrationPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔽 2. 컴포넌트 마운트 시 사업자등록증 정보를 불러옵니다.
   useEffect(() => {
     const fetchBusinessLicense = async () => {
       if (!shopId) {
@@ -44,7 +39,6 @@ const OwnerBusinessRegistrationPage = () => {
           setImageUrl(businessLicenseImageUrl || null);
         }
       } catch (err) {
-        // 404 에러 등은 아직 등록되지 않은 상태로 간주하고 에러 처리하지 않음
         if ((err as any).response?.status !== 404) {
           console.error("사업자등록증 정보 로딩 실패:", err);
           setError("정보를 불러오는 데 실패했습니다.");
@@ -57,7 +51,6 @@ const OwnerBusinessRegistrationPage = () => {
     fetchBusinessLicense();
   }, [shopId]);
 
-  // 🔽 3. 이미지 업로드 핸들러
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !shopId) return;
@@ -66,10 +59,8 @@ const OwnerBusinessRegistrationPage = () => {
     formData.append("businessLicenseImage", file);
 
     try {
-      // POST 요청으로 이미지 업로드
       const response = await api.post(`/shops/manage/${shopId}/business-license`, formData);
       if (response.data && response.data.data) {
-        // 업로드 성공 시 반환된 데이터로 상태 업데이트
         setStatus(response.data.data.verificationStatus || "PENDING");
         setImageUrl(response.data.data.businessLicenseImageUrl || null);
         alert("사업자등록증이 성공적으로 제출되었습니다.");
@@ -80,13 +71,13 @@ const OwnerBusinessRegistrationPage = () => {
     }
   };
 
-  // 🔽 4. 이미지 삭제 핸들러
   const handleDeleteImage = async () => {
     if (!shopId) return;
 
+    // confirm() 대신 alert와 UI를 사용하는 것이 더 나은 사용자 경험을 제공할 수 있습니다.
+    // 여기서는 window.confirm을 유지합니다.
     if (window.confirm("업로드한 사업자등록증을 삭제하시겠습니까?")) {
       try {
-        // DELETE 요청으로 이미지 삭제
         await api.delete(`/shops/manage/${shopId}/business-license`);
         setStatus("NONE");
         setImageUrl(null);
@@ -115,39 +106,12 @@ const OwnerBusinessRegistrationPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar (이하 JSX는 기존 구조 유지) */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect x="1" y="3" width="18" height="6" rx="2" stroke="white" strokeWidth="1" />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
         <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
@@ -156,11 +120,12 @@ const OwnerBusinessRegistrationPage = () => {
         <h1 className="title1" style={{ color: "var(--color-white)", margin: "0 auto" }}>
           사업자등록증
         </h1>
-        <div style={{ width: "24px" }} /> {/* 중앙 정렬을 위한 더미 div */}
+        <div style={{ width: "24px" }} />
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {status === "PENDING" && (
           <div className="label1 mb-6 rounded-md px-4 py-3 text-center" style={{ backgroundColor: "var(--color-dark-purple)", color: "var(--color-light-purple)" }}>
             사업자등록증 확인 중
@@ -217,30 +182,7 @@ const OwnerBusinessRegistrationPage = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <Calendar size={24} /> 예약
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <User size={24} /> 고객
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <MessageSquare size={24} /> 채팅
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-light-purple)" }}>
-          <Home size={24} /> 매장
-        </button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}>
-          <MoreHorizontal size={24} /> 더보기
-        </button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };

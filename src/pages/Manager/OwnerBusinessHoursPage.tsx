@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronDown,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
-
-// ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
 // --- 데이터 형식 변환을 위한 맵 ---
 const cycleApiMap = {
@@ -218,7 +210,6 @@ const OwnerBusinessHoursPage = () => {
     const fetchShopInfo = async () => {
       if (!shopId) return;
       try {
-        // 🔽 3. api 인스턴스를 사용하여 Promise.allSettled로 병렬 요청
         const [hoursResponse, holidaysResponse] = await Promise.allSettled([
           api.get(`/shops/manage/${shopId}/business-hours`),
           api.get(`/shops/manage/${shopId}/holidays`),
@@ -275,7 +266,6 @@ const OwnerBusinessHoursPage = () => {
 
     const promises = [];
 
-    // 🔽 4. api 인스턴스를 사용하여 영업시간 저장
     promises.push(
       api.put(
         `/shops/manage/${shopId}/business-hours`,
@@ -289,7 +279,6 @@ const OwnerBusinessHoursPage = () => {
     );
 
     if (regularHolidayCycle && selectedDays.length > 0) {
-      // 🔽 5. api 인스턴스를 사용하여 정기휴일 저장
       promises.push(
         api.put(
           `/shops/manage/${shopId}/holidays`,
@@ -318,8 +307,7 @@ const OwnerBusinessHoursPage = () => {
     try {
       await Promise.all(promises);
       showCustomAlert("영업 정보가 성공적으로 저장되었습니다.");
-      // 성공 후 뒤로가기 로직은 필요에 따라 추가
-      // navigate(-1);
+      navigate(-1);
     } catch (error: any) {
       console.error("저장 실패:", error);
       showCustomAlert(
@@ -481,76 +469,13 @@ const OwnerBusinessHoursPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect
-              x="1"
-              y="3"
-              width="18"
-              height="6"
-              rx="2"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
         <button
@@ -586,7 +511,8 @@ const OwnerBusinessHoursPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 100px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {/* 영업 시간 섹션 */}
         <div style={{ marginBottom: "24px" }}>
           <label
@@ -757,50 +683,7 @@ const OwnerBusinessHoursPage = () => {
         </div>
       )}
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <Calendar size={24} />
-          예약
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <User size={24} />
-          고객
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MessageSquare size={24} />
-          채팅
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-light-purple)" }}
-        >
-          <Home size={24} />
-          매장
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MoreHorizontal size={24} />
-          더보기
-        </button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };

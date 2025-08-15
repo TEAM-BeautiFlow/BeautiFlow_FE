@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock } from "lucide-react";
 import api from "@/apis/axiosInstance"; // api 인스턴스 사용

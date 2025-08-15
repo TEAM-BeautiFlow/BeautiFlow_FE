@@ -1,4 +1,4 @@
-import React, { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, X, Plus, ChevronRight } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.

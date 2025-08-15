@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.

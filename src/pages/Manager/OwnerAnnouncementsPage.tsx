@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
   ChevronRight,
   Plus,
   ShieldAlert,
   Check,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -39,7 +35,6 @@ const OwnerAnnouncementsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔽 2. 컴포넌트 마운트 시 매장 정보와 공지사항 목록을 불러옵니다.
   useEffect(() => {
     const fetchData = async () => {
       if (!shopId) {
@@ -60,7 +55,7 @@ const OwnerAnnouncementsPage = () => {
             shopName: data.shopName,
             introduction: data.introduction,
             mainImageUrl: data.shopImages?.[0]?.imageUrl,
-            verificationStatus: data.verificationStatus, // API 응답에 이 필드가 있다고 가정
+            verificationStatus: data.verificationStatus,
           });
         } else {
           console.error("매장 정보 로딩 실패:", shopInfoResponse.status === 'rejected' && shopInfoResponse.reason);
@@ -89,7 +84,6 @@ const OwnerAnnouncementsPage = () => {
     fetchData();
   }, [shopId]);
   
-  // 🔽 3. 페이지 이동 핸들러
   const navigateTo = (path: string) => () => navigate(path);
 
   if (isLoading) {
@@ -109,32 +103,6 @@ const OwnerAnnouncementsPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar (이하 JSX는 기존 구조 유지) */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-            <div style={{ width: "4px", height: "4px", backgroundColor: "white", borderRadius: "50%" }}></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect x="1" y="3" width="18" height="6" rx="2" stroke="white" strokeWidth="1" />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       <header className="flex items-center justify-between px-5 py-4" style={{ backgroundColor: "var(--color-black)" }}>
         <span className="h1" style={{ color: "var(--color-purple)" }}>BEAUTIFLOW</span>
       </header>
@@ -182,7 +150,8 @@ const OwnerAnnouncementsPage = () => {
         <button className="label1 border-b-2 px-2 py-3" style={{ borderColor: "var(--color-white)", color: "var(--color-white)", fontWeight: "var(--font-weight-semibold)" }}>공지사항</button>
       </div>
 
-      <section className="flex-1 overflow-y-auto px-5 py-4 pb-20" style={{ backgroundColor: "var(--color-black)" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바와 FAB 공간 확보 */}
+      <section className="flex-1 overflow-y-auto px-5 py-4 pb-28" style={{ backgroundColor: "var(--color-black)" }}>
         {notices.length > 0 ? (
           notices.map(notice => (
             <div
@@ -207,21 +176,16 @@ const OwnerAnnouncementsPage = () => {
         )}
       </section>
 
+      {/* 🔽 bottom-24 -> bottom-[100px]로 수정하여 네비게이션 바 위로 올림 */}
       <button
-        className="fixed right-5 bottom-24 flex h-14 w-14 items-center justify-center rounded-full"
+        className="fixed right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full"
         style={{ backgroundColor: "var(--color-purple)", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", zIndex: 1000 }}
         onClick={navigateTo(`/owner/announcements/add/${shopId}`)}
       >
         <Plus size={32} style={{ color: "var(--color-white)" }} />
       </button>
 
-      <nav className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3" style={{ backgroundColor: "var(--color-black)", borderTop: "1px solid var(--color-grey-850)" }}>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}><Calendar size={24} /> 예약</button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}><User size={24} /> 고객</button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}><MessageSquare size={24} /> 채팅</button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-light-purple)" }}><Home size={24} /> 매장</button>
-        <button className="flex flex-col items-center gap-1 text-sm font-medium" style={{ color: "var(--color-grey-450)" }}><MoreHorizontal size={24} /> 더보기</button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };
