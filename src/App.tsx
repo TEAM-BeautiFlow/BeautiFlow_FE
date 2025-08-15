@@ -21,11 +21,12 @@ import ModifyPage from "./pages/Manager/Client/ModifyPage";
 import GroupSet from "./pages/Manager/Chat/GroupSet";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
-// import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
-// import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
-// import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
-// import OwnerTreatmentsPage from "./pages/Manager/OwnerTreatmentsPage";
-// import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
+import OwnerBusinessHoursPage from "./pages/Manager/OwnerBusinessHoursPage";
+import OwnerVerificationPage from "./pages/Manager/OwnerVerificationPage";
+import OwnerStoreInfoPage from "./pages/Manager/OwnerStoreInfoPage";
+import OwnerBusinessRegistrationPage from "./pages/Manager/OwnerBusinessRegistrationPage";
+import OwnerStoreIntroPage from "./pages/Manager/OwnerStoreIntroPage";
+import OwnerSalesPage from "./pages/Manager/OwnerSalesPage";
 import TreatmentOptionsPage from "./pages/Consumer/TreatmentOptionsPage";
 import BookingPage from "./pages/Consumer/BookingPage";
 import ArtDetailPage from "./pages/Consumer/ArtDetailPage";
@@ -48,6 +49,11 @@ import HomePage from "./pages/Manager/Home/HomePage";
 import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
 import TermsPage from "./pages/Terms/TermsPage";
 import PrivacyPage from "./pages/Privacy/PrivacyPage";
+
+// 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
+// 필요하시면 주석을 해제하고 사용하세요.
+// import Reservation from "./pages/Consumer/Reservation";
+// import ReservationCheck from "./pages/Consumer/ReservationCheck";
 
 const router = createBrowserRouter([
   // 로그인/회원가입은 레이아웃 바깥에서 바로 매칭
@@ -75,10 +81,6 @@ const router = createBrowserRouter([
       {
         path: "user/chat/rooms",
         element: <UserChatListPage />,
-      },
-      {
-        path: "tteesstt",
-        element: <TreatmentBookingPage />,
       },
 
       {
@@ -173,7 +175,34 @@ const router = createBrowserRouter([
       { path: "manager/home", element: <HomePage /> },
       {
         path: "manager/reservations/:reservationId",
-        element: <AboutReservationPage />,
+        element: <ReservationDetailPage />,
+      },
+
+      // --- 요청하신 기능에 필요한 경로 ---
+      {
+        path: "owner-verification/:shopId",
+        element: <OwnerVerificationPage />,
+      },
+      {
+        path: "owner-business-registration/:shopId",
+        element: <OwnerBusinessRegistrationPage />,
+      },
+      // ⬇️ 수정 페이지 경로들을 추가합니다.
+      {
+        path: "owner/store-info/:shopId",
+        element: <OwnerStoreInfoPage />,
+      },
+      {
+        path: "owner/store-intro/:shopId",
+        element: <OwnerStoreIntroPage />,
+      },
+      {
+        path: "owner/sales/:shopId",
+        element: <OwnerSalesPage />,
+      },
+      {
+        path: "owner/hours/:shopId",
+        element: <OwnerBusinessHoursPage />,
       },
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
