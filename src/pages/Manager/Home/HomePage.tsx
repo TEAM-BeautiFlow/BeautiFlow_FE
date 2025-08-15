@@ -16,12 +16,12 @@ const TodaysReservationCard = ({
   title: string;
   count: number;
 }) => (
-  <div className="flex flex-col justify-between rounded-lg bg-[#1E1E1E] p-4">
-    <div className="flex items-center justify-between text-gray-400">
-      <span className="text-sm font-medium">{title}</span>
+  <div className="flex flex-col justify-between rounded-lg bg-[var(--color-grey-950)] p-4">
+    <div className="flex items-center justify-between text-[var(--color-grey-450)]">
+      <span className="caption1">{title}</span>
       <img src={RightChevronIcon} alt=">" className="h-4 w-4" />
     </div>
-    <span className="mt-2 text-3xl font-bold text-white">{count}</span>
+    <span className="title1 mt-2 text-[var(--color-grey-150)]">{count}</span>
   </div>
 );
 
@@ -53,47 +53,60 @@ const Calendar = ({
   for (let i = 0; i < pad; i += 1) dates.push(null);
 
   return (
-    <div className="p-4">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="bg-[var(--color-grey-1000)] p-4">
+      <div className="mb-6 flex items-center justify-center gap-3">
         <button onClick={onPrev}>
           <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
         </button>
-        <h3 className="text-lg font-bold text-white">
+        <h3 className="label1 text-[var(--color-grey-150)]">
           {year}년 {month + 1}월
         </h3>
         <button onClick={onNext}>
           <img src={RightChevronIcon} alt=">" className="h-6 w-6" />
         </button>
       </div>
-      <div className="mb-4 grid grid-cols-7 text-center text-sm text-gray-500">
+      <div className="body2 mb-4 grid grid-cols-7 text-center text-[var(--color-grey-450)]">
         {daysOfWeek.map(day => (
           <div key={day}>{day}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 items-center gap-y-4 text-center text-sm">
+      <div className="body2 grid grid-cols-7 items-center gap-y-4 text-center">
         {dates.map((date, index) => {
+          if (!date) return <div key={index} className="flex h-8" />;
+
           const isSelected =
             date !== null &&
             selectedDate.getFullYear() === year &&
             selectedDate.getMonth() === month &&
             selectedDate.getDate() === date;
+
           const isToday =
             date !== null &&
             today.getFullYear() === year &&
             today.getMonth() === month &&
             today.getDate() === date;
+          const currentDate = new Date(year, month, date);
+
+          const todayMidnight = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+          );
+          const isPast = currentDate < todayMidnight;
 
           return (
             <div key={index} className="flex h-8 items-center justify-center">
               {date && (
                 <button
                   onClick={() => onSelectDate(new Date(year, month, date))}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                  className={`body2 flex h-8 w-8 items-center justify-center rounded-full ${
                     isSelected
-                      ? "bg-[#3A3A3A] text-white"
+                      ? "bg-[var(--color-grey-850)] text-[var(--color-grey-250)]"
                       : isToday
-                        ? "text-white"
-                        : "text-gray-400"
+                        ? "rounded-full border border-[1.5px] border-[var(--color-grey-850)]"
+                        : isPast
+                          ? "text-[var(--color-grey-750)]"
+                          : "text-[var(--color-grey-250)]"
                   }`}
                 >
                   {date}
@@ -123,7 +136,7 @@ const ReservationItem = ({
   <div className="border-t border-gray-800 pt-4" onClick={onClick}>
     <div className="flex items-start justify-between">
       <div>
-        <p className="text-sm font-bold text-[#A465FD]">{status}</p>
+        <p className="body1 text-[#A465FD]">{status}</p>
         <div className="my-1 flex items-center">
           <svg
             className="mr-2 h-5 w-5 text-gray-400"
@@ -139,14 +152,14 @@ const ReservationItem = ({
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             ></path>
           </svg>
-          <p className="text-lg font-bold text-white">{time}</p>
+          <p className="title1 text-[var(--color-grey-350)]">{time}</p>
         </div>
-        <button className="flex items-center text-sm text-gray-400">
+        <button className="caption1 flex items-center text-[var(--color-grey-450)]">
           {customer} | {service}
           <img src={RightChevronIcon} alt=">" className="ml-1 h-4 w-4" />
         </button>
       </div>
-      <button className="flex items-center rounded-lg bg-[#3A3A3A] px-4 py-2 text-sm whitespace-nowrap text-white">
+      <button className="body1 flex items-center rounded-lg bg-[var(--color-grey-850)] px-4 py-2 whitespace-nowrap text-[var(--color-grey-450)]">
         채팅
         <img src={RightChevronIcon} alt=">" className="ml-1 h-4 w-4" />
       </button>
@@ -174,10 +187,10 @@ const HomePage = () => {
   });
 
   return (
-    <div className="mx-auto min-h-screen max-w-[375px] bg-black px-4 pb-24 text-white">
+    <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] px-4 pb-24 text-[var(--color-grey-150)]">
       <main className="flex flex-col gap-8 pt-6">
         <section>
-          <h2 className="mb-4 text-xl font-bold">오늘의 예약</h2>
+          <h2 className="title1 mb-4">오늘의 예약</h2>
           <div className="grid grid-cols-3 gap-3">
             <TodaysReservationCard
               title="확정 대기"
@@ -194,8 +207,8 @@ const HomePage = () => {
           </div>
         </section>
 
-        <section className="border-t border-gray-800 pt-8">
-          <h2 className="mb-4 text-xl font-bold">전체 예약</h2>
+        <section className="pt-8">
+          <h2 className="title1 mb-4">전체 예약</h2>
           <Calendar
             year={displayedDate.getFullYear()}
             month={displayedDate.getMonth()}
@@ -232,7 +245,7 @@ const HomePage = () => {
 
             return (
               <>
-                <h3 className="mb-4 text-lg font-bold">
+                <h3 className="body2 mb-4 text-[var(--color-grey-350)]">
                   {Number(d)}일 {dayOfWeek}
                 </h3>
                 <div className="space-y-4">
@@ -249,7 +262,9 @@ const HomePage = () => {
                     />
                   ))}
                   {list.length === 0 && (
-                    <p className="text-sm text-gray-400">예약이 없습니다.</p>
+                    <p className="body2 text-[var(--color-grey-650)]">
+                      예약이 없습니다.
+                    </p>
                   )}
                 </div>
               </>
