@@ -157,7 +157,7 @@ export default function ManagerChatListPage() {
         console.error("알 수 없는 오류", error);
       }
     } finally {
-      setDeleting(false); // ⬅️ finally로 이동
+      setDeleting(false);
     }
   };
 
