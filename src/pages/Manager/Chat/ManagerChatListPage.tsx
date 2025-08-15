@@ -8,40 +8,14 @@ import type { ChatList } from "../../../types/chatlist";
 import ChatRoomList from "./components/ChatRoomList";
 import DeleteModal from "../../../components/DeleteModal";
 
-// dummy
-const dummyChats: ChatList[] = [
-  {
-    roomId: 1,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "바보 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-    isExited: false,
-  },
-  {
-    roomId: 2,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-    isExited: true,
-  },
-];
-
 export default function ManagerChatListPage() {
   const [activeTab, setActiveTab] = useState("채팅");
-  const [chats, setChats] = useState<ChatList[]>(dummyChats);
+  const [chats, setChats] = useState<ChatList[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -51,9 +25,11 @@ export default function ManagerChatListPage() {
   useEffect(() => {
     const fetchChatList = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("accessToken");
         if (!token) {
           console.error("Access Token이 없습니다.");
+          setLoading(false);
           return;
         }
 
@@ -77,14 +53,14 @@ export default function ManagerChatListPage() {
         }
       } catch (error) {
         console.error("채팅 리스트 불러오기 실패", error);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchChatList();
   }, []);
 
   const selectCustomer = () => {
-    // 이 부분에서 원하는 페이지로 이동
     navigate("/chat/rooms/groupset");
   };
 
@@ -172,18 +148,28 @@ export default function ManagerChatListPage() {
       </div>
       {/* 채팅 리스트 */}
       <div className="mt-3 flex-1 overflow-y-auto">
-        {chats
-          .filter(chat => !chat.isExited)
-          .map(chat => (
-            <ChatRoomList
-              key={chat.roomId}
-              chat={chat}
-              onRightClick={openBottomSheet}
-              onClick={roomId =>
-                handleChatClick(roomId, chat.opponentId, chat.opponentName)
-              }
-            />
-          ))}
+        {loading ? (
+          <p className="body2 mt-10 text-center text-[var(--color-grey-450)]">
+            채팅 목록 불러오는 중...
+          </p>
+        ) : chats.length > 0 ? (
+          chats
+            .filter(chat => !chat.isExited)
+            .map(chat => (
+              <ChatRoomList
+                key={chat.roomId}
+                chat={chat}
+                onRightClick={openBottomSheet}
+                onClick={roomId =>
+                  handleChatClick(roomId, chat.opponentId, chat.opponentName)
+                }
+              />
+            ))
+        ) : (
+          <p className="body2 mt-10 text-center text-[var(--color-grey-450)]">
+            아직 채팅이 없습니다.
+          </p>
+        )}
       </div>
       {/* 버튼 */}
       <button

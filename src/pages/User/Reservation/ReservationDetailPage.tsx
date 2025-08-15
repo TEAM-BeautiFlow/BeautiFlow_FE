@@ -6,6 +6,7 @@ import { useState } from "react";
 import axios from "axios";
 import type { Reservation } from "../../../types/reservations";
 import noImage from "../../../assets/no_image.png";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 function formatOptionGroups(groups: Reservation["optionGroups"]) {
   if (!groups || groups.length === 0) return "-";
@@ -43,9 +44,11 @@ export default function ReservationDetailPage() {
 
   // 채팅방 입장
   const handleCreateRoom = async () => {
+    const userInfo = await getUserInfo();
+
     try {
       const token = localStorage.getItem("accessToken");
-      const customerId = localStorage.getItem("customerId"); // 확인해야함
+      const customerId = userInfo.id;
       const shopId = reservation?.shopId;
       const designerId = reservation?.designerId;
 

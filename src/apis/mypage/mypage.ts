@@ -13,6 +13,17 @@ export interface UserInfo {
   name: string;
   contact: string;
   email: string;
+  shopMembers?: ShopMember[];
+}
+
+export interface ShopMember {
+  shopId: number;
+  userId: number;
+  memberId: number;
+  intro?: string;
+  imageUrl?: string;
+  originalFileName?: string;
+  storedFilePath?: string;
 }
 
 export async function getUserInfo(): Promise<UserInfo> {

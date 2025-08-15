@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import useChatSocket from "../../../hooks/useChatSocket";
 import ChatHeader from "./components/ChatHeader";
 import ChatInput from "./components/ChatInput";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 interface Message {
   sender: "me" | "you";
@@ -75,6 +76,22 @@ export default function UserChatPage() {
       },
     ]);
   };
+  // userInfo.id 가져오기
+  const userIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) userIdRef.current = userInfo.id;
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // WebSocket 연결 + 전송 함수
   const { sendMessage } = useChatSocket(Number(roomId), handleIncomingMessage);
@@ -82,12 +99,14 @@ export default function UserChatPage() {
   // 메시지 전송
   const handleSend = async (text: string) => {
     const token = localStorage.getItem("accessToken");
-    const senderType = localStorage.getItem("senderType");
-    const senderId = localStorage.getItem("senderId");
+    const senderType = localStorage.getItem("loginProvider");
+    const senderId = userIdRef.current;
+    if (!userIdRef.current) {
+      console.warn("User ID not loaded");
+      return;
+    }
     sendMessage(text);
 
-    // 프런트 확인용(지우기)
-    // setMessages(prev => [...prev, { sender: "me", text }]);
     console.log("전송된 메시지:", text);
 
     // 저장 API 호출
