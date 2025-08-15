@@ -13,9 +13,12 @@ type NavItem = {
 };
 
 export default function UserNavbar() {
-  const shopIdArr = useAuthStore((state) => state.shopId);
+  const shopIdArr = useAuthStore(state => state.shopId);
+  const lastVisitedShopId = useAuthStore(state => state.lastVisitedShopId);
 
-  const shopId = shopIdArr && shopIdArr.length > 0 ? shopIdArr[0] : null;
+  const fallbackShopId =
+    shopIdArr && shopIdArr.length > 0 ? shopIdArr[0] : null;
+  const shopId = lastVisitedShopId ?? fallbackShopId;
 
   const NAV_LINKS: NavItem[] = [
     {
