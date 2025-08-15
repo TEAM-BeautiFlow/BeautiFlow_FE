@@ -52,6 +52,7 @@ import PrivacyPage from "./pages/Privacy/PrivacyPage";
 import MainPage from "./pages/MainPage";
 import Reservation from "./pages/Consumer/Reservation";
 
+
 // 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
 // 필요하시면 주석을 해제하고 사용하세요.
 // import Reservation from "./pages/Consumer/Reservation";

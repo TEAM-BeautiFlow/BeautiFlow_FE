@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface ChatInputProps {
-  onClick: () => void;
+  onClick?: (file: File) => void;
+
   onSend: (text: string) => void;
 }
 export default function ChatInput({ onClick, onSend }: ChatInputProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onClick) {
+      onClick(file);
+    }
+  };
+
   const [input, setInput] = useState("");
   const handleSend = () => {
     if (input.trim()) {
@@ -14,7 +27,7 @@ export default function ChatInput({ onClick, onSend }: ChatInputProps) {
   };
   return (
     <div className="flex items-center gap-2 px-5 py-2">
-      <button onClick={onClick} className="cursor-pointer">
+      <button onClick={handleImageClick} className="cursor-pointer">
         <svg
           width="32"
           height="32"
@@ -28,6 +41,13 @@ export default function ChatInput({ onClick, onSend }: ChatInputProps) {
             fill="#F3F3F3"
           />
         </svg>
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
       </button>
       <input
         value={input}
