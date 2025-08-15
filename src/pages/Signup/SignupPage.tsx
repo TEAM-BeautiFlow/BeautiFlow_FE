@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { sendPhoneCode, verifyPhoneCode, postSignup } from "@/apis/login";
+import {
+  sendPhoneCode,
+  verifyPhoneCode,
+  postSignup,
+  login,
+} from "@/apis/login";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
 import LeftChevron from "../../assets/icon_left-chevron.svg";
@@ -7,7 +12,12 @@ import LeftChevron from "../../assets/icon_left-chevron.svg";
 export default function SignupPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const { isAuthenticated, provider: authProvider } = useAuthStore();
+  const {
+    isAuthenticated,
+    provider: authProvider,
+    setTokens,
+    setUserInfo,
+  } = useAuthStore();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,7 +34,7 @@ export default function SignupPage() {
     const p = search.get("provider") || localStorage.getItem("loginProvider");
 
     console.log("URL 파라미터 확인:", {
-      kakaoId: k,
+      kakaoId: loginKey,
       loginKey: loginKey,
       provider: p,
     });
@@ -37,24 +47,65 @@ export default function SignupPage() {
       console.log("loginKey를 kakaoId로 설정:", loginKey);
     }
 
-    // provider 설정 (기본값: customer)
+    // provider 설정 (localStorage에서 확인 후 기본값: customer)
+    const storedProvider = localStorage.getItem("provider");
     if (p) {
       setProvider(p);
+    } else if (storedProvider) {
+      setProvider(storedProvider);
+      console.log("localStorage에서 provider 설정:", storedProvider);
     } else if (loginKey) {
-      // loginKey가 있으면 기본적으로 customer로 설정
       setProvider("customer");
       console.log("기본 provider 설정: customer");
     }
   }, [search]);
 
-  // 기존 회원 체크: 이미 토큰이 있다면 (= 기존 회원) 적절한 페이지로 리다이렉트
+  // 페이지 진입 시 기존 회원 확인
   useEffect(() => {
-    if (isAuthenticated && authProvider) {
-      const isStaff =
-        typeof authProvider === "string" && authProvider.includes("staff");
-      navigate(isStaff ? "/manager/home" : "/client/mypage", { replace: true });
+    if (!kakaoId) return;
+
+    async function checkExistingUser() {
+      console.log("✅ 페이지 진입 시 기존 회원 확인 중...", { kakaoId });
+
+      try {
+        // 기존 회원인지 확인 (login API 호출)
+        const loginResult = await login(kakaoId!);
+        console.log("✅ 기존 회원 확인 성공:", loginResult);
+
+        // 토큰과 사용자 정보를 Zustand store와 localStorage에 저장
+        if (loginResult?.accessToken && loginResult?.refreshToken) {
+          // Zustand store에 저장
+          setTokens({
+            accessToken: loginResult.accessToken,
+            refreshToken: loginResult.refreshToken,
+          });
+          setUserInfo({
+            kakaoId: loginResult.kakaoId,
+            provider: loginResult.provider,
+          });
+
+          // localStorage에 저장
+          localStorage.setItem("kakaoId", loginResult.kakaoId);
+          localStorage.setItem("provider", loginResult.provider);
+          localStorage.setItem("accessToken", loginResult.accessToken);
+          localStorage.setItem("refreshToken", loginResult.refreshToken);
+        }
+
+        // 기존 회원이므로 provider에 따라 적절한 페이지로 리다이렉트
+        const isStaff =
+          typeof loginResult.provider === "string" &&
+          loginResult.provider.includes("staff");
+        navigate(isStaff ? "/manager/home" : "/client/mypage", {
+          replace: true,
+        });
+      } catch (loginError) {
+        console.log("🔍 기존 회원이 아님, 회원가입 폼 표시:", loginError);
+        // 기존 회원이 아니므로 회원가입 폼을 그대로 표시
+      }
     }
-  }, [isAuthenticated, authProvider, navigate]);
+
+    checkExistingUser();
+  }, [kakaoId, setTokens, setUserInfo, navigate]);
 
   async function handleSendCode() {
     if (!phone) return;
@@ -103,6 +154,25 @@ export default function SignupPage() {
         email: "test@test.com",
       });
       console.log("✅ 회원가입 성공:", result);
+
+      // 회원가입 성공 시 토큰과 사용자 정보 저장
+      if (result?.accessToken && result?.refreshToken) {
+        // Zustand store에 저장
+        setTokens({
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+        });
+        setUserInfo({
+          kakaoId: result.kakaoId,
+          provider: result.provider,
+        });
+
+        // localStorage에 저장
+        localStorage.setItem("kakaoId", result.kakaoId);
+        localStorage.setItem("provider", result.provider);
+        localStorage.setItem("accessToken", result.accessToken);
+        localStorage.setItem("refreshToken", result.refreshToken);
+      }
 
       const isStaff =
         typeof provider === "string" && provider.includes("staff");
