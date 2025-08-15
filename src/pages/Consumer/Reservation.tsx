@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react"; // useMemo 추가
 import { useNavigate, useParams } from "react-router-dom";
-import { MessageSquare, Clock, X } from "lucide-react";
+import { MessageSquare, Clock, X, Phone, MapPin } from "lucide-react";
 import api from "@/apis/axiosInstance";
-import UserNavbar from "@/layout/UserNavbar"; // 🔽 UserNavbar를 외부 파일에서 import 합니다.
+import UserNavbar from "@/layout/UserNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
+// --- 1. SShopData 타입 필드명 변경에 대한 주석 ---
+// API 명세 변경에 따라 SShopData 타입의 phoneNumber가 contact로,
+// operatingHours가 businessHours 배열로 변경되었다고 가정합니다.
 import type { ApiResponse, SShopData, Treatment } from "../../types/api";
 
-// --- Reservation Page Component ---
 const Reservation = () => {
   const navigate = useNavigate();
   const { shopId: shopIdFromParams } = useParams<{ shopId: string }>();
@@ -25,7 +27,45 @@ const Reservation = () => {
   });
   const [selectedCategory, setSelectedCategory] = useState<
     "HAND" | "FEET" | "ETC"
-  >("HAND"); // API 명세에 맞게 영문 대문자로 변경
+  >("HAND");
+
+  const [activeTab, setActiveTab] = useState<'TREATMENTS' | 'INFO'>('TREATMENTS');
+
+  // --- 2. businessHours 데이터를 가공하여 표시할 문자열 생성 ---
+  // API의 businessHours 배열을 사용자에게 보여주기 좋은 형태의 문자열로 변환합니다.
+  const operatingHoursText = useMemo(() => {
+    if (!shopData?.businessHours || shopData.businessHours.length === 0) {
+      return "영업시간 정보 없음";
+    }
+
+    const formatTime = (time: string) => {
+      // "09:00:00" -> "09:00"
+      return time.substring(0, 5);
+    };
+
+    const firstDay = shopData.businessHours[0];
+    const allDaysSame = shopData.businessHours.every(day =>
+      !day.isClosed &&
+      day.openTime === firstDay.openTime &&
+      day.closeTime === firstDay.closeTime
+    );
+
+    // 모든 요일의 영업시간이 동일한 경우
+    if (allDaysSame && shopData.businessHours.length === 7) {
+      return `평일 ${formatTime(firstDay.openTime)} ~ ${formatTime(firstDay.closeTime)} (월~일)`;
+    }
+
+    // 요일별 영업시간이 다른 경우, 각 요일 정보를 나열
+    const dayMap: { [key: string]: string } = {
+      MON: "월", TUE: "화", WED: "수", THU: "목", FRI: "금", SAT: "토", SUN: "일"
+    };
+    return shopData.businessHours
+      .map(day =>
+        `${dayMap[day.dayOfWeek]}: ${day.isClosed ? '휴무' : `${formatTime(day.openTime)} ~ ${formatTime(day.closeTime)}`}`
+      )
+      .join('\n');
+  }, [shopData]);
+
 
   useEffect(() => {
     const fetchShopData = async () => {
@@ -49,7 +89,7 @@ const Reservation = () => {
   }, [SHOP_ID]);
 
   useEffect(() => {
-    if (!shopData) return;
+    if (!shopData || activeTab !== 'TREATMENTS') return;
 
     const fetchTreatments = async () => {
       try {
@@ -73,7 +113,7 @@ const Reservation = () => {
       }
     };
     fetchTreatments();
-  }, [selectedCategory, shopData, SHOP_ID]);
+  }, [selectedCategory, shopData, SHOP_ID, activeTab]);
 
   const notices = shopData?.notices || [];
 
@@ -97,6 +137,14 @@ const Reservation = () => {
   const handleTreatmentClick = (shopId: number, treatmentId: number) => {
     navigate(`/art-detail/${shopId}/${treatmentId}`);
   };
+
+  const handleCopy = (text: string | undefined) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => alert("복사되었습니다."))
+      .catch(err => console.error("복사 실패:", err));
+  };
+
 
   if (isLoading && !shopData) {
     return (
@@ -171,70 +219,119 @@ const Reservation = () => {
         </section>
 
         <div className="flex border-b px-5 border-[color:var(--color-grey-850)] bg-black">
-          <button className="label1 px-2 py-3 text-white font-semibold border-b-2 border-white">시술</button>
-          <button className="label1 px-2 py-3 text-[color:var(--color-grey-450)] font-medium">정보</button>
+          <button
+            onClick={() => setActiveTab('TREATMENTS')}
+            className={`label1 px-2 py-3 ${
+              activeTab === 'TREATMENTS'
+                ? 'text-white font-semibold border-b-2 border-white'
+                : 'text-[color:var(--color-grey-450)] font-medium'
+            }`}
+          >
+            시술
+          </button>
+          <button
+            onClick={() => setActiveTab('INFO')}
+            className={`label1 px-2 py-3 ${
+              activeTab === 'INFO'
+                ? 'text-white font-semibold border-b-2 border-white'
+                : 'text-[color:var(--color-grey-450)] font-medium'
+            }`}
+          >
+            정보
+          </button>
         </div>
-
+        
         <div className="flex-1 overflow-y-auto px-5 py-4 pb-32 bg-black">
-            <div className="mb-6 flex gap-2 bg-black">
-              {(["HAND", "FEET", "ETC"] as const).map(cat => (
-                <button
-                  key={cat}
-                  className={`caption2 rounded-full px-2.5 py-1`}
-                  style={{
-                    backgroundColor: selectedCategory === cat ? "var(--color-dark-purple)" : "var(--color-grey-750)",
-                    border: selectedCategory === cat ? "1.5px solid var(--color-light-purple)" : "none",
-                    color: selectedCategory === cat ? "#F3F3F3" : "var(--color-grey-450)",
-                  }}
-                  onClick={() => handleCategoryClick(cat)}
-                >
-                  {cat === 'HAND' ? '손' : cat === 'FEET' ? '발' : '기타'}
-                </button>
-              ))}
-            </div>
-
-            <section className="flex-1 overflow-y-auto bg-black">
-              {isLoading ? (
-                  <p className="body2 text-center text-[color:var(--color-grey-450)]">시술 목록을 불러오는 중...</p>
-              ) : treatments.length > 0 ? (
-                treatments.map(treatment => (
-                  <div
-                    key={treatment.id}
-                    className="mb-6 cursor-pointer"
-                    onClick={() => handleTreatmentClick(SHOP_ID, treatment.id)}
+          {activeTab === 'TREATMENTS' ? (
+            <>
+              <div className="mb-6 flex gap-2 bg-black">
+                {(["HAND", "FEET", "ETC"] as const).map(cat => (
+                  <button
+                    key={cat}
+                    className={`caption2 rounded-full px-2.5 py-1`}
+                    style={{
+                      backgroundColor: selectedCategory === cat ? "var(--color-dark-purple)" : "var(--color-grey-750)",
+                      border: selectedCategory === cat ? "1.5px solid var(--color-light-purple)" : "none",
+                      color: selectedCategory === cat ? "#F3F3F3" : "var(--color-grey-450)",
+                    }}
+                    onClick={() => handleCategoryClick(cat)}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="h-24 w-24 flex-shrink-0 rounded-md bg-[color:var(--color-grey-350)]">
-                        {treatment.images && treatment.images.length > 0 && (
-                          <img
-                            src={treatment.images[0].imageUrl}
-                            alt={treatment.name}
-                            className="h-full w-full rounded-md object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="mb-1 flex items-start justify-between">
-                          <span className="label1 text-white">{treatment.name}</span>
-                          <div className="flex flex-shrink-0 items-center gap-1">
-                            <Clock size={16} className="text-[color:var(--color-grey-450)]" />
-                            <span className="caption2 text-[color:var(--color-grey-450)] whitespace-nowrap">
-                              {treatment.durationMinutes}분
-                            </span>
-                          </div>
+                    {cat === 'HAND' ? '손' : cat === 'FEET' ? '발' : '기타'}
+                  </button>
+                ))}
+              </div>
+
+              <section className="flex-1 overflow-y-auto bg-black">
+                {isLoading ? (
+                    <p className="body2 text-center text-[color:var(--color-grey-450)]">시술 목록을 불러오는 중...</p>
+                ) : treatments.length > 0 ? (
+                  treatments.map(treatment => (
+                    <div
+                      key={treatment.id}
+                      className="mb-6 cursor-pointer"
+                      onClick={() => handleTreatmentClick(SHOP_ID, treatment.id)}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="h-24 w-24 flex-shrink-0 rounded-md bg-[color:var(--color-grey-350)]">
+                          {treatment.images && treatment.images.length > 0 && (
+                            <img
+                              src={treatment.images[0].imageUrl}
+                              alt={treatment.name}
+                              className="h-full w-full rounded-md object-cover"
+                            />
+                          )}
                         </div>
-                        <div className="label1 text-white mb-2">{treatment.price?.toLocaleString()}원</div>
-                        <p className="body2 text-[color:var(--color-grey-450)] line-clamp-2" style={{ lineHeight: "1.5" }}>
-                          {treatment.description}
-                        </p>
+                        <div className="flex-1">
+                          <div className="mb-1 flex items-start justify-between">
+                            <span className="label1 text-white">{treatment.name}</span>
+                            <div className="flex flex-shrink-0 items-center gap-1">
+                              <Clock size={16} className="text-[color:var(--color-grey-450)]" />
+                              <span className="caption2 text-[color:var(--color-grey-450)] whitespace-nowrap">
+                                {treatment.durationMinutes}분
+                              </span>
+                            </div>
+                          </div>
+                          <div className="label1 text-white mb-2">{treatment.price?.toLocaleString()}원</div>
+                          <p className="body2 text-[color:var(--color-grey-450)] line-clamp-2" style={{ lineHeight: "1.5" }}>
+                            {treatment.description}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="body2 text-center text-[color:var(--color-grey-450)]">해당 카테고리의 시술이 없습니다.</p>
-              )}
+                  ))
+                ) : (
+                  <p className="body2 text-center text-[color:var(--color-grey-450)]">해당 카테고리의 시술이 없습니다.</p>
+                )}
+              </section>
+            </>
+          ) : (
+            // --- 3. 정보 탭 UI 변수명 수정 ---
+            <section className="space-y-6 py-4">
+              <div className="flex items-start gap-3">
+                <Clock size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                {/* `operatingHoursText`를 사용하여 가공된 영업시간을 표시합니다. */}
+                <span className="body2 text-white whitespace-pre-line">
+                  {operatingHoursText}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Phone size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                  {/* `phoneNumber`를 `contact`로 변경합니다. */}
+                  <span className="body2 text-white">{shopData.contact}</span>
+                </div>
+                {/* `phoneNumber`를 `contact`로 변경합니다. */}
+                <button onClick={() => handleCopy(shopData.contact)} className="label2 text-[color:var(--color-purple)]">복사</button>
+              </div>
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <MapPin size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                  <span className="body2 text-white">{shopData.address}</span>
+                </div>
+                <button onClick={() => handleCopy(shopData.address)} className="label2 text-[color:var(--color-purple)]">복사</button>
+              </div>
             </section>
+          )}
         </div>
 
         <UserNavbar />
