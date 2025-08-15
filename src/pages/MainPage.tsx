@@ -1,6 +1,6 @@
 import Logo from "../assets/main_beautiflow2.svg";
-import ChatIcon from "../assets/message-text-02.svg";
-import MainLogo from "../assets/main_logo.png";
+import KakaoIcon from "../assets/kakao_icon.png";
+import MainLogo from "../assets/FINAL_BEAUTIFLOW_SYMBOL.svg";
 import MainBg from "../assets/main_bg.png";
 import { getKakaoAuthUrl } from "@/apis/login";
 
@@ -37,11 +37,11 @@ export default function MainPage() {
         <div className="relative flex min-h-dvh flex-col justify-between">
           {/* 상단 여백 및 브랜드 영역 */}
           <div className="px-6 pt-32">
-            <div className="h-16 w-16 overflow-hidden rounded-2xl bg-white">
+            <div className="h-20 w-20 overflow-hidden rounded-2xl">
               <img
                 src={MainLogo}
-                alt="W"
-                className="h-full w-full object-cover"
+                alt="BEAUTIFLOW"
+                className="h-full w-full object-contain"
               />
             </div>
 
@@ -59,8 +59,8 @@ export default function MainPage() {
               className="relative flex h-14 w-full items-center justify-center rounded-xl bg-[#FEE500] text-center text-base font-semibold text-neutral-900"
             >
               <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black">
-                  <img src={ChatIcon} alt="" className="h-4 w-4 invert" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full">
+                  <img src={KakaoIcon} alt="" className="h-6 w-6" />
                 </span>
               </span>
               카카오 로그인
