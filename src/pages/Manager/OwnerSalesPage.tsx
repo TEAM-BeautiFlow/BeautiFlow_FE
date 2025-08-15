@@ -4,7 +4,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import api from "@/apis/axiosInstance";
-import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
+import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -32,14 +32,7 @@ const OwnerSalesPage = () => {
 
         if (response.data && response.data.data) {
           const data = response.data.data;
-          const depositValue =
-            data.depositAmount ||
-            data.deposit_amount ||
-            data.depositPrice ||
-            data.deposit_price ||
-            data.reservationDeposit ||
-            data.reservation_deposit ||
-            0;
+          const depositAmount = data.depositAmount
           const accountValue =
             data.accountHolder ||
             data.account_holder ||
@@ -49,7 +42,7 @@ const OwnerSalesPage = () => {
             data.bank_account ||
             "";
 
-          setDepositAmount(depositValue ? String(depositValue) : "");
+          setDepositAmount(depositAmount ? String(depositAmount) : "");
           setAccountHolder(accountValue || "");
         }
       } catch (error) {
