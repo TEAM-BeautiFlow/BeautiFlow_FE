@@ -57,7 +57,13 @@ export default function SignupPage() {
   async function handleSubmit() {
     if (!kakaoId || !provider || !name || !phone || !isVerified) return;
     try {
-      await postSignup({ kakaoId, provider, name, contact: phone });
+      await postSignup({
+        kakaoId,
+        provider,
+        name,
+        contact: phone,
+        email: "test@test.com",
+      });
       const isStaff =
         typeof provider === "string" && provider.includes("staff");
       navigate(isStaff ? "/manager/onboard" : "/client/mypage", {

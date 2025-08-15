@@ -33,6 +33,7 @@ export async function postSignup(params: {
   provider: string;
   name: string;
   contact: string;
+  email: string;
 }) {
   const { data } = await api.post("/users/signup", params);
   const payload = data?.data ?? data;
