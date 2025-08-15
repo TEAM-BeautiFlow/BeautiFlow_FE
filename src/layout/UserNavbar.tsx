@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import StoreIcon from "../assets/icons/StoreIcon";
 import ChatIcon from "../assets/icons/ChatIcon";
 import ReservationIcon from "../assets/icons/ReservationIcon";
@@ -10,26 +10,32 @@ type NavItem = {
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
 };
 
-const NAV_LINKS: NavItem[] = [
-  { to: "user/store/:shopId", label: "매장", icon: StoreIcon },
-  {
-    to: "/user/chat/rooms",
-    label: "채팅",
-    icon: ChatIcon,
-  },
-  {
-    to: "/reservations",
-    label: "예약",
-    icon: ReservationIcon,
-  },
-  {
-    to: "/client/mypage",
-    label: "마이페이지",
-    icon: MyPageIcon,
-  },
-];
-
 export default function UserNavbar() {
+  const { shopId } = useParams<{ shopId: string }>();
+
+  const NAV_LINKS: NavItem[] = [
+    {
+      to: shopId ? `/user/store/${shopId}` : "/user/store",
+      label: "매장",
+      icon: StoreIcon,
+    },
+    {
+      to: "/user/chat/rooms",
+      label: "채팅",
+      icon: ChatIcon,
+    },
+    {
+      to: "/reservations",
+      label: "예약",
+      icon: ReservationIcon,
+    },
+    {
+      to: "/client/mypage",
+      label: "마이페이지",
+      icon: MyPageIcon,
+    },
+  ];
+
   return (
     <div className="fixed bottom-0 left-1/2 h-[87px] w-[375px] -translate-x-1/2 border-t border-[var(--color-grey-850)] bg-[var(--color-grey-1000)] px-9 py-[18px]">
       <div className="flex w-full justify-between">
