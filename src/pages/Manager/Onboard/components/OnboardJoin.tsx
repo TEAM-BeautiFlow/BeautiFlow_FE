@@ -55,13 +55,13 @@ export default function OnboardJoin() {
         <img
           src={bgLeft}
           alt="bg-left"
-          className="pointer-events-none absolute bottom-20 left-0 w-1/2 max-w-[160px] select-none"
+          className="pointer-events-none absolute bottom-100 left-0 w-1/2 max-w-[160px] select-none"
           style={{ zIndex: 0 }}
         />
         <img
           src={bgRight}
           alt="bg-right"
-          className="pointer-events-none absolute right-0 bottom-32 w-1/2 max-w-[160px] select-none"
+          className="pointer-events-none absolute right-0 bottom-115 w-1/2 max-w-[160px] select-none"
           style={{ zIndex: 0 }}
         />
         {/* 상단 네비게이션 */}
@@ -109,10 +109,10 @@ export default function OnboardJoin() {
           </div>
         </div>
         {/* 하단 버튼 */}
-        <div className="z-10 w-full px-5 pb-6">
+        <div className="w-full px-5 pb-50">
           <button
             onClick={handleApply}
-            className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${shopId ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}
+            className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] bg-[var(--color-purple)] text-[var(--color-white)] transition-colors duration-200`}
             disabled={!shopId}
           >
             입사 신청하기
