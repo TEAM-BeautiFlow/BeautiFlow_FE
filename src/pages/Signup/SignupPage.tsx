@@ -48,26 +48,9 @@ export default function SignupPage() {
     try {
       await verifyPhoneCode(phone, code);
       setIsVerified(true);
-      if (kakaoId && provider && name) {
-        try {
-          await postSignup({ kakaoId, provider, name, contact: phone });
-          const isStaff =
-            typeof provider === "string" && provider.includes("staff");
-          navigate(isStaff ? "/manager/onboard" : "/client/mypage", {
-            replace: true,
-          });
-        } catch (signupError) {
-          // 이미 존재하는 사용자인 경우 로그인 처리로 리다이렉트
-          console.error("회원가입 실패:", signupError);
-          const isStaff =
-            typeof provider === "string" && provider.includes("staff");
-          navigate(isStaff ? "/manager/home" : "/client/mypage", {
-            replace: true,
-          });
-        }
-      }
     } catch (e) {
       // 인증 실패 시 상태 유지
+      console.error("인증번호 확인 실패:", e);
     }
   }
 
