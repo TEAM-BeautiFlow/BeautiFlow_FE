@@ -465,8 +465,8 @@ const OwnerVerificationPage = () => {
         <button
           onClick={
             activeTab === 'services' 
-            ? navigateTo(`/owner/treatments/add/${shopId}`)
-            : navigateTo(`/owner/announcements/add/${shopId}`)
+            ? navigateTo(`/owner/treatments/edit/${shopId}`)
+            : navigateTo(`/owner/announcements/edit/${shopId}`)
           }
           className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors bg-[#8B5CF6]"
         >
