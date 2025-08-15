@@ -31,7 +31,7 @@ import TreatmentOptionsPage from "./pages/Consumer/TreatmentOptionsPage";
 import BookingPage from "./pages/Consumer/BookingPage";
 import ArtDetailPage from "./pages/Consumer/ArtDetailPage";
 import KakaoCallbackPage from "./pages/Login/KakaoCallbackPage";
-import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
+// import PostLoginRedirect from "./pages/Auth/PostLoginRedirect";
 import AppointmentBooking from "./pages/Consumer/AppointmentBooking";
 import TreatmentBookingPage from "./pages/Consumer/TreatmentBookingPage";
 import ReservationCheck from "./pages/Consumer/ReservationCheck";
@@ -49,6 +49,7 @@ import HomePage from "./pages/Manager/Home/HomePage";
 
 import TermsPage from "./pages/Terms/TermsPage";
 import PrivacyPage from "./pages/Privacy/PrivacyPage";
+import MainPage from "./pages/MainPage";
 
 // 'Reservation'과 'ReservationCheck' 컴포넌트는 현재 사용되지 않아 주석 처리했습니다.
 // 필요하시면 주석을 해제하고 사용하세요.
@@ -65,7 +66,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     // errorElement: <NotFoundPage />,
     children: [
-      { index: true, element: <PostLoginRedirect /> },
+      { index: true, element: <MainPage /> },
       //     {
       //     index: true,
       //     element: <HomePage />
