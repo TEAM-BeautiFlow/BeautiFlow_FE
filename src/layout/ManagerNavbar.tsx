@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useAuthStore } from "../stores/auth";
 import ReservationListIcon from "../assets/icons/ReservationListIcon";
 import ClientIcon from "../assets/icons/ClientIcon";
 import ChatIcon from "../assets/icons/ChatIcon";
 import StoreIcon from "../assets/icons/StoreIcon";
 import MoreIcon from "../assets/icons/MoreIcon";
+import { getUserInfo } from "../apis/mypage/mypage";
+import { useEffect, useState } from "react";
 
 type NavItem = {
   to: string;
@@ -12,11 +13,19 @@ type NavItem = {
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
 };
 
-export default function ManagerNavbar() {
-  const { shopId } = useAuthStore();
+const getShopId = async () => {
+  const userInfo = await getUserInfo();
+  return userInfo.shopId;
+};
 
-  // shopId 배열의 첫 번째 값을 사용 (일반적으로 메인 샵)
-  const currentShopId = shopId && shopId.length > 0 ? shopId[0] : null;
+export default function ManagerNavbar() {
+  const [currentShopId, setCurrentShopId] = useState<number | null>(null);
+
+  useEffect(() => {
+    getShopId().then(shopId => {
+      setCurrentShopId(shopId[0]);
+    });
+  }, []);
 
   const NAV_LINKS: NavItem[] = [
     { to: "/manager/home", label: "예약", icon: ReservationListIcon },
@@ -28,8 +37,8 @@ export default function ManagerNavbar() {
     },
     {
       to: currentShopId
-        ? `/owner/store-info/${currentShopId}`
-        : "/owner/store-info",
+        ? `/owner/verification/${currentShopId}`
+        : "/owner/verification",
       label: "매장",
       icon: StoreIcon,
     },
