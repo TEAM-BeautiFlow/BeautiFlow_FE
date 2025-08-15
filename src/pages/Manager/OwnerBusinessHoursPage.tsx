@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import {
   ChevronLeft,
   ChevronDown,
@@ -11,11 +10,13 @@ import {
   Calendar,
   MoreHorizontal,
 } from "lucide-react";
+import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import "../../styles/color-system.css";
+import "../../styles/type-system.css";
 
-// API 상수 정의
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+// ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
 // --- 데이터 형식 변환을 위한 맵 ---
 const cycleApiMap = {
@@ -92,13 +93,11 @@ const DaySelectionModal = ({
     setSelectedDays(prevDays =>
       prevDays.includes(day)
         ? prevDays.filter(d => d !== day)
-        : // 순서대로 정렬되도록 추가
-          [...dayOptions].filter(d => [...prevDays, day].includes(d)),
+        : [...dayOptions].filter(d => [...prevDays, day].includes(d)),
     );
   };
 
   return (
-    // 모달 배경
     <div
       style={{
         position: "fixed",
@@ -114,7 +113,6 @@ const DaySelectionModal = ({
       }}
       onClick={onClose}
     >
-      {/* 모달 컨텐츠 (배경 클릭 시 닫히지 않도록 이벤트 전파 중단) */}
       <div
         style={{
           backgroundColor: "var(--color-grey-850)",
@@ -208,11 +206,9 @@ const OwnerBusinessHoursPage = () => {
   const [selectedDays, setSelectedDays] = useState<DayKorean[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Custom alert state
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Function to show custom alert
   const showCustomAlert = (message: string) => {
     setAlertMessage(message);
     setShowAlert(true);
@@ -222,13 +218,10 @@ const OwnerBusinessHoursPage = () => {
     const fetchShopInfo = async () => {
       if (!shopId) return;
       try {
+        // 🔽 3. api 인스턴스를 사용하여 Promise.allSettled로 병렬 요청
         const [hoursResponse, holidaysResponse] = await Promise.allSettled([
-          axios.get(`${API_BASE_URL}/shops/manage/${shopId}/business-hours`, {
-            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-          }),
-          axios.get(`${API_BASE_URL}/shops/manage/${shopId}/holidays`, {
-            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-          }),
+          api.get(`/shops/manage/${shopId}/business-hours`),
+          api.get(`/shops/manage/${shopId}/holidays`),
         ]);
 
         if (
@@ -249,10 +242,9 @@ const OwnerBusinessHoursPage = () => {
           holidaysResponse.status === "fulfilled" &&
           holidaysResponse.value.data?.data
         ) {
-          // API가 휴일 데이터를 배열로 반환할 것으로 예상하고 첫 번째 항목을 사용합니다.
           const holidayData = holidaysResponse.value.data.data;
           if (Array.isArray(holidayData) && holidayData.length > 0) {
-            const { cycle, daysOfWeek } = holidayData[0]; // 배열의 첫 번째 객체 접근
+            const { cycle, daysOfWeek } = holidayData[0];
             const apiCycle = cycle as string;
             const uiCycle = (cycleUiMap as Record<string, CycleKorean>)[
               apiCycle
@@ -265,15 +257,11 @@ const OwnerBusinessHoursPage = () => {
               .filter(Boolean) as DayKorean[];
             setSelectedDays(uiDays);
           } else {
-            // 휴일이 설정되지 않았거나 데이터가 배열이 아닌 경우 상태를 초기화합니다.
             setRegularHolidayCycle("");
             setSelectedDays([]);
           }
         } else if (holidaysResponse.status === "rejected") {
-          console.error(
-            "휴일 정보 로딩 중 에러 발생:",
-            holidaysResponse.reason,
-          );
+          console.error("휴일 정보 로딩 중 에러 발생:", holidaysResponse.reason);
         }
       } catch (error) {
         console.error("정보 로딩 중 예기치 않은 에러 발생:", error);
@@ -287,74 +275,53 @@ const OwnerBusinessHoursPage = () => {
 
     const promises = [];
 
-    // 영업시간 저장
+    // 🔽 4. api 인스턴스를 사용하여 영업시간 저장
     promises.push(
-      axios.put(
-        `${API_BASE_URL}/shops/manage/${shopId}/business-hours`,
+      api.put(
+        `/shops/manage/${shopId}/business-hours`,
         {
           openTime: openTime || null,
           closeTime: closeTime || null,
           breakStart: breakStart || null,
           breakEnd: breakEnd || null,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${ACCESS_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-        },
+        }
       ),
     );
 
-    // 정기휴일 저장 로직 개선
     if (regularHolidayCycle && selectedDays.length > 0) {
-      // 주기와 요일이 모두 선택된 경우: 객체를 배열로 감싸서 전송
+      // 🔽 5. api 인스턴스를 사용하여 정기휴일 저장
       promises.push(
-        axios.put(
-          `${API_BASE_URL}/shops/manage/${shopId}/holidays`,
+        api.put(
+          `/shops/manage/${shopId}/holidays`,
           [
             {
               cycle: cycleApiMap[regularHolidayCycle as CycleKorean],
               daysOfWeek: selectedDays.map(day => dayApiMap[day]),
             },
           ] as Array<{ cycle: CycleApi; daysOfWeek: DayApi[] }>,
-          {
-            headers: {
-              Authorization: `Bearer ${ACCESS_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          },
         ),
       );
     } else if (!regularHolidayCycle && selectedDays.length === 0) {
-      // 주기와 요일이 모두 비어있는 경우: 빈 배열을 전송하여 휴무일을 제거합니다.
       promises.push(
-        axios.put(
-          `${API_BASE_URL}/shops/manage/${shopId}/holidays`,
+        api.put(
+          `/shops/manage/${shopId}/holidays`,
           [] as Array<{ cycle: CycleApi; daysOfWeek: DayApi[] }>,
-          {
-            headers: {
-              Authorization: `Bearer ${ACCESS_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          },
         ),
       );
     } else {
-      // 둘 중 하나만 선택된 경우 (유효하지 않은 상태)
       showCustomAlert(
         "정기 휴무일을 저장하려면 주기와 요일을 모두 선택하거나 모두 비워두세요.",
       );
-      return; // 저장을 중단하고 경고
+      return;
     }
 
     try {
       await Promise.all(promises);
       showCustomAlert("영업 정보가 성공적으로 저장되었습니다.");
-      navigate(-1);
+      // 성공 후 뒤로가기 로직은 필요에 따라 추가
+      // navigate(-1);
     } catch (error: any) {
       console.error("저장 실패:", error);
-      // 서버에서 보낸 정확한 오류 메시지를 보여줄 수 있다면 더 좋을 것입니다.
       showCustomAlert(
         "저장에 실패했습니다. 다시 시도해주세요. (오류: " +
           (error.response?.data?.message || error.message) +
@@ -619,11 +586,10 @@ const OwnerBusinessHoursPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
+      <div style={{ padding: "0 20px 100px" }}>
         {/* 영업 시간 섹션 */}
         <div style={{ marginBottom: "24px" }}>
           <label
-            htmlFor="businessHours"
             className="label1"
             style={{
               color: "var(--color-white)",
@@ -650,7 +616,6 @@ const OwnerBusinessHoursPage = () => {
         {/* 브레이크 타임 섹션 */}
         <div style={{ marginBottom: "24px" }}>
           <label
-            htmlFor="breakTime"
             className="label1"
             style={{
               color: "var(--color-white)",
@@ -676,7 +641,6 @@ const OwnerBusinessHoursPage = () => {
         {/* 정기 휴무일 섹션 */}
         <div style={{ marginBottom: "32px" }}>
           <label
-            htmlFor="regularHoliday"
             className="label1"
             style={{
               color: "var(--color-white)",
@@ -740,7 +704,6 @@ const OwnerBusinessHoursPage = () => {
         setSelectedDays={setSelectedDays}
       />
 
-      {/* Custom Alert Modal */}
       {showAlert && (
         <div
           style={{

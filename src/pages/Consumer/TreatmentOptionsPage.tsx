@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ChevronLeft, Clock } from "lucide-react";
+import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -21,8 +21,7 @@ const TreatmentOptionsPage = () => {
     treatmentId: string;
   }>();
 
-  // (수정) Zustand 스토어에서 액션을 개별적으로 가져옵니다.
-  const setTreatmentId = useBookingStore(state => state.setTreatmentId);
+  const setTreatmentIdInStore = useBookingStore(state => state.setTreatmentId);
   const setSelectedOptions = useBookingStore(state => state.setSelectedOptions);
   const setTreatmentInfo = useBookingStore(state => state.setTreatmentInfo);
 
@@ -34,13 +33,13 @@ const TreatmentOptionsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzNDg4NDIwMjEiLCJ1c2VySWQiOjU4LCJpYXQiOjE3NTQ5Njk5MDAsImV4cCI6MTc1NzU2MTkwMH0.BzWPMm9rWf7IlmRSeO7xFySG6lic0NuQha2dDWt8yzY";
+  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
 
   useEffect(() => {
     if (treatmentId) {
-      setTreatmentId(Number(treatmentId));
+      setTreatmentIdInStore(Number(treatmentId));
     }
 
     const fetchTreatmentOptions = async () => {
@@ -54,13 +53,10 @@ const TreatmentOptionsPage = () => {
         setIsLoading(true);
         setError(null);
 
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
-
-        const response = await axios.get<
-          ApiResponse<TreatmentDetailWithOption>
-        >(`${API_BASE_URL}/shops/${shopId}/treatments/${treatmentId}/options`, {
-          headers,
-        });
+        // 🔽 3. api 인스턴스를 사용하여 헤더 설정 없이 깔끔하게 요청합니다.
+        const response = await api.get<ApiResponse<TreatmentDetailWithOption>>(
+          `/shops/${shopId}/treatments/${treatmentId}/options`
+        );
 
         if (response.data.success && response.data.data) {
           const fetchedData = response.data.data;
@@ -91,7 +87,7 @@ const TreatmentOptionsPage = () => {
     };
 
     fetchTreatmentOptions();
-  }, [shopId, treatmentId, setTreatmentId, setTreatmentInfo]);
+  }, [shopId, treatmentId, setTreatmentIdInStore, setTreatmentInfo]);
 
   const handleOptionSelect = (groupId: number, optionId: number) => {
     setLocalSelectedOptions(prev => ({
@@ -258,11 +254,9 @@ const TreatmentOptionsPage = () => {
         className="flex items-center px-4 py-3"
         style={{ backgroundColor: "var(--color-black)" }}
       >
-        <ChevronLeft
-          className="h-6 w-6"
-          style={{ color: "var(--color-white)" }}
-          onClick={() => navigate(-1)}
-        />
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+            <ChevronLeft className="h-6 w-6" style={{ color: "var(--color-white)" }} />
+        </button>
         <h1
           className="title1 flex-1 text-center"
           style={{ color: "var(--color-white)" }}

@@ -15,6 +15,7 @@ import {
   Clock,
   Plus,
 } from "lucide-react";
+import { useAuthStore } from "@/stores/auth";
 
 // --- API 클라이언트 설정 ---
 const apiClient = axios.create({
@@ -24,8 +25,9 @@ const apiClient = axios.create({
 // 인터셉터: 모든 요청에 Authorization 헤더 추가
 apiClient.interceptors.request.use(config => {
   const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+    useAuthStore.getState().accessToken ?? localStorage.getItem("accessToken");
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

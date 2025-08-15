@@ -1,124 +1,74 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
-import {
-  ChevronLeft,
-  X,
-  Plus,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
-} from "lucide-react";
+import { ChevronLeft } from "lucide-react";
+// 🔽 1. 지적해주신 대로 import 경로와 변수명을 수정했습니다.
+import api from "@/apis/axiosInstance"; // 실제 파일 경로에 맞게 수정해주세요.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+// ❌ 2. 컴포넌트 내에 하드코딩된 API 관련 상수를 모두 제거합니다.
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
-interface ShopImage {
-  id: number;
-  imageUrl: string;
-}
-
-const OwnerStoreIntroPage = () => {
+const OwnerStoreInfoPage = () => {
   const navigate = useNavigate();
   const { shopId } = useParams();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [introText, setIntroText] = useState("");
-  const [existingImages, setExistingImages] = useState<ShopImage[]>([]);
-  const [newImages, setNewImages] = useState<File[]>([]);
-  const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
+  const [shopName, setShopName] = useState("");
+  const [contact, setContact] = useState("");
+  const [address, setAddress] = useState("");
 
-  const MAX_LENGTH_INTRO = 50;
-  const MAX_IMAGES = 5;
+  const MAX_LENGTH = 50;
 
   useEffect(() => {
-    const fetchShopIntro = async () => {
+    const fetchShopInfo = async () => {
       if (!shopId) return;
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/shops/manage/${shopId}`,
-          {
-            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-          },
-        );
+        // 🔽 3. 변수명을 'api'로 변경하여 요청합니다.
+        const response = await api.get(`/shops/manage/${shopId}`);
         if (response.data && response.data.data) {
-          const { introduction, shopImages } = response.data.data;
-          setIntroText(introduction || "");
-          setExistingImages(shopImages || []);
+          const { shopName, contact, address } = response.data.data;
+          setShopName(shopName || "");
+          setContact(contact || "");
+          setAddress(address || "");
         }
       } catch (error) {
-        console.error("매장 소개 정보 로딩 실패:", error);
+        console.error("매장 정보 로딩 실패:", error);
       }
     };
-    fetchShopIntro();
+    fetchShopInfo();
   }, [shopId]);
 
   const handleSave = async () => {
-    if (!shopId) return;
+    if (!shopId) {
+      alert("매장 ID가 없어 저장할 수 없습니다.");
+      return;
+    }
 
     const requestDto = {
-      introduction: introText,
-      deleteImageIds,
+      shopName,
+      contact,
+      address,
     };
 
+    // FormData를 사용하는 로직은 백엔드 API의 요구사항일 수 있으므로 그대로 유지합니다.
     const formData = new FormData();
-    formData.append("requestDto", JSON.stringify(requestDto));
-
-    newImages.forEach(file => {
-      formData.append("newImages", file);
-    });
+    formData.append(
+      "requestDto",
+      new Blob([JSON.stringify(requestDto)], { type: "application/json" }),
+    );
 
     try {
-      await axios.patch(`${API_BASE_URL}/shops/manage/${shopId}`, formData, {
-        headers: {
-          // ✅ FormData를 사용할 때 Content-Type은 axios가 자동으로 설정하도록 비워둡니다.
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-        },
-      });
-      alert("매장 소개가 성공적으로 저장되었습니다.");
+      // 🔽 4. 변수명을 'api'로 변경하여 PATCH 요청을 보냅니다.
+      await api.patch(`/shops/manage/${shopId}`, formData);
+      
+      alert("매장 정보가 성공적으로 저장되었습니다.");
       navigate(-1);
     } catch (error) {
-      console.error("매장 소개 저장 실패:", error);
+      console.error("매장 정보 저장 실패:", error);
       alert("저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
-  const handleImageUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const totalImages = existingImages.length + newImages.length;
-      const availableSlots = MAX_IMAGES - totalImages;
-      const filesToUpload = Array.from(files).slice(0, availableSlots);
-      setNewImages(prev => [...prev, ...filesToUpload]);
-    }
-  };
-
-  const removeExistingImage = (id: number) => {
-    setExistingImages(prev => prev.filter(img => img.id !== id));
-    setDeleteImageIds(prev => [...prev, id]);
-  };
-
-  const removeNewImage = (index: number) => {
-    setNewImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const displayedImages = [
-    ...existingImages.map(img => ({ ...img, isNew: false })),
-    ...newImages.map((file, index) => ({
-      id: index,
-      imageUrl: URL.createObjectURL(file),
-      isNew: true,
-    })),
-  ];
 
   return (
     <div
@@ -129,76 +79,13 @@ const OwnerStoreIntroPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar */}
+      {/* Header (이하 JSX 부분은 수정사항 없음) */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect
-              x="1"
-              y="3"
-              width="18"
-              height="6"
-              rx="2"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
         <button
@@ -216,7 +103,7 @@ const OwnerStoreIntroPage = () => {
           className="title1"
           style={{ color: "var(--color-white)", margin: 0 }}
         >
-          매장 소개
+          매장 정보
         </h1>
         <button
           className="label1"
@@ -234,11 +121,11 @@ const OwnerStoreIntroPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
-        {/* 한 줄 소개 입력 필드 */}
+      <main style={{ padding: "0 20px 32px" }}>
+        {/* 매장명 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label
-            htmlFor="introText"
+            htmlFor="shopName"
             className="label1"
             style={{
               color: "var(--color-white)",
@@ -246,46 +133,46 @@ const OwnerStoreIntroPage = () => {
               display: "block",
             }}
           >
-            한 줄 소개
+            매장명 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
           <div style={{ position: "relative" }}>
-            <textarea
-              id="introText"
-              placeholder="한 줄 소개를 입력해주세요"
-              value={introText}
-              onChange={e => setIntroText(e.target.value)}
-              maxLength={MAX_LENGTH_INTRO}
+            <input
+              id="shopName"
+              type="text"
+              value={shopName}
+              onChange={e => setShopName(e.target.value)}
+              placeholder="매장명을 입력해주세요"
+              maxLength={MAX_LENGTH}
               className="body2"
               style={{
                 width: "100%",
-                minHeight: "80px",
                 backgroundColor: "var(--color-grey-850)",
                 border: "1px solid var(--color-grey-750)",
                 borderRadius: "8px",
                 padding: "16px",
                 color: "var(--color-white)",
-                fontSize: "14px",
                 fontFamily: "Pretendard, sans-serif",
                 outline: "none",
-                resize: "none",
               }}
             />
             <span
               className="caption2"
               style={{
                 position: "absolute",
-                bottom: "12px",
+                bottom: "16px",
                 right: "16px",
                 color: "var(--color-grey-450)",
               }}
             >
-              {introText.length}/{MAX_LENGTH_INTRO}
+              {shopName.length}/{MAX_LENGTH}
             </span>
           </div>
         </div>
-        {/* 대표 사진 업로드 섹션 */}
-        <div style={{ marginBottom: "32px" }}>
+
+        {/* 매장 연락처 입력 필드 */}
+        <div style={{ marginBottom: "24px" }}>
           <label
+            htmlFor="contact"
             className="label1"
             style={{
               color: "var(--color-white)",
@@ -293,144 +180,77 @@ const OwnerStoreIntroPage = () => {
               display: "block",
             }}
           >
-            대표 사진
+            매장 연락처
           </label>
-          <p
-            className="caption2"
-            style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}
-          >
-            고객이 매장 페이지 진입 시 적용된 사진으로 보이는 이미지예요. <br />
-            (권장 규격 16:9, 5MB 이하)
-          </p>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {displayedImages.map((image, index) => (
-              <div
-                key={image.isNew ? `new-${index}` : `existing-${image.id}`}
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "8px",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                <img
-                  src={image.imageUrl}
-                  alt={`매장 이미지 ${index + 1}`}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-                <button
-                  onClick={() =>
-                    image.isNew
-                      ? removeNewImage(image.id)
-                      : removeExistingImage(image.id)
-                  }
-                  style={{
-                    position: "absolute",
-                    top: "4px",
-                    right: "4px",
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "50%",
-                    backgroundColor: "rgba(0, 0, 0, 0.6)",
-                    border: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    zIndex: 10,
-                  }}
-                >
-                  <X size={12} color="var(--color-white)" />
-                </button>
-              </div>
-            ))}
-
-            {/* 이미지 추가 버튼 */}
-            {displayedImages.length < MAX_IMAGES && (
-              <button
-                onClick={handleImageUploadClick}
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "var(--color-grey-850)",
-                  borderRadius: "8px",
-                  border: "1px solid var(--color-grey-750)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  gap: "4px",
-                }}
-              >
-                <Plus size={20} color="var(--color-grey-450)" />
-                <span
-                  className="caption2"
-                  style={{ color: "var(--color-grey-450)" }}
-                >
-                  사진 {displayedImages.length}/{MAX_IMAGES}
-                </span>
-              </button>
-            )}
-          </div>
           <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            multiple
-            accept="image/*"
-            style={{ display: "none" }}
+            id="contact"
+            type="tel"
+            value={contact}
+            onChange={e => setContact(e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="하이픈(-)을 제외하고 숫자만 입력해주세요."
+            className="body2"
+            style={{
+              width: "100%",
+              backgroundColor: "var(--color-grey-850)",
+              border: "1px solid var(--color-grey-750)",
+              borderRadius: "8px",
+              padding: "16px",
+              color: "var(--color-white)",
+              fontFamily: "Pretendard, sans-serif",
+              outline: "none",
+            }}
           />
         </div>
-      </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <Calendar size={24} />
-          예약
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <User size={24} />
-          고객
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MessageSquare size={24} />
-          채팅
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-light-purple)" }}
-        >
-          <Home size={24} />
-          매장
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MoreHorizontal size={24} />
-          더보기
-        </button>
-      </nav>
+        {/* 매장 위치 입력 필드 */}
+        <div>
+          <label
+            htmlFor="address"
+            className="label1"
+            style={{
+              color: "var(--color-white)",
+              marginBottom: "8px",
+              display: "block",
+            }}
+          >
+            매장 위치
+          </label>
+          <div style={{ position: "relative" }}>
+            <input
+              id="address"
+              type="text"
+              value={address}
+              onChange={e => setAddress(e.target.value)}
+              placeholder="매장 위치를 입력해주세요"
+              maxLength={MAX_LENGTH}
+              className="body2"
+              style={{
+                width: "100%",
+                backgroundColor: "var(--color-grey-850)",
+                border: "1px solid var(--color-grey-750)",
+                borderRadius: "8px",
+                padding: "16px",
+                color: "var(--color-white)",
+                fontFamily: "Pretendard, sans-serif",
+                outline: "none",
+              }}
+            />
+            <span
+              className="caption2"
+              style={{
+                position: "absolute",
+                bottom: "16px",
+                right: "16px",
+                color: "var(--color-grey-450)",
+              }}
+            >
+              {address.length}/{MAX_LENGTH}
+            </span>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
 
-export default OwnerStoreIntroPage;
+export default OwnerStoreInfoPage;

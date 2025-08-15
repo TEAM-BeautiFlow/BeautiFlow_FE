@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import {
   ChevronLeft,
   Home,
@@ -9,11 +8,14 @@ import {
   Calendar,
   MoreHorizontal,
 } from "lucide-react";
+// 🔽 1. 일관성을 위해 api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance"; // 실제 파일 경로에 맞게 수정해주세요.
+import "../../styles/color-system.css";
+import "../../styles/type-system.css";
 
-// API 상수 정의
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+// ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const ACCESS_TOKEN = "eyJhbGciOi...LEo";
 
 const OwnerSalesPage = () => {
   const navigate = useNavigate();
@@ -26,7 +28,6 @@ const OwnerSalesPage = () => {
 
   const MAX_LENGTH = 50;
 
-  // 페이지 로드 시 기존 정보를 불러옵니다.
   useEffect(() => {
     const fetchSalesInfo = async () => {
       if (!shopId) {
@@ -36,31 +37,11 @@ const OwnerSalesPage = () => {
 
       try {
         setIsLoading(true);
-        const response = await axios.get(
-          `${API_BASE_URL}/shops/manage/${shopId}`,
-          {
-            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
-          },
-        );
-
-        // ✅ 디버깅: API 응답 확인
-        console.log("매출 관리 API 응답:", response.data);
+        // 🔽 3. api 인스턴스를 사용하여 GET 요청을 보냅니다.
+        const response = await api.get(`/shops/manage/${shopId}`);
 
         if (response.data && response.data.data) {
           const data = response.data.data;
-
-          // ✅ 다양한 필드명 확인 및 디버깅
-          console.log("depositAmount:", data.depositAmount);
-          console.log("deposit_amount:", data.deposit_amount);
-          console.log("depositPrice:", data.depositPrice);
-          console.log("deposit_price:", data.deposit_price);
-          console.log("accountHolder:", data.accountHolder);
-          console.log("account_holder:", data.account_holder);
-          console.log("accountInfo:", data.accountInfo);
-          console.log("account_info:", data.account_info);
-          console.log("모든 키:", Object.keys(data));
-
-          // ✅ 다양한 필드명 시도하여 예금액 가져오기
           const depositValue =
             data.depositAmount ||
             data.deposit_amount ||
@@ -69,8 +50,6 @@ const OwnerSalesPage = () => {
             data.reservationDeposit ||
             data.reservation_deposit ||
             0;
-
-          // ✅ 다양한 필드명 시도하여 계좌 정보 가져오기
           const accountValue =
             data.accountHolder ||
             data.account_holder ||
@@ -80,13 +59,8 @@ const OwnerSalesPage = () => {
             data.bank_account ||
             "";
 
-          // ✅ 숫자를 문자열로 변환하여 상태에 저장
           setDepositAmount(depositValue ? String(depositValue) : "");
           setAccountHolder(accountValue || "");
-
-          // ✅ 디버깅: 최종 설정된 값들 확인
-          console.log("최종 설정된 depositAmount:", depositValue);
-          console.log("최종 설정된 accountHolder:", accountValue);
         }
       } catch (error) {
         console.error("매출 관리 정보 로딩 실패:", error);
@@ -102,7 +76,6 @@ const OwnerSalesPage = () => {
   const handleSave = async () => {
     if (!shopId) return;
 
-    // ✅ 필수 필드 검증
     if (!depositAmount.trim()) {
       alert("예약금액을 입력해주세요.");
       return;
@@ -113,31 +86,20 @@ const OwnerSalesPage = () => {
       return;
     }
 
-    // ✅ API 명세에 맞는 requestDto 생성
     const requestDto = {
-      // 서버에 보낼 때 문자열을 숫자로 변환
       depositPrice: depositAmount ? parseInt(depositAmount, 10) : 0,
       accountHolder: accountHolder.trim(),
     };
 
-    // ✅ 디버깅: 전송할 데이터 확인
-    console.log("전송할 requestDto:", requestDto);
-
     const formData = new FormData();
+    // 백엔드 API 명세에 따라 Blob으로 감싸지 않고 바로 JSON 문자열을 추가합니다.
+    // 대부분의 경우 이 방식이 더 일반적입니다.
     formData.append("requestDto", JSON.stringify(requestDto));
 
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/shops/manage/${shopId}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${ACCESS_TOKEN}`,
-          },
-        },
-      );
+      // 🔽 4. api 인스턴스를 사용하여 PATCH 요청을 보냅니다.
+      await api.patch(`/shops/manage/${shopId}`, formData);
 
-      console.log("저장 응답:", response.data);
       alert("매출 관리 정보가 성공적으로 저장되었습니다.");
       navigate(-1);
     } catch (error: unknown) {
@@ -149,7 +111,6 @@ const OwnerSalesPage = () => {
     }
   };
 
-  // ✅ 로딩 상태 표시
   if (isLoading) {
     return (
       <div
@@ -164,7 +125,6 @@ const OwnerSalesPage = () => {
     );
   }
 
-  // ✅ 에러 상태 표시
   if (error) {
     return (
       <div
@@ -204,7 +164,7 @@ const OwnerSalesPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar */}
+      {/* Status Bar (이하 JSX 부분은 수정사항 없음) */}
       <div
         style={{
           display: "flex",
@@ -358,7 +318,6 @@ const OwnerSalesPage = () => {
               {depositAmount.length}/{MAX_LENGTH}
             </span>
           </div>
-          {/* ✅ 현재 설정된 금액을 시각적으로 표시 */}
           {depositAmount && (
             <p
               className="caption2"
