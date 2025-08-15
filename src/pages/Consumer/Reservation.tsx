@@ -9,6 +9,7 @@ import "../../styles/type-system.css";
 // API 명세 변경에 따라 SShopData 타입의 phoneNumber가 contact로,
 // operatingHours가 businessHours 배열로 변경되었다고 가정합니다.
 import type { ApiResponse, SShopData, Treatment } from "../../types/api";
+import { useAuthStore } from "@/stores/auth";
 
 const Reservation = () => {
   const navigate = useNavigate();
@@ -68,6 +69,11 @@ const Reservation = () => {
 
 
   useEffect(() => {
+    // 마지막 방문 매장 저장
+    try {
+      useAuthStore.getState().setLastVisitedShopId(SHOP_ID);
+    } catch {}
+
     const fetchShopData = async () => {
       try {
         setIsLoading(true);
@@ -82,7 +88,11 @@ const Reservation = () => {
         }
       } catch (err: any) {
         console.error("API 호출 중 에러 발생:", err);
-        setError(err.response?.data?.message || err.message || "알 수 없는 에러가 발생했습니다.");
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "알 수 없는 에러가 발생했습니다.",
+        );
       }
     };
     fetchShopData();
@@ -161,19 +171,21 @@ const Reservation = () => {
       </div>
     );
   }
-  
+
   if (!shopData) {
-      return null;
+    return null;
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">
       <div
-        className="w-full max-w-sm bg-black text-white transition-filter"
+        className="transition-filter w-full max-w-sm bg-black text-white"
         style={{ filter: isModalOpen ? "blur(4px)" : "none" }}
       >
-        <header className="flex items-center justify-between px-5 py-4 bg-black">
-          <span className="h1 text-[color:var(--color-purple)]">BEAUTIFLOW</span>
+        <header className="flex items-center justify-between bg-black px-5 py-4">
+          <span className="h1 text-[color:var(--color-purple)]">
+            BEAUTIFLOW
+          </span>
         </header>
 
         <div className="relative h-64 w-full overflow-hidden bg-[color:var(--color-grey-350)]">
@@ -181,24 +193,31 @@ const Reservation = () => {
             <img
               src={shopData.mainImageUrl}
               alt={`${shopData.name} 배너 이미지`}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="body1 text-[color:var(--color-grey-650)]">배너 이미지 없음</span>
+              <span className="body1 text-[color:var(--color-grey-650)]">
+                배너 이미지 없음
+              </span>
             </div>
           )}
         </div>
 
-        <section className="px-5 py-4 bg-black">
+        <section className="bg-black px-5 py-4">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="title1 text-white">{shopData.name}</h2>
             <button className="flex items-center gap-1">
-              <MessageSquare size={20} className="text-[color:var(--color-grey-450)]" />
-              <span className="caption1 text-[color:var(--color-grey-450)]">채팅</span>
+              <MessageSquare
+                size={20}
+                className="text-[color:var(--color-grey-450)]"
+              />
+              <span className="caption1 text-[color:var(--color-grey-450)]">
+                채팅
+              </span>
             </button>
           </div>
-          <p className="body2 text-[color:var(--color-grey-450)] truncate">
+          <p className="body2 truncate text-[color:var(--color-grey-450)]">
             {shopData.introText}
           </p>
 
@@ -206,11 +225,22 @@ const Reservation = () => {
             {notices.map(notice => (
               <div
                 key={notice.id}
-                className="flex-shrink-0 cursor-pointer rounded-md p-3 bg-[color:var(--color-grey-950)] w-40"
+                className="w-40 flex-shrink-0 cursor-pointer rounded-md bg-[color:var(--color-grey-950)] p-3"
                 onClick={() => handleAnnouncementClick(notice)}
               >
-                <h4 className="caption1 text-white mb-1 truncate">{notice.title}</h4>
-                <p className="caption2 text-[color:var(--color-grey-450)]" style={{ lineHeight: "1.5", overflow: "hidden", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2 }}>
+                <h4 className="caption1 mb-1 truncate text-white">
+                  {notice.title}
+                </h4>
+                <p
+                  className="caption2 text-[color:var(--color-grey-450)]"
+                  style={{
+                    lineHeight: "1.5",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                  }}
+                >
                   {notice.content}
                 </p>
               </div>
@@ -297,6 +327,15 @@ const Reservation = () => {
                           </p>
                         </div>
                       </div>
+                      <div className="label1 mb-2 text-white">
+                        {treatment.price?.toLocaleString()}원
+                      </div>
+                      <p
+                        className="body2 line-clamp-2 text-[color:var(--color-grey-450)]"
+                        style={{ lineHeight: "1.5" }}
+                      >
+                        {treatment.description}
+                      </p>
                     </div>
                   ))
                 ) : (
@@ -339,20 +378,25 @@ const Reservation = () => {
 
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity"
+          className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity"
           onClick={handleModalClose}
         >
           <div
-            className="w-full max-w-sm rounded-lg border border-solid p-6 shadow-lg bg-black border-[color:var(--color-grey-850)]"
+            className="w-full max-w-sm rounded-lg border border-solid border-[color:var(--color-grey-850)] bg-black p-6 shadow-lg"
             onClick={e => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="title1 text-white">{selectedAnnouncement.title}</h2>
+              <h2 className="title1 text-white">
+                {selectedAnnouncement.title}
+              </h2>
               <button onClick={handleModalClose}>
                 <X size={24} className="text-white" />
               </button>
             </div>
-            <p className="body2 text-[color:var(--color-grey-450)]" style={{ lineHeight: "1.5" }}>
+            <p
+              className="body2 text-[color:var(--color-grey-450)]"
+              style={{ lineHeight: "1.5" }}
+            >
               {selectedAnnouncement.content}
             </p>
           </div>

@@ -19,6 +19,18 @@ export async function exchangeKakaoCode(code: string) {
   if (data?.accessToken) {
     localStorage.setItem("accessToken", data.accessToken);
   }
+  if (data?.refreshToken) {
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
+  if (data?.kakaoId) {
+    localStorage.setItem("kakaoId", data.kakaoId);
+  }
+  if (data?.provider) {
+    localStorage.setItem("loginProvider", data.provider);
+  }
+  if (data?.loginKey) {
+    localStorage.setItem("loginKey", data.loginKey);
+  }
   return data;
 }
 

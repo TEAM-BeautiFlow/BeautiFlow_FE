@@ -15,11 +15,8 @@ export default function KakaoCallbackPage() {
     (async () => {
       try {
         await exchangeKakaoCode(code);
-        // 우선순위 1: 로그인 전 저장한 postLoginRedirect
-        const stored = localStorage.getItem("postLoginRedirect");
-        localStorage.removeItem("postLoginRedirect");
-        const target = stored || "/signup";
-        navigate(target, { replace: true });
+        // 서버 결정에 따르되, 프런트에서는 일단 회원가입 페이지로 이동
+        navigate("/signup", { replace: true });
       } catch (e) {
         console.error(e);
         navigate("/login", { replace: true });
