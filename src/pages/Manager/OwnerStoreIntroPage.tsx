@@ -1,4 +1,6 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import {
   ChevronLeft,
   X,
@@ -9,36 +11,114 @@ import {
   Calendar,
   MoreHorizontal,
 } from "lucide-react";
-import "../../styles/color-system.css"; // 색상 시스템 임포트
-import "../../styles/type-system.css"; // 타입 시스템 임포트
+import "../../styles/color-system.css";
+import "../../styles/type-system.css";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const ACCESS_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
+
+interface ShopImage {
+  id: number;
+  imageUrl: string;
+}
 
 const OwnerStoreIntroPage = () => {
+  const navigate = useNavigate();
+  const { shopId } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [introText, setIntroText] = useState("");
-  const [selectedImages, setSelectedImages] = useState([]); // 업로드된 이미지 URL 또는 플레이스홀더
+  const [existingImages, setExistingImages] = useState<ShopImage[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
 
-  const MAX_LENGTH_INTRO = 50; // Figma에 0/50으로 표시됨
-  const MAX_IMAGES = 5; // 최대 이미지 개수
+  const MAX_LENGTH_INTRO = 50;
+  const MAX_IMAGES = 5;
 
-  const handleSave = () => {
-    console.log("매장 소개 저장:", { introText, selectedImages });
-    // 여기에 실제 저장 로직 (API 호출 등)을 구현합니다.
-  };
+  useEffect(() => {
+    const fetchShopIntro = async () => {
+      if (!shopId) return;
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/shops/manage/${shopId}`,
+          {
+            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+          },
+        );
+        if (response.data && response.data.data) {
+          const { introduction, shopImages } = response.data.data;
+          setIntroText(introduction || "");
+          setExistingImages(shopImages || []);
+        }
+      } catch (error) {
+        console.error("매장 소개 정보 로딩 실패:", error);
+      }
+    };
+    fetchShopIntro();
+  }, [shopId]);
 
-  const handleImageUpload = () => {
-    // 실제 이미지 업로드 로직 (예: input[type="file"] 트리거)
-    if (selectedImages.length < MAX_IMAGES) {
-      // 임시로 플레이스홀더 이미지 추가
-      setSelectedImages([
-        ...selectedImages,
-        `placeholder_${selectedImages.length + 1}.png` as never,
-      ]);
+  const handleSave = async () => {
+    if (!shopId) return;
+
+    const requestDto = {
+      introduction: introText,
+      deleteImageIds,
+    };
+
+    const formData = new FormData();
+    formData.append("requestDto", JSON.stringify(requestDto));
+
+    newImages.forEach(file => {
+      formData.append("newImages", file);
+    });
+
+    try {
+      await axios.patch(`${API_BASE_URL}/shops/manage/${shopId}`, formData, {
+        headers: {
+          // ✅ FormData를 사용할 때 Content-Type은 axios가 자동으로 설정하도록 비워둡니다.
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+      });
+      alert("매장 소개가 성공적으로 저장되었습니다.");
+      navigate(-1);
+    } catch (error) {
+      console.error("매장 소개 저장 실패:", error);
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
     }
-    console.log("이미지 업로드");
   };
 
-  const removeImage = (index: number) => {
-    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+  const handleImageUploadClick = () => {
+    fileInputRef.current?.click();
   };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const totalImages = existingImages.length + newImages.length;
+      const availableSlots = MAX_IMAGES - totalImages;
+      const filesToUpload = Array.from(files).slice(0, availableSlots);
+      setNewImages(prev => [...prev, ...filesToUpload]);
+    }
+  };
+
+  const removeExistingImage = (id: number) => {
+    setExistingImages(prev => prev.filter(img => img.id !== id));
+    setDeleteImageIds(prev => [...prev, id]);
+  };
+
+  const removeNewImage = (index: number) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const displayedImages = [
+    ...existingImages.map(img => ({ ...img, isNew: false })),
+    ...newImages.map((file, index) => ({
+      id: index,
+      imageUrl: URL.createObjectURL(file),
+      isNew: true,
+    })),
+  ];
 
   return (
     <div
@@ -46,7 +126,7 @@ const OwnerStoreIntroPage = () => {
       style={{
         backgroundColor: "var(--color-black)",
         color: "var(--color-white)",
-        fontFamily: "Pretendard, sans-serif", // Pretendard 폰트 적용
+        fontFamily: "Pretendard, sans-serif",
       }}
     >
       {/* Status Bar */}
@@ -117,11 +197,21 @@ const OwnerStoreIntroPage = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px 24px", // Figma에 맞춰 패딩 조정
-          marginTop: "8px", // Figma에 맞춰 마진 조정
+          padding: "0 20px 24px",
+          marginTop: "8px",
         }}
       >
-        <ChevronLeft size={24} color="var(--color-white)" />
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          <ChevronLeft size={24} color="var(--color-white)" />
+        </button>
         <h1
           className="title1"
           style={{ color: "var(--color-white)", margin: 0 }}
@@ -133,6 +223,9 @@ const OwnerStoreIntroPage = () => {
           style={{
             color: "var(--color-light-purple)",
             fontWeight: "var(--font-weight-semibold)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
           onClick={handleSave}
         >
@@ -142,8 +235,6 @@ const OwnerStoreIntroPage = () => {
 
       {/* Content Area */}
       <div style={{ padding: "0 20px 32px" }}>
-        {" "}
-        {/* Figma에 맞춰 패딩 조정 */}
         {/* 한 줄 소개 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label
@@ -164,8 +255,10 @@ const OwnerStoreIntroPage = () => {
               value={introText}
               onChange={e => setIntroText(e.target.value)}
               maxLength={MAX_LENGTH_INTRO}
+              className="body2"
               style={{
                 width: "100%",
+                minHeight: "80px",
                 backgroundColor: "var(--color-grey-850)",
                 border: "1px solid var(--color-grey-750)",
                 borderRadius: "8px",
@@ -174,7 +267,7 @@ const OwnerStoreIntroPage = () => {
                 fontSize: "14px",
                 fontFamily: "Pretendard, sans-serif",
                 outline: "none",
-                resize: "none", // 사용자가 크기 조절 못하게
+                resize: "none",
               }}
             />
             <span
@@ -207,34 +300,31 @@ const OwnerStoreIntroPage = () => {
             style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}
           >
             고객이 매장 페이지 진입 시 적용된 사진으로 보이는 이미지예요. <br />
-            (권장 규격 16:9, 000MB 이하)
+            (권장 규격 16:9, 5MB 이하)
           </p>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {/* 업로드된 이미지 플레이스홀더 */}
-            {selectedImages.map((_, index) => (
+            {displayedImages.map((image, index) => (
               <div
-                key={index}
+                key={image.isNew ? `new-${index}` : `existing-${image.id}`}
                 style={{
                   width: "80px",
                   height: "80px",
                   borderRadius: "8px",
                   position: "relative",
                   overflow: "hidden",
-                  backgroundColor: "var(--color-grey-350)", // 이미지 플레이스홀더 배경색
                 }}
               >
-                <div
-                  style={{
-                    // 격자무늬 패턴
-                    position: "absolute",
-                    inset: 0,
-                    opacity: 0.1,
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.3' fill-rule='evenodd'%3E%3Cpath d='m0 20l20-20h-20zm20 0v-20h-20z'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: "20px 20px",
-                  }}
-                ></div>
+                <img
+                  src={image.imageUrl}
+                  alt={`매장 이미지 ${index + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
                 <button
-                  onClick={() => removeImage(index)}
+                  onClick={() =>
+                    image.isNew
+                      ? removeNewImage(image.id)
+                      : removeExistingImage(image.id)
+                  }
                   style={{
                     position: "absolute",
                     top: "4px",
@@ -242,13 +332,13 @@ const OwnerStoreIntroPage = () => {
                     width: "20px",
                     height: "20px",
                     borderRadius: "50%",
-                    backgroundColor: "var(--color-grey-750)",
+                    backgroundColor: "rgba(0, 0, 0, 0.6)",
                     border: "none",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",
-                    zIndex: 10, // 버튼이 이미지 위에 오도록 z-index 추가
+                    zIndex: 10,
                   }}
                 >
                   <X size={12} color="var(--color-white)" />
@@ -257,9 +347,9 @@ const OwnerStoreIntroPage = () => {
             ))}
 
             {/* 이미지 추가 버튼 */}
-            {selectedImages.length < MAX_IMAGES && (
+            {displayedImages.length < MAX_IMAGES && (
               <button
-                onClick={handleImageUpload}
+                onClick={handleImageUploadClick}
                 style={{
                   width: "80px",
                   height: "80px",
@@ -279,11 +369,19 @@ const OwnerStoreIntroPage = () => {
                   className="caption2"
                   style={{ color: "var(--color-grey-450)" }}
                 >
-                  사진 {selectedImages.length}/{MAX_IMAGES}
+                  사진 {displayedImages.length}/{MAX_IMAGES}
                 </span>
               </button>
             )}
           </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            multiple
+            accept="image/*"
+            style={{ display: "none" }}
+          />
         </div>
       </div>
 
