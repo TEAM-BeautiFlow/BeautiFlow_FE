@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ChevronLeft, X, Copy } from "lucide-react";
+import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, MyReservationInfo } from "../../types/api";
@@ -32,9 +32,9 @@ const ReservationCheck = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzNDg4NDIwMjEiLCJ1c2VySWQiOjU4LCJpYXQiOjE3NTQ5Njk5MDAsImV4cCI6MTc1NzU2MTkwMH0.BzWPMm9rWf7IlmRSeO7xFySG6lic0NuQha2dDWt8yzY";
+  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
 
   useEffect(() => {
     const fetchBookingInfo = async () => {
@@ -45,10 +45,9 @@ const ReservationCheck = () => {
       }
       try {
         setIsLoading(true);
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
-        const response = await axios.get<ApiResponse<MyReservationInfo>>(
-          `${API_BASE_URL}/reservations/shops/${shopId}/my-reserv-info`,
-          { headers },
+        // 🔽 3. api 인스턴스를 사용하여 헤더 설정 없이 깔끔하게 요청합니다.
+        const response = await api.get<ApiResponse<MyReservationInfo>>(
+          `/reservations/shops/${shopId}/my-reserv-info`,
         );
         if (response.data.success && response.data.data) {
           setBookingInfo(response.data.data);
@@ -67,10 +66,20 @@ const ReservationCheck = () => {
   const handleCopy = () => {
     if (!bookingInfo?.shopAccountInfo) return;
     const accountInfo = `${bookingInfo.shopAccountInfo.bank} ${bookingInfo.shopAccountInfo.accountNumber}`;
-    navigator.clipboard.writeText(accountInfo).then(() => {
+    // The `navigator.clipboard.writeText` might fail in some sandboxed environments.
+    // A fallback using `document.execCommand('copy')` is more robust.
+    const textArea = document.createElement("textarea");
+    textArea.value = accountInfo;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    });
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+    document.body.removeChild(textArea);
   };
 
   if (isLoading)
@@ -114,10 +123,8 @@ const ReservationCheck = () => {
 
   const totalAmount = payInfoItems.reduce((sum, [, price]) => sum + price, 0);
 
-  // --- (수정) 예약금을 30000원으로 고정합니다. ---
-  const amountToPayNow = 30000;
+  const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
-  // ---------------------------------------------
 
   return (
     <div
@@ -137,13 +144,13 @@ const ReservationCheck = () => {
           paddingTop: "30px",
         }}
       >
-        <ChevronLeft
-          size={24}
-          className="cursor-pointer"
-          onClick={() => navigate(-1)}
-        />
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+            <ChevronLeft size={24} />
+        </button>
         <h1 className="title1">시술 예약하기</h1>
-        <X size={24} className="cursor-pointer" onClick={() => navigate("/")} />
+        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
+            <X size={24} />
+        </button>
       </div>
 
       <div
@@ -225,12 +232,11 @@ const ReservationCheck = () => {
               >
                 예약금액
               </div>
-              {/* --- (수정) 예약금액 표시도 30,000원으로 고정 --- */}
               <div
                 className="body2"
                 style={{ color: "var(--color-light-purple)" }}
               >
-                - 30,000원
+                - {amountToPayNow.toLocaleString()}원
               </div>
             </div>
           </div>
@@ -306,37 +312,45 @@ const ReservationCheck = () => {
               alignItems: "center",
             }}
           >
-            <div>
-              <p
-                className="caption2"
-                style={{ color: "var(--color-grey-450)", marginBottom: "4px" }}
-              >
-                입금 계좌
-              </p>
-              <p className="body2" style={{ lineHeight: "1.5" }}>
-                {shopAccountInfo.bank} {shopAccountInfo.accountNumber}
-                <br />
-                예금주 : {shopAccountInfo.accountHolder}
-              </p>
-            </div>
-            <button
-              onClick={handleCopy}
-              style={{
-                backgroundColor: "var(--color-purple)",
-                borderRadius: "9999px",
-                padding: "8px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <Copy size={18} />
-              <span className="label2">계좌 복사</span>
-            </button>
+            {shopAccountInfo ? (
+              <>
+                <div>
+                    <p className="caption2" style={{ color: "var(--color-grey-450)", marginBottom: "4px" }}>
+                        입금 계좌
+                    </p>
+                    <p className="body2" style={{ lineHeight: "1.5" }}>
+                        {shopAccountInfo.bank} {shopAccountInfo.accountNumber}
+                        <br />
+                        예금주 : {shopAccountInfo.accountHolder}
+                    </p>
+                </div>
+                <button
+                onClick={handleCopy}
+                style={{
+                    backgroundColor: "var(--color-purple)",
+                    borderRadius: "9999px",
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    border: "none",
+                    color: "white",
+                    cursor: "pointer"
+                }}
+                >
+                <Copy size={18} />
+                <span className="label2">계좌 복사</span>
+                </button>
+              </>
+            ) : (
+                <p className="body2" style={{ color: "var(--color-grey-450)" }}>
+                    매장 계좌 정보가 등록되지 않았습니다.
+                </p>
+            )}
           </div>
           {copied && (
             <p
-              className="caption2 mt-2"
+              className="caption2 mt-2 text-center"
               style={{ color: "var(--color-light-purple)" }}
             >
               계좌번호가 복사되었습니다!
@@ -368,6 +382,7 @@ const ReservationCheck = () => {
             color: "white",
             fontSize: "16px",
             fontWeight: "600",
+            cursor: "pointer"
           }}
         >
           {amountToPayNow.toLocaleString()}원 입금하기

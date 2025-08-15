@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
+import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -42,9 +42,9 @@ const BookingPage = () => {
   const [isTimeSlotsLoading, setIsTimeSlotsLoading] = useState(false);
   const [isDesignersLoading, setIsDesignersLoading] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzNDg4NDIwMjEiLCJ1c2VySWQiOjU4LCJpYXQiOjE3NTQ5Njk5MDAsImV4cCI6MTc1NzU2MTkwMH0.BzWPMm9rWf7IlmRSeO7xFySG6lic0NuQha2dDWt8yzY";
+  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
 
   useEffect(() => {
     const fetchAvailableDates = async () => {
@@ -52,14 +52,13 @@ const BookingPage = () => {
       try {
         setIsLoading(true);
 
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
-        const response = await axios.get<ApiResponse<AvailableDatesResponse>>(
-          `${API_BASE_URL}/reservations/shops/${shopId}/available-dates`,
+        // 🔽 3. api 인스턴스를 사용하여 요청합니다.
+        const response = await api.get<ApiResponse<AvailableDatesResponse>>(
+          `/reservations/shops/${shopId}/available-dates`,
           {
             params: { year, month },
-            headers,
           },
         );
 
@@ -86,14 +85,13 @@ const BookingPage = () => {
       }
       try {
         setIsTimeSlotsLoading(true);
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
         const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        const response = await axios.get<ApiResponse<AvailableTimesResponse>>(
-          `${API_BASE_URL}/reservations/shops/${shopId}/available-times`,
+        // 🔽 4. api 인스턴스를 사용하여 요청합니다.
+        const response = await api.get<ApiResponse<AvailableTimesResponse>>(
+          `/reservations/shops/${shopId}/available-times`,
           {
             params: { date: dateString, treatmentId: Number(treatmentId) },
-            headers,
           },
         );
 
@@ -120,14 +118,13 @@ const BookingPage = () => {
       }
       try {
         setIsDesignersLoading(true);
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
         const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        const response = await axios.get(
-          `${API_BASE_URL}/reservations/shops/${shopId}/available-designers`,
+        // 🔽 5. api 인스턴스를 사용하여 요청합니다.
+        const response = await api.get(
+          `/reservations/shops/${shopId}/available-designers`,
           {
             params: { date: dateString, time: selectedTime },
-            headers,
           },
         );
 
@@ -193,7 +190,6 @@ const BookingPage = () => {
     setSelectedDesignerId(null);
   };
 
-  // 다음 단계로 넘어가는 함수 (이미지 업로드 로직 제거)
   const handleNextStep = () => {
     if (selectedDate && selectedTime && selectedDesignerId) {
       const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
@@ -202,7 +198,7 @@ const BookingPage = () => {
         date: dateString,
         time: selectedTime,
         designerId: selectedDesignerId,
-        referenceImages: [], // 이미지를 선택하지 않으므로 빈 배열 전달
+        referenceImages: [],
       });
 
       navigate(`/appointment-booking/${shopId}/${treatmentId}`);
@@ -459,14 +455,15 @@ const BookingPage = () => {
       style={{ backgroundColor: "var(--color-black)" }}
     >
       <div className="sticky top-0 z-10 flex items-center justify-between bg-black px-4 py-3">
-        <ChevronLeft
-          className="h-6 w-6 cursor-pointer"
-          onClick={() => navigate(-1)}
-        />
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+            <ChevronLeft className="h-6 w-6" />
+        </button>
         <h1 className="title1" style={{ color: "var(--color-white)" }}>
           시술 예약하기
         </h1>
-        <X className="h-6 w-6 cursor-pointer" onClick={() => navigate("/")} />
+        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
+            <X className="h-6 w-6" />
+        </button>
       </div>
 
       <div className="px-5 py-4 pb-32">
@@ -479,22 +476,24 @@ const BookingPage = () => {
           </h2>
 
           <div className="mb-6 flex items-center justify-center">
-            <ChevronLeft
-              className="h-5 w-5 cursor-pointer"
-              style={{ color: "var(--color-grey-450)" }}
-              onClick={handlePrevMonth}
-            />
+            <button onClick={handlePrevMonth} className="p-0 bg-transparent border-none cursor-pointer">
+                <ChevronLeft
+                className="h-5 w-5"
+                style={{ color: "var(--color-grey-450)" }}
+                />
+            </button>
             <span
               className="title1 mx-4"
               style={{ color: "var(--color-white)" }}
             >
               {`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`}
             </span>
-            <ChevronRight
-              className="h-5 w-5 cursor-pointer"
-              style={{ color: "var(--color-grey-450)" }}
-              onClick={handleNextMonth}
-            />
+            <button onClick={handleNextMonth} className="p-0 bg-transparent border-none cursor-pointer">
+                <ChevronRight
+                className="h-5 w-5"
+                style={{ color: "var(--color-grey-450)" }}
+                />
+            </button>
           </div>
 
           {isLoading ? (
@@ -607,8 +606,6 @@ const BookingPage = () => {
             )}
           </div>
         )}
-
-        {/* 참고 이미지 추가 섹션 제거됨 */}
       </div>
 
       <div

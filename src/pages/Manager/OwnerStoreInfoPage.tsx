@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import axios from "axios"; // ❗️ apiClient 대신 axios를 직접 임포트
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
-
-// ✅ 알려주신 API 상수 정의
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzODc2OTc3OTYiLCJ1c2VySWQiOjYwLCJlbWFpbCI6Impvb245ODA5MjNAbmF2ZXIuY29tIiwiaWF0IjoxNzU1MTQ3NTEyLCJleHAiOjE3NTc3Mzk1MTJ9.usNX4xb-pfiBMM4TPYjlLhmwLeoa2lSFZO6O1KOvLEo";
 
 const OwnerStoreInfoPage = () => {
   const navigate = useNavigate();
@@ -24,15 +20,7 @@ const OwnerStoreInfoPage = () => {
     const fetchShopInfo = async () => {
       if (!shopId) return;
       try {
-        // ✅ axios를 직접 사용하여 데이터 GET 요청
-        const response = await axios.get(
-          `${API_BASE_URL}/shops/manage/${shopId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${ACCESS_TOKEN}`,
-            },
-          },
-        );
+        const response = await api.get(`/shops/manage/${shopId}`);
         if (response.data && response.data.data) {
           const { shopName, contact, address } = response.data.data;
           setShopName(shopName || "");
@@ -65,13 +53,8 @@ const OwnerStoreInfoPage = () => {
     );
 
     try {
-      // ✅ axios를 직접 사용하여 데이터 PATCH 요청
-      await axios.patch(`${API_BASE_URL}/shops/manage/${shopId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-        },
-      });
+      await api.patch(`/shops/manage/${shopId}`, formData);
+      
       alert("매장 정보가 성공적으로 저장되었습니다.");
       navigate(-1);
     } catch (error) {
@@ -130,8 +113,8 @@ const OwnerStoreInfoPage = () => {
         </button>
       </div>
 
-      {/* Content Area */}
-      <main style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <main style={{ padding: "0 20px 110px" }}>
         {/* 매장명 입력 필드 */}
         <div style={{ marginBottom: "24px" }}>
           <label
@@ -259,6 +242,8 @@ const OwnerStoreInfoPage = () => {
           </div>
         </div>
       </main>
+      
+      <ManagerNavbar />
     </div>
   );
 };

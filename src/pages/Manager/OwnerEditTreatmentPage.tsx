@@ -1,56 +1,121 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
   Plus,
   Minus,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
   ChevronDown,
   X,
 } from "lucide-react";
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
-interface TreatmentOption {
+// --- 타입 정의 ---
+interface TreatmentImage {
   id: number;
+  imageUrl: string;
+}
+
+interface TreatmentOption {
+  id: number | null;
   name: string;
-  time: number;
+  duration: number;
   price: number;
 }
 
 const OwnerEditTreatmentPage = () => {
-  const [treatmentName, setTreatmentName] = useState("이달의 아트 (9월)");
-  const [category, setCategory] = useState("손");
-  const [price, setPrice] = useState("45000");
-  const [duration, setDuration] = useState(0);
-  const [description, setDescription] = useState(
-    "시술 설명 텍스트입니다. 몇 자가 최대글자수? 궁금하다. 더 자세한 내용은 기능명세서를 참고해주세요. 다른 설명도",
-  );
-  const [mainImage, setMainImage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { shopId, treatmentId } = useParams();
 
-  const [options, setOptions] = useState<TreatmentOption[]>([
-    { id: 1, name: "케어", time: 30, price: 0 }, // Figma 초기값 반영
-    { id: 2, name: "스케일링", time: 60, price: 0 }, // Figma 초기값 반영
-  ]);
-  const [nextOptionId, setNextOptionId] = useState(3);
+  // --- 상태 관리 ---
+  const [treatmentName, setTreatmentName] = useState("");
+  const [category, setCategory] = useState("HAND");
+  const [price, setPrice] = useState("");
+  const [duration, setDuration] = useState(0);
+  const [description, setDescription] = useState("");
+  
+  const [existingImages, setExistingImages] = useState<TreatmentImage[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
+
+  const [options, setOptions] = useState<TreatmentOption[]>([]);
+  const [nextOptionId, setNextOptionId] = useState(1);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const MAX_LENGTH_NAME = 50;
-  const MAX_LENGTH_PRICE = 10;
   const MAX_LENGTH_DESCRIPTION = 500;
 
-  const handleSave = () => {
-    console.log("시술 수정 저장:", {
-      treatmentName,
+  useEffect(() => {
+    const fetchTreatmentData = async () => {
+      if (!shopId || !treatmentId) {
+        setError("잘못된 접근입니다.");
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await api.get(`/shops/${shopId}/treatments/${treatmentId}`);
+        if (response.data && response.data.data) {
+          const data = response.data.data;
+          setTreatmentName(data.name || "");
+          setCategory(data.category || "HAND");
+          setPrice(data.price ? String(data.price) : "");
+          setDuration(data.durationMinutes || 0);
+          setDescription(data.description || "");
+          setExistingImages(data.images || []);
+          
+          const formattedOptions = data.options?.map((opt: any) => ({
+            id: opt.optionId,
+            name: opt.name,
+            duration: opt.duration,
+            price: opt.price,
+          })) || [];
+          setOptions(formattedOptions);
+        }
+      } catch (err) {
+        console.error("시술 정보 로딩 실패:", err);
+        setError("시술 정보를 불러오는 데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTreatmentData();
+  }, [shopId, treatmentId]);
+
+  const handleSave = async () => {
+    if (!shopId || !treatmentId) return;
+
+    const requestDto = {
+      name: treatmentName,
       category,
-      price,
-      duration,
+      price: parseInt(price, 10) || 0,
+      durationMinutes: duration,
       description,
-      mainImage,
-      options,
+      deleteImageIds,
+      options: options.map(({ id, ...rest }) => ({
+        ...rest,
+        optionId: typeof id === 'number' && id > 0 ? id : null,
+      })),
+    };
+
+    const formData = new FormData();
+    formData.append("requestDto", JSON.stringify(requestDto));
+    newImages.forEach(file => {
+      formData.append("newImages", file);
     });
+
+    try {
+      await api.patch(`/shops/manage/${shopId}/treatments/${treatmentId}`, formData);
+      alert("시술 정보가 성공적으로 수정되었습니다.");
+      navigate(-1);
+    } catch (err) {
+      console.error("시술 정보 저장 실패:", err);
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleDurationChange = (type: "increase" | "decrease") => {
@@ -61,67 +126,70 @@ const OwnerEditTreatmentPage = () => {
     });
   };
 
-  const handleOptionChange = (
-    id: number,
-    field: keyof TreatmentOption,
-    value: any,
-  ) => {
+  const handleOptionChange = (id: number | null, field: keyof Omit<TreatmentOption, 'id'>, value: any) => {
     setOptions(prev =>
       prev.map(opt => (opt.id === id ? { ...opt, [field]: value } : opt)),
     );
   };
-
-  const handleOptionDurationChange = (
-    id: number,
-    type: "increase" | "decrease",
-  ) => {
+  
+  const handleOptionDurationChange = (id: number | null, type: "increase" | "decrease") => {
     setOptions(prev =>
       prev.map(opt => {
         if (opt.id === id) {
-          if (type === "increase") return { ...opt, time: opt.time + 10 };
-          if (type === "decrease" && opt.time >= 10)
-            return { ...opt, time: opt.time - 10 };
+          const currentDuration = opt.duration;
+          if (type === "increase") return { ...opt, duration: currentDuration + 10 };
+          if (type === "decrease" && currentDuration >= 10) return { ...opt, duration: currentDuration - 10 };
         }
         return opt;
       }),
     );
   };
 
-  const handleOptionPriceInputChange = (id: number, value: string) => {
-    const numericValue = parseInt(value.replace(/[^0-9]/g, ""));
-    setOptions(prev =>
-      prev.map(opt =>
-        opt.id === id
-          ? { ...opt, price: isNaN(numericValue) ? 0 : numericValue }
-          : opt,
-      ),
-    );
-  };
-
   const addOption = () => {
     setOptions(prev => [
       ...prev,
-      { id: nextOptionId, name: "새 옵션", time: 0, price: 0 },
+      { id: -nextOptionId, name: "", duration: 0, price: 0 },
     ]);
     setNextOptionId(prev => prev + 1);
   };
 
-  const removeOption = (id: number) => {
+  const removeOption = (id: number | null) => {
     setOptions(prev => prev.filter(opt => opt.id !== id));
   };
 
-  const handleMainImageUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMainImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const filesToUpload = Array.from(files);
+      setNewImages(prev => [...prev, ...filesToUpload]);
     }
   };
+
+  const removeNewImage = (index: number) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (id: number) => {
+    setExistingImages(prev => prev.filter(img => img.id !== id));
+    setDeleteImageIds(prev => [...prev, id]);
+  };
+
+  const displayedImages = [
+    ...existingImages.map(img => ({ ...img, isNew: false })),
+    ...newImages.map((file, index) => ({
+      id: index,
+      imageUrl: URL.createObjectURL(file),
+      isNew: true,
+    })),
+  ];
+
+  if (isLoading) {
+    return <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">로딩 중...</div>;
+  }
+
+  if (error) {
+    return <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">{error}</div>;
+  }
 
   return (
     <div
@@ -132,83 +200,19 @@ const OwnerEditTreatmentPage = () => {
         fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect
-              x="1"
-              y="3"
-              width="18"
-              height="6"
-              rx="2"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 20px 24px",
-          marginTop: "8px",
+          padding: "20px 20px 24px",
         }}
       >
-        <ChevronLeft size={24} color="var(--color-white)" />
-        <h1
-          className="title1"
-          style={{ color: "var(--color-white)", margin: 0 }}
-        >
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+          <ChevronLeft size={24} color="var(--color-white)" />
+        </button>
+        <h1 className="title1" style={{ color: "var(--color-white)", margin: 0 }}>
           시술 수정하기
         </h1>
         <button
@@ -216,6 +220,9 @@ const OwnerEditTreatmentPage = () => {
           style={{
             color: "var(--color-light-purple)",
             fontWeight: "var(--font-weight-semibold)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
           onClick={handleSave}
         >
@@ -224,21 +231,14 @@ const OwnerEditTreatmentPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
         {/* 시술명 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="treatmentName"
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
+          <label htmlFor="treatmentName" className="label1 block mb-2 text-white">
             시술명 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <input
               id="treatmentName"
               type="text"
@@ -246,27 +246,9 @@ const OwnerEditTreatmentPage = () => {
               value={treatmentName}
               onChange={e => setTreatmentName(e.target.value)}
               maxLength={MAX_LENGTH_NAME}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "16px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontFamily: "Pretendard, sans-serif",
-                outline: "none",
-              }}
+              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
             />
-            <span
-              className="caption2"
-              style={{
-                position: "absolute",
-                bottom: "12px",
-                right: "16px",
-                color: "var(--color-grey-450)",
-              }}
-            >
+            <span className="caption2 absolute bottom-3 right-4 text-[color:var(--color-grey-450)]">
               {treatmentName.length}/{MAX_LENGTH_NAME}
             </span>
           </div>
@@ -274,201 +256,59 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 카테고리 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="category"
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
+          <label htmlFor="category" className="label1 block mb-2 text-white">
             카테고리 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <select
               id="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "16px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontFamily: "Pretendard, sans-serif",
-                outline: "none",
-                appearance: "none",
-                paddingRight: "40px",
-              }}
+              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none appearance-none pr-10"
             >
-              <option
-                value="손"
-                style={{
-                  backgroundColor: "var(--color-grey-850)",
-                  color: "var(--color-white)",
-                }}
-              >
-                손
-              </option>
-              <option
-                value="발"
-                style={{
-                  backgroundColor: "var(--color-grey-850)",
-                  color: "var(--color-white)",
-                }}
-              >
-                발
-              </option>
-              <option
-                value="기타"
-                style={{
-                  backgroundColor: "var(--color-grey-850)",
-                  color: "var(--color-white)",
-                }}
-              >
-                기타
-              </option>
+              <option value="HAND" style={{ backgroundColor: "var(--color-grey-850)" }}>손</option>
+              <option value="FEET" style={{ backgroundColor: "var(--color-grey-850)" }}>발</option>
+              <option value="ETC" style={{ backgroundColor: "var(--color-grey-850)" }}>기타</option>
             </select>
-            <ChevronDown
-              size={20}
-              style={{
-                color: "var(--color-grey-450)",
-                position: "absolute",
-                right: "16px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                pointerEvents: "none",
-              }}
-            />
+            <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)] pointer-events-none" />
           </div>
         </div>
 
         {/* 가격 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="price"
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
+          <label htmlFor="price" className="label1 block mb-2 text-white">
             가격 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <input
               id="price"
-              type="number"
+              type="text"
               placeholder="가격을 입력해주세요."
               value={price}
-              onChange={e => setPrice(e.target.value)}
-              maxLength={MAX_LENGTH_PRICE}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "16px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontFamily: "Pretendard, sans-serif",
-                outline: "none",
-              }}
+              onChange={e => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
             />
-            <span
-              className="caption2"
-              style={{
-                position: "absolute",
-                bottom: "12px",
-                right: "16px",
-                color: "var(--color-grey-450)",
-              }}
-            >
-              {price.length}/{MAX_LENGTH_PRICE}
-            </span>
+             <span className="body2 absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)]">원</span>
           </div>
         </div>
 
         {/* 소요시간 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="duration"
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            소요시간
-          </label>
-          <p
-            className="caption2"
-            style={{ color: "var(--color-grey-450)", marginBottom: "8px" }}
-          >
-            10분 단위로 조작 가능해요
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <label className="label1 block mb-2 text-white">소요시간</label>
+          <p className="caption2 mb-2 text-[color:var(--color-grey-450)]">10분 단위로 조작 가능해요</p>
+          <div className="flex items-center gap-2">
             <input
-              id="duration"
               type="text"
               readOnly
               value={`${duration}분`}
-              style={{
-                flexGrow: 1,
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "16px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontFamily: "Pretendard, sans-serif",
-                outline: "none",
-                textAlign: "center",
-              }}
+              className="flex-grow bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm text-center outline-none"
             />
-            <div style={{ display: "flex", gap: "4px" }}>
-              {" "}
-              {/* 버튼을 가로로 묶음 */}
-              <button
-                onClick={() => handleDurationChange("decrease")}
-                style={{
-                  backgroundColor: "var(--color-dark-purple)",
-                  border: "1px solid var(--color-dark-purple)", // 배경색 dark-purple
-                  borderRadius: "9999px",
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                <Minus size={20} color="var(--color-light-purple)" />{" "}
-                {/* 아이콘 색상 light-purple */}
+            <div className="flex gap-1">
+              <button onClick={() => handleDurationChange("decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                <Minus size={20} color="var(--color-light-purple)" />
               </button>
-              <button
-                onClick={() => handleDurationChange("increase")}
-                style={{
-                  backgroundColor: "var(--color-dark-purple)",
-                  border: "1px solid var(--color-dark-purple)", // 배경색 dark-purple
-                  borderRadius: "9999px",
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                <Plus size={20} color="var(--color-light-purple)" />{" "}
-                {/* 아이콘 색상 light-purple */}
+              <button onClick={() => handleDurationChange("increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                <Plus size={20} color="var(--color-light-purple)" />
               </button>
             </div>
           </div>
@@ -476,47 +316,18 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 설명글 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="description"
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            설명글
-          </label>
-          <div style={{ position: "relative" }}>
+          <label htmlFor="description" className="label1 block mb-2 text-white">설명글</label>
+          <div className="relative">
             <textarea
               id="description"
-              placeholder="시술 설명 텍스트입니다. 몇 자가 최대글자수? 궁금하다. 더 자세한 내용은 기능명세서를 참고해주세요. 다른 설명도"
+              placeholder="시술에 대한 설명을 입력해주세요."
               value={description}
               onChange={e => setDescription(e.target.value)}
               maxLength={MAX_LENGTH_DESCRIPTION}
               rows={5}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "16px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontFamily: "Pretendard, sans-serif",
-                outline: "none",
-                resize: "none",
-              }}
+              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm resize-none outline-none"
             />
-            <span
-              className="caption2"
-              style={{
-                position: "absolute",
-                bottom: "12px",
-                right: "16px",
-                color: "var(--color-grey-450)",
-              }}
-            >
+            <span className="caption2 absolute bottom-3 right-4 text-[color:var(--color-grey-450)]">
               {description.length}/{MAX_LENGTH_DESCRIPTION}
             </span>
           </div>
@@ -524,366 +335,87 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 대표 이미지 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            대표 이미지
-          </label>
-          <p
-            className="caption2"
-            style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}
-          >
-            맨 처음 들어왔을 때 보여질 썸네일을 직접 지정해요
-          </p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              id="mainImageUpload"
-              onChange={handleMainImageUpload}
-            />
-            <label
-              htmlFor="mainImageUpload"
-              style={{
-                width: "80px",
-                height: "80px",
-                borderRadius: "8px",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                gap: "4px",
-              }}
-            >
-              <Plus size={20} color="var(--color-grey-450)" />
-              <span
-                className="caption2"
-                style={{ color: "var(--color-grey-450)" }}
-              >
-                사진 등록
-              </span>
-            </label>
-            {mainImage && (
-              <div
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "8px",
-                  position: "relative",
-                  overflow: "hidden",
-                  backgroundColor: "var(--color-grey-350)",
-                }}
-              >
-                <img
-                  src={mainImage}
-                  alt="대표 이미지"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+          <label className="label1 block mb-2 text-white">대표 이미지</label>
+          <p className="caption2 mb-4 text-[color:var(--color-grey-450)]">맨 처음 들어왔을 때 보여질 썸네일을 직접 지정해요</p>
+          <div className="flex gap-2 flex-wrap">
+            {displayedImages.map((image, index) => (
+              <div key={image.isNew ? `new-${index}` : `existing-${image.id}`} className="relative w-20 h-20 rounded-lg overflow-hidden">
+                <img src={image.imageUrl} alt={`시술 이미지 ${index + 1}`} className="w-full h-full object-cover" />
                 <button
-                  onClick={() => setMainImage(null)}
-                  style={{
-                    position: "absolute",
-                    top: "4px",
-                    right: "4px",
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "50%",
-                    backgroundColor: "var(--color-grey-750)",
-                    border: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    zIndex: 10,
-                  }}
+                  onClick={() => image.isNew ? removeNewImage(index) : removeExistingImage(image.id as number)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 border-none flex items-center justify-center cursor-pointer z-10"
                 >
-                  <X size={12} color="var(--color-white)" />
+                  <X size={12} color="white" />
                 </button>
               </div>
-            )}
+            ))}
+            <label htmlFor="imageUpload" className="w-20 h-20 rounded-lg bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] flex flex-col items-center justify-center cursor-pointer gap-1">
+              <Plus size={20} className="text-[color:var(--color-grey-450)]" />
+              <span className="caption2 text-[color:var(--color-grey-450)]">사진 {displayedImages.length}/5</span>
+            </label>
+            <input type="file" id="imageUpload" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
           </div>
         </div>
 
         {/* 옵션 추가 섹션 */}
-        <div style={{ marginBottom: "32px" }}>
-          <label
-            className="label1"
-            style={{
-              color: "var(--color-white)",
-              marginBottom: "8px",
-              display: "block",
-            }}
-          >
-            옵션 추가
-          </label>
-          <div className="space-y-6">
+        <div>
+          <label className="label1 block mb-2 text-white">옵션 추가</label>
+          <div className="space-y-4">
             {options.map(option => (
-              <div
-                key={option.id}
-                style={{
-                  backgroundColor: "var(--color-grey-1000)",
-                  borderRadius: "8px",
-                  padding: "16px",
-                  position: "relative",
-                }}
-              >
-                {/* 옵션 삭제 버튼 */}
-                {options.length > 1 && (
-                  <button
-                    onClick={() => removeOption(option.id)}
-                    style={{
-                      position: "absolute",
-                      top: "12px",
-                      right: "12px",
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      backgroundColor: "var(--color-grey-750)",
-                      border: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                  >
-                    <X size={16} color="var(--color-white)" />
-                  </button>
-                )}
-
-                {/* 옵션명 */}
-                <div style={{ marginBottom: "16px" }}>
-                  <label
-                    htmlFor={`optionName-${option.id}`}
-                    className="body1"
-                    style={{
-                      color: "var(--color-white)",
-                      marginBottom: "8px",
-                      display: "block",
-                    }}
-                  >
-                    옵션명
-                  </label>
+              <div key={option.id} className="bg-[color:var(--color-grey-1000)] rounded-lg p-4 relative">
+                <button onClick={() => removeOption(option.id)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[color:var(--color-grey-750)] border-none flex items-center justify-center cursor-pointer z-10">
+                  <X size={16} color="white" />
+                </button>
+                <div className="mb-4">
+                  <label htmlFor={`optionName-${option.id}`} className="body1 block mb-2 text-white">옵션명</label>
                   <input
                     id={`optionName-${option.id}`}
                     type="text"
                     placeholder="옵션명을 입력해주세요"
                     value={option.name}
-                    onChange={e =>
-                      handleOptionChange(option.id, "name", e.target.value)
-                    }
-                    style={{
-                      width: "100%",
-                      backgroundColor: "var(--color-grey-850)",
-                      border: "1px solid var(--color-grey-750)",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      color: "var(--color-white)",
-                      fontSize: "14px",
-                      outline: "none",
-                    }}
+                    onChange={e => handleOptionChange(option.id, "name", e.target.value)}
+                    className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
                   />
                 </div>
-
-                {/* 소요 시간 (옵션) */}
-                <div style={{ marginBottom: "16px" }}>
-                  <label
-                    htmlFor={`optionTime-${option.id}`}
-                    className="body1"
-                    style={{
-                      color: "var(--color-white)",
-                      marginBottom: "8px",
-                      display: "block",
-                    }}
-                  >
-                    소요 시간
-                  </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <input
-                      id={`optionTime-${option.id}`}
-                      type="text"
-                      readOnly
-                      value={`${option.time}분`}
-                      style={{
-                        flexGrow: 1,
-                        backgroundColor: "var(--color-grey-850)",
-                        border: "1px solid var(--color-grey-750)",
-                        borderRadius: "8px",
-                        padding: "12px",
-                        color: "var(--color-white)",
-                        fontSize: "14px",
-                        outline: "none",
-                        textAlign: "center",
-                      }}
-                    />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      {" "}
-                      {/* 버튼을 가로로 묶음 */}
-                      <button
-                        onClick={() =>
-                          handleOptionDurationChange(option.id, "decrease")
-                        }
-                        style={{
-                          backgroundColor: "var(--color-dark-purple)",
-                          border: "1px solid var(--color-dark-purple)", // 배경색 dark-purple
-                          borderRadius: "9999px",
-                          width: "40px",
-                          height: "40px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
-                      >
-                        <Minus size={20} color="var(--color-light-purple)" />{" "}
-                        {/* 아이콘 색상 light-purple */}
+                <div className="mb-4">
+                  <label className="body1 block mb-2 text-white">소요 시간</label>
+                  <div className="flex items-center gap-2">
+                    <input type="text" readOnly value={`${option.duration}분`} className="flex-grow bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm text-center outline-none" />
+                    <div className="flex gap-1">
+                      <button onClick={() => handleOptionDurationChange(option.id, "decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                        <Minus size={20} color="var(--color-light-purple)" />
                       </button>
-                      <button
-                        onClick={() =>
-                          handleOptionDurationChange(option.id, "increase")
-                        }
-                        style={{
-                          backgroundColor: "var(--color-dark-purple)",
-                          border: "1px solid var(--color-dark-purple)", // 배경색 dark-purple
-                          borderRadius: "9999px",
-                          width: "40px",
-                          height: "40px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
-                      >
-                        <Plus size={20} color="var(--color-light-purple)" />{" "}
-                        {/* 아이콘 색상 light-purple */}
+                      <button onClick={() => handleOptionDurationChange(option.id, "increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                        <Plus size={20} color="var(--color-light-purple)" />
                       </button>
                     </div>
                   </div>
                 </div>
-
-                {/* 가격 (옵션) - 직접 입력으로 변경 */}
                 <div>
-                  <label
-                    htmlFor={`optionPrice-${option.id}`}
-                    className="body1"
-                    style={{
-                      color: "var(--color-white)",
-                      marginBottom: "8px",
-                      display: "block",
-                    }}
-                  >
-                    가격
-                  </label>
-                  <input
-                    id={`optionPrice-${option.id}`}
-                    type="number"
-                    placeholder="가격을 입력해주세요"
-                    value={option.price === 0 ? "" : option.price}
-                    onChange={e =>
-                      handleOptionPriceInputChange(option.id, e.target.value)
-                    }
-                    style={{
-                      width: "100%",
-                      backgroundColor: "var(--color-grey-850)",
-                      border: "1px solid var(--color-grey-750)",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      color: "var(--color-white)",
-                      fontSize: "14px",
-                      outline: "none",
-                    }}
-                  />
+                  <label htmlFor={`optionPrice-${option.id}`} className="body1 block mb-2 text-white">가격</label>
+                   <div className="relative">
+                      <input
+                        id={`optionPrice-${option.id}`}
+                        type="text"
+                        placeholder="가격을 입력해주세요"
+                        value={option.price === 0 ? "" : option.price}
+                        onChange={e => handleOptionChange(option.id, "price", parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0)}
+                        className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
+                      />
+                      <span className="body2 absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)]">원</span>
+                   </div>
                 </div>
               </div>
             ))}
-            {/* 옵션 추가 버튼 */}
-            <button
-              onClick={addOption}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-grey-850)",
-                border: "1px solid var(--color-grey-750)",
-                borderRadius: "8px",
-                padding: "12px",
-                color: "var(--color-white)",
-                fontSize: "14px",
-                fontWeight: "var(--font-weight-semibold)",
-                cursor: "pointer",
-                marginTop: "24px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center", // 아이콘과 텍스트 중앙 정렬
-              }}
-            >
-              <Plus size={20} style={{ marginRight: "8px" }} />{" "}
-              {/* 아이콘을 텍스트 옆으로 이동 */}
+            <button onClick={addOption} className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm font-semibold cursor-pointer mt-6 flex items-center justify-center">
+              <Plus size={20} className="mr-2" />
               옵션 추가
             </button>
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <Calendar size={24} />
-          예약
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <User size={24} />
-          고객
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MessageSquare size={24} />
-          채팅
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-light-purple)" }}
-        >
-          <Home size={24} />
-          매장
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MoreHorizontal size={24} />
-          더보기
-        </button>
-      </nav>
+      
+      <ManagerNavbar />
     </div>
   );
 };

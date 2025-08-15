@@ -1,33 +1,101 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
   Camera,
-  Home,
-  User,
-  MessageSquare,
-  Calendar,
-  MoreHorizontal,
   X,
 } from "lucide-react";
-import "../../styles/color-system.css"; // 색상 시스템 임포트
-import "../../styles/type-system.css"; // 타입 시스템 임포트
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
+import "../../styles/color-system.css";
+import "../../styles/type-system.css";
+
+// --- 타입 정의 ---
+type VerificationStatus = "NONE" | "PENDING" | "VERIFIED";
 
 const OwnerBusinessRegistrationPage = () => {
-  // isRegistered: false (등록 전), true (등록 후 재접속 시)
-  const [isRegistered, setIsRegistered] = useState(false);
+  const navigate = useNavigate();
+  const { shopId } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 사업자등록증 업로드 버튼 클릭 핸들러 (상태 전환 예시)
-  const handleUploadClick = () => {
-    // 실제로는 파일 업로드 로직이 들어가고, 성공 시 상태 변경
-    setIsRegistered(true);
-    console.log("사업자등록증 업로드 버튼 클릭");
+  // --- 상태 관리 ---
+  const [status, setStatus] = useState<VerificationStatus>("NONE");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBusinessLicense = async () => {
+      if (!shopId) {
+        setError("잘못된 접근입니다.");
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await api.get(`/shops/manage/${shopId}/business-license`);
+        if (response.data && response.data.data) {
+          const { verificationStatus, businessLicenseImageUrl } = response.data.data;
+          setStatus(verificationStatus || "NONE");
+          setImageUrl(businessLicenseImageUrl || null);
+        }
+      } catch (err) {
+        if ((err as any).response?.status !== 404) {
+          console.error("사업자등록증 정보 로딩 실패:", err);
+          setError("정보를 불러오는 데 실패했습니다.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBusinessLicense();
+  }, [shopId]);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !shopId) return;
+
+    const formData = new FormData();
+    formData.append("businessLicenseImage", file);
+
+    try {
+      const response = await api.post(`/shops/manage/${shopId}/business-license`, formData);
+      if (response.data && response.data.data) {
+        setStatus(response.data.data.verificationStatus || "PENDING");
+        setImageUrl(response.data.data.businessLicenseImageUrl || null);
+        alert("사업자등록증이 성공적으로 제출되었습니다.");
+      }
+    } catch (err) {
+      console.error("이미지 업로드 실패:", err);
+      alert("업로드에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
-  // 업로드된 이미지 삭제 핸들러
-  const handleDeleteImage = () => {
-    setIsRegistered(false); // 이미지를 삭제하면 '등록 전' 상태로 돌아감
-    console.log("업로드된 사업자등록증 이미지 삭제");
+  const handleDeleteImage = async () => {
+    if (!shopId) return;
+
+    // confirm() 대신 alert와 UI를 사용하는 것이 더 나은 사용자 경험을 제공할 수 있습니다.
+    // 여기서는 window.confirm을 유지합니다.
+    if (window.confirm("업로드한 사업자등록증을 삭제하시겠습니까?")) {
+      try {
+        await api.delete(`/shops/manage/${shopId}/business-license`);
+        setStatus("NONE");
+        setImageUrl(null);
+        alert("삭제되었습니다.");
+      } catch (err) {
+        console.error("이미지 삭제 실패:", err);
+        alert("삭제에 실패했습니다. 다시 시도해주세요.");
+      }
+    }
   };
+
+  if (isLoading) {
+    return <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">로딩 중...</div>;
+  }
+
+  if (error) {
+    return <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">{error}</div>;
+  }
 
   return (
     <div
@@ -35,298 +103,86 @@ const OwnerBusinessRegistrationPage = () => {
       style={{
         backgroundColor: "var(--color-black)",
         color: "var(--color-white)",
-        fontFamily: "Pretendard, sans-serif", // Pretendard 폰트 적용
+        fontFamily: "Pretendard, sans-serif",
       }}
     >
-      {/* Status Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ display: "flex", gap: "2px" }}>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "4px",
-                height: "4px",
-                backgroundColor: "white",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </div>
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-            <rect
-              x="1"
-              y="3"
-              width="18"
-              height="6"
-              rx="2"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <rect x="20" y="4" width="2" height="4" rx="1" fill="white" />
-          </svg>
-        </div>
-      </div>
-
       {/* Header */}
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-start", // 왼쪽 정렬 유지
           alignItems: "center",
-          padding: "0 20px 24px", // Figma에 맞춰 패딩 조정
-          marginTop: "8px", // Figma에 맞춰 마진 조정
+          padding: "20px 20px 24px",
         }}
       >
-        <ChevronLeft size={24} color="var(--color-white)" />
-        <h1
-          className="title1"
-          style={{
-            color: "var(--color-white)",
-            margin: "0 auto",
-            textAlign: "center",
-            flexGrow: 1,
-          }}
-        >
-          {" "}
-          {/* flexGrow: 1과 margin: 0 auto로 중앙 정렬 */}
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+          <ChevronLeft size={24} color="var(--color-white)" />
+        </button>
+        <h1 className="title1" style={{ color: "var(--color-white)", margin: "0 auto" }}>
           사업자등록증
         </h1>
-        {/* Figma에 X 아이콘 없음 */}
+        <div style={{ width: "24px" }} />
       </div>
 
       {/* Content Area */}
-      <div style={{ padding: "0 20px 32px" }}>
-        {" "}
-        {/* Figma에 맞춰 패딩 조정 */}
-        {/* 사업자등록증 확인 중 / 등록 전 상태 메시지 */}
-        {isRegistered && (
-          <div
-            className="label1 mb-6 rounded-md px-4 py-3"
-            style={{
-              backgroundColor: "var(--color-dark-purple)",
-              color: "var(--color-light-purple)",
-              textAlign: "center",
-            }}
-          >
-            {" "}
-            {/* 텍스트 중앙 정렬 추가 */}
+      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
+      <div style={{ padding: "0 20px 110px" }}>
+        {status === "PENDING" && (
+          <div className="label1 mb-6 rounded-md px-4 py-3 text-center" style={{ backgroundColor: "var(--color-dark-purple)", color: "var(--color-light-purple)" }}>
             사업자등록증 확인 중
           </div>
         )}
-        {/* 안내 문구 */}
-        <p
-          className="body2"
-          style={{
-            color: "var(--color-grey-450)",
-            lineHeight: "1.5",
-            marginBottom: "24px",
-          }}
-        >
-          뷰티플로우 전체 서비스를 이용하기 위해서는 사업자등록증을 제출해야
-          해요. 1주일 내로 미제출 시 서비스 이용이 제한돼요.
+        {status === "VERIFIED" && (
+          <div className="label1 mb-6 rounded-md px-4 py-3 text-center" style={{ backgroundColor: "var(--color-dark-purple)", color: "var(--color-light-purple)" }}>
+            인증이 완료되었습니다.
+          </div>
+        )}
+        <p className="body2" style={{ color: "var(--color-grey-450)", lineHeight: "1.5", marginBottom: "24px" }}>
+          뷰티플로우 전체 서비스를 이용하기 위해서는 사업자등록증을 제출해야 해요. 1주일 내로 미제출 시 서비스 이용이 제한돼요.
         </p>
-        {/* 유의사항 섹션 */}
         <div style={{ marginBottom: "32px" }}>
-          <h2
-            className="label1"
-            style={{ color: "var(--color-white)", marginBottom: "16px" }}
-          >
-            유의사항
-          </h2>
-          <div
-            style={{
-              backgroundColor: "var(--color-grey-1000)",
-              borderRadius: "8px",
-              padding: "16px",
-            }}
-          >
-            {" "}
-            {/* 배경색과 패딩 추가 */}
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              <li
-                className="body2"
-                style={{
-                  color: "var(--color-grey-450)",
-                  lineHeight: "1.5",
-                  marginBottom: "12px",
-                  position: "relative",
-                  paddingLeft: "16px",
-                }}
-              >
-                <span style={{ position: "absolute", left: "0" }}>•</span> 6개월
-                이내 발급된 사업자등록증을 제출해 주세요
+          <h2 className="label1" style={{ color: "var(--color-white)", marginBottom: "16px" }}>유의사항</h2>
+          <div style={{ backgroundColor: "var(--color-grey-1000)", borderRadius: "8px", padding: "16px" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+              <li className="body2" style={{ color: "var(--color-grey-450)", lineHeight: "1.5", position: "relative", paddingLeft: "16px" }}>
+                <span style={{ position: "absolute", left: "0" }}>•</span> 6개월 이내 발급된 사업자등록증을 제출해 주세요
               </li>
-              <li
-                className="body2"
-                style={{
-                  color: "var(--color-grey-450)",
-                  lineHeight: "1.5",
-                  position: "relative",
-                  paddingLeft: "16px",
-                }}
-              >
-                <span style={{ position: "absolute", left: "0" }}>•</span> 서류
-                제출 시 대표자명, 생년월일, 사업의 종류, 세무서명 및
-                세무서날인을 제외한 정보는 가린 후 제출해 주세요.
+              <li className="body2" style={{ color: "var(--color-grey-450)", lineHeight: "1.5", position: "relative", paddingLeft: "16px" }}>
+                <span style={{ position: "absolute", left: "0" }}>•</span> 서류 제출 시 대표자명, 생년월일, 사업의 종류, 세무서명 및 세무서날인을 제외한 정보는 가린 후 제출해 주세요.
               </li>
             </ul>
           </div>
         </div>
-        {/* 사업자등록증 업로드 섹션 */}
         <div style={{ marginBottom: "32px" }}>
-          <h2
-            className="label1"
-            style={{ color: "var(--color-white)", marginBottom: "8px" }}
-          >
-            사업자등록증 업로드
-          </h2>
-          <p
-            className="caption2"
-            style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}
-          >
+          <h2 className="label1" style={{ color: "var(--color-white)", marginBottom: "8px" }}>사업자등록증 업로드</h2>
+          <p className="caption2" style={{ color: "var(--color-grey-450)", marginBottom: "16px" }}>
             업로드 후 48시간 내로 관리자가 확인할 예정입니다.
           </p>
 
-          {/* 업로드 버튼 또는 이미지 플레이스홀더 */}
-          {!isRegistered ? (
+          <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+
+          {imageUrl ? (
+            <div style={{ width: "101px", height: "101px", borderRadius: "8px", position: "relative", overflow: "hidden" }}>
+              <img src={imageUrl} alt="사업자등록증" className="w-full h-full object-cover" />
+              {status !== "VERIFIED" && (
+                <button onClick={handleDeleteImage} style={{ position: "absolute", top: "4px", right: "4px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "var(--color-grey-750)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10 }}>
+                  <X size={12} color="var(--color-white)" />
+                </button>
+              )}
+            </div>
+          ) : (
             <button
               className="label1 flex w-full items-center justify-center rounded-lg py-4"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)",
-                color: "var(--color-white)",
-                fontWeight: "var(--font-weight-semibold)",
-                cursor: "pointer",
-              }}
-              onClick={handleUploadClick}
+              style={{ background: "linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)", color: "var(--color-white)", fontWeight: "var(--font-weight-semibold)", cursor: "pointer" }}
+              onClick={() => fileInputRef.current?.click()}
             >
               <Camera size={20} style={{ marginRight: "8px" }} />
               사업자등록증 업로드
             </button>
-          ) : (
-            <div
-              style={{
-                width: "101px", // Figma에 보이는 이미지 크기
-                height: "101px",
-                borderRadius: "8px",
-                backgroundColor: "var(--color-grey-350)", // 이미지 플레이스홀더 배경색
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  // 격자무늬 패턴
-                  position: "absolute",
-                  inset: 0,
-                  opacity: 0.1,
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.3' fill-rule='evenodd'%3E%3Cpath d='m0 20l20-20h-20zm20 0v-20h-20z'/%3E%3C/g%3E%3C/svg%3E")`,
-                  backgroundSize: "20px 20px",
-                }}
-              ></div>
-              {/* 이미지 삭제 버튼 */}
-              <button
-                onClick={handleDeleteImage}
-                style={{
-                  position: "absolute",
-                  top: "4px",
-                  right: "4px",
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "50%",
-                  backgroundColor: "var(--color-grey-750)",
-                  border: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  zIndex: 10, // 버튼이 이미지 위에 오도록 z-index 추가
-                }}
-              >
-                <X size={12} color="var(--color-white)" />
-              </button>
-            </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="fixed right-0 bottom-0 left-0 mx-auto flex w-full max-w-sm items-center justify-around py-3"
-        style={{
-          backgroundColor: "var(--color-black)",
-          borderTop: "1px solid var(--color-grey-850)",
-        }}
-      >
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <Calendar size={24} />
-          예약
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <User size={24} />
-          고객
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MessageSquare size={24} />
-          채팅
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-light-purple)" }}
-        >
-          <Home size={24} />
-          매장
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-sm font-medium"
-          style={{ color: "var(--color-grey-450)" }}
-        >
-          <MoreHorizontal size={24} />
-          더보기
-        </button>
-      </nav>
+      <ManagerNavbar />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ChevronLeft, X, Check } from "lucide-react";
+import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, MyReservationInfo } from "../../types/api";
@@ -37,9 +37,9 @@ const TreatmentBookingPage = () => {
     terms: false,
   });
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const ACCESS_TOKEN =
-    "eyJhbGciOiUzI1NiJ9.eyJwcm92aWRlciI6Imtha2FvLXN0YWZmIiwia2FrYW9JZCI6IjQzNDg4NDIwMjEiLCJ1c2VySWQiOjU4LCJpYXQiOjE3NTQ5Njk5MDAsImV4cCI6MTc1NzU2MTkwMH0.BzWPMm9rWf7IlmRSeO7xFySG6lic0NuQha2dDWt8yzY";
+  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
+  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
 
   useEffect(() => {
     const fetchBookingInfo = async () => {
@@ -50,10 +50,9 @@ const TreatmentBookingPage = () => {
       }
       try {
         setIsLoading(true);
-        const headers = { Authorization: `Bearer ${ACCESS_TOKEN}` };
-        const response = await axios.get<ApiResponse<MyReservationInfo>>(
-          `${API_BASE_URL}/reservations/shops/${shopId}/my-reserv-info`,
-          { headers },
+        // 🔽 3. api 인스턴스를 사용하여 헤더 설정 없이 깔끔하게 요청합니다.
+        const response = await api.get<ApiResponse<MyReservationInfo>>(
+          `/reservations/shops/${shopId}/my-reserv-info`,
         );
         if (response.data.success && response.data.data) {
           setBookingInfo(response.data.data);
@@ -86,6 +85,13 @@ const TreatmentBookingPage = () => {
       setAgreements({ ...newAgreements, all: allChecked });
     }
   };
+  
+  // TODO: 결제 정보 확인 로직 구현
+  const handlePaymentCheck = () => {
+    if(!isButtonEnabled) return;
+    console.log("결제 정보 확인하기 버튼 클릭");
+    // navigate to payment page
+  }
 
   const isButtonEnabled = agreements.privacy && agreements.terms;
 
@@ -112,7 +118,6 @@ const TreatmentBookingPage = () => {
     );
   }
 
-  // payInfo 데이터를 기반으로 '시술내역'을 동적으로 생성
   const payInfoItems = Object.keys(bookingInfo.payInfo || {});
   const mainTreatmentName =
     payInfoItems.length > 0 ? payInfoItems[0] : "시술 정보 없음";
@@ -151,13 +156,13 @@ const TreatmentBookingPage = () => {
           paddingTop: "30px",
         }}
       >
-        <ChevronLeft
-          size={24}
-          className="cursor-pointer"
-          onClick={() => navigate(-1)}
-        />
+        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+            <ChevronLeft size={24} />
+        </button>
         <h1 className="title1">시술 예약하기</h1>
-        <X size={24} className="cursor-pointer" onClick={() => navigate("/")} />
+        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
+            <X size={24} />
+        </button>
       </div>
 
       <div
@@ -197,6 +202,7 @@ const TreatmentBookingPage = () => {
                     padding: "12px",
                     color: "#A3A3A3",
                     backgroundColor: "#262626",
+                    flexShrink: 0,
                   }}
                 >
                   {item.label}
@@ -213,13 +219,12 @@ const TreatmentBookingPage = () => {
           <h2 className="label1" style={{ marginBottom: "16px" }}>
             유의사항
           </h2>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
             <li
               className="body2"
               style={{
                 color: "#A3A3A3",
                 lineHeight: "1.5",
-                marginBottom: "12px",
                 position: "relative",
                 paddingLeft: "16px",
               }}
@@ -233,7 +238,6 @@ const TreatmentBookingPage = () => {
               style={{
                 color: "#A3A3A3",
                 lineHeight: "1.5",
-                marginBottom: "12px",
                 position: "relative",
                 paddingLeft: "16px",
               }}
@@ -379,6 +383,7 @@ const TreatmentBookingPage = () => {
       >
         <button
           disabled={!isButtonEnabled}
+          onClick={handlePaymentCheck}
           style={{
             width: "100%",
             height: "56px",

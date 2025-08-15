@@ -1,23 +1,22 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock } from "lucide-react";
+import api from "@/apis/axiosInstance"; // api 인스턴스 사용
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, Treatment } from "../../types/api";
 
 const ArtDetailPage = () => {
-  const [treatmentData, setTreatmentData] = useState<Treatment | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const navigate = useNavigate();
   const { shopId, treatmentId } = useParams<{
     shopId: string;
     treatmentId: string;
   }>();
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [treatmentData, setTreatmentData] = useState<Treatment | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchTreatmentDetail = async () => {
@@ -31,8 +30,9 @@ const ArtDetailPage = () => {
         setIsLoading(true);
         setError(null);
 
-        const response = await axios.get<ApiResponse<Treatment>>(
-          `${API_BASE_URL}/shops/${shopId}/treatments/${treatmentId}`,
+        // api 인스턴스를 사용하여 토큰 없이 요청
+        const response = await api.get<ApiResponse<Treatment>>(
+          `/shops/${shopId}/treatments/${treatmentId}`,
         );
 
         if (response.data.success && response.data.data) {
@@ -40,13 +40,9 @@ const ArtDetailPage = () => {
         } else {
           setError(response.data.message || "시술 정보 로딩 실패");
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("API 호출 중 에러 발생:", err);
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || err.message);
-        } else {
-          setError("알 수 없는 에러가 발생했습니다.");
-        }
+        setError(err.response?.data?.message || err.message || "알 수 없는 에러가 발생했습니다.");
       } finally {
         setIsLoading(false);
       }
@@ -56,15 +52,22 @@ const ArtDetailPage = () => {
   }, [shopId, treatmentId]);
 
   const handleModalOpen = () => {
-    setIsModalOpen(true);
+    // TODO: 실제 로그인 상태를 확인하는 로직 추가 필요
+    const isLoggedIn = false; // 임시로 로그인되지 않은 상태로 가정
+    if (isLoggedIn) {
+      navigate(`/treatment-options/${shopId}/${treatmentId}`);
+    } else {
+      setIsModalOpen(true);
+    }
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
 
+  // ✅ 카카오 로그인 버튼 클릭 시 지정된 URL로 리디렉션
   const handleKakaoLogin = () => {
-    console.log("카카오 로그인 버튼 클릭");
+    window.location.href = "https://beautiflow.co.kr/oauth2/code/kakao-customer";
   };
 
   if (isLoading) {
@@ -103,42 +106,14 @@ const ArtDetailPage = () => {
         color: "var(--color-white)",
       }}
     >
-      <div
-        className="flex items-center justify-between px-4 py-2"
-        style={{
-          backgroundColor: "var(--color-black)",
-          color: "var(--color-white)",
-          fontSize: "16px",
-          fontWeight: "600",
-        }}
-      >
-        <span>9:41</span>
-        <div className="flex items-center space-x-1">
-          <div className="flex space-x-1">
-            <div className="h-1 w-1 rounded-full bg-white"></div>
-            <div className="h-1 w-1 rounded-full bg-white"></div>
-            <div className="h-1 w-1 rounded-full bg-white"></div>
-            <div className="h-1 w-1 rounded-full bg-white"></div>
-          </div>
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M2 17h20v2H2zm1.15-4.05L4 11.47l.85 1.48L5.8 12l-.65-1.05zM7.2 12l-.65 1.05L7.4 14.5l.85-1.48L7.2 12zm2.8 0l-.65 1.05L10.2 14.5l.85-1.48L10 12zm2.8 0l-.65 1.05L12.8 14.5l.85-1.48L12.8 12zm2.8 0l-.65 1.05L15.6 14.5l.85-1.48L15.6 12zm2.8 0l-.65 1.05L18.4 14.5l.85-1.48L18.4 12z" />
-          </svg>
-          <div className="h-3 w-6 rounded-sm border border-white">
-            <div className="h-full w-full rounded-sm bg-white"></div>
-          </div>
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-black px-4 py-3 flex items-center">
+            <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+                <ChevronLeft className="h-6 w-6 text-white" />
+            </button>
         </div>
-      </div>
 
-      <div
-        className="px-4 py-3"
-        style={{ backgroundColor: "var(--color-black)" }}
-      >
-        <ChevronLeft
-          className="h-6 w-6"
-          style={{ color: "var(--color-white)" }}
-        />
-      </div>
-
+      {/* Image Banner */}
       <div
         className="relative h-96 overflow-hidden"
         style={{ backgroundColor: "var(--color-grey-350)" }}
@@ -150,25 +125,16 @@ const ArtDetailPage = () => {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40zm40 0v-40h-40z'/%3E%3C/g%3E%3C/svg%3E")`,
-              backgroundSize: "40px 40px",
-            }}
-          ></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="body1" style={{ color: "var(--color-grey-650)" }}>
+              이미지 없음
+            </span>
+          </div>
         )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="body1" style={{ color: "var(--color-grey-650)" }}>
-            배너 이미지
-          </span>
-        </div>
       </div>
 
-      <div
-        className="flex-1 px-5 py-4"
-        style={{ backgroundColor: "var(--color-black)" }}
-      >
+      {/* Content */}
+      <div className="flex-1 px-5 py-4 pb-24">
         <h1
           className="title1"
           style={{ color: "var(--color-white)", marginBottom: "8px" }}
@@ -201,16 +167,17 @@ const ArtDetailPage = () => {
           >
             시술 정보
           </h2>
-
           <div
             className="body2 space-y-4"
-            style={{ color: "var(--color-grey-450)", lineHeight: "1.5" }}
+            style={{ color: "var(--color-grey-450)", lineHeight: "1.5", whiteSpace: "pre-wrap" }}
           >
             <p>{treatmentData.description}</p>
           </div>
         </div>
+      </div>
 
-        <div className="mx-auto w-full max-w-sm px-2 py-4">
+      {/* Floating Action Button */}
+      <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-sm px-5 py-4 bg-black">
           <button
             className="label1 w-full rounded-lg py-4"
             style={{
@@ -224,8 +191,9 @@ const ArtDetailPage = () => {
             예약하기
           </button>
         </div>
-      </div>
 
+
+      {/* Login Modal */}
       {isModalOpen && (
         <div
           className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity"
