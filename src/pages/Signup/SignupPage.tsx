@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { sendPhoneCode, verifyPhoneCode, postSignup } from "@/apis/login";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
+import LeftChevron from "../../assets/icon_left-chevron.svg";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -103,11 +104,7 @@ export default function SignupPage() {
         {/* 상단 네비게이션 */}
         <div className="mb-8 flex w-full items-center">
           <button className="mr-2">
-            <img
-              src="/src/assets/icon_left-chevron.svg"
-              alt="뒤로가기"
-              className="h-6 w-6"
-            />
+            <img src={LeftChevron} alt="뒤로가기" className="h-6 w-6" />
           </button>
           <div className="label1 flex-1 text-center text-[var(--color-white)]">
             회원가입
