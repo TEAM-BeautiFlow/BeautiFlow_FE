@@ -40,6 +40,7 @@ export default function UserChatListPage() {
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
   const navigate = useNavigate();
@@ -48,9 +49,12 @@ export default function UserChatListPage() {
   useEffect(() => {
     const fetchChatList = async () => {
       try {
+        setLoading(true);
+
         const token = localStorage.getItem("accessToken");
         if (!token) {
           console.error("Access Token이 없습니다.");
+          setLoading(false);
           return;
         }
 
@@ -74,6 +78,8 @@ export default function UserChatListPage() {
         }
       } catch (error) {
         console.error("채팅 리스트 불러오기 실패", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -161,23 +167,33 @@ export default function UserChatListPage() {
 
       {/* 채팅 리스트 */}
       <div className="mt-3 flex-1 overflow-y-auto">
-        {chats
-          .filter(chat => !chat.isExited)
-          .map(chat => (
-            <ChatRoomList
-              key={chat.roomId}
-              chat={chat}
-              onRightClick={openBottomSheet}
-              onClick={roomId =>
-                handleChatClick(
-                  roomId,
-                  chat.opponentId,
-                  chat.opponentName,
-                  chat.shopName,
-                )
-              }
-            />
-          ))}
+        {loading ? (
+          <p className="body2 mt-10 text-center text-[var(--color-grey-450)]">
+            채팅 목록 불러오는 중...
+          </p>
+        ) : chats.length > 0 ? (
+          chats
+            .filter(chat => !chat.isExited)
+            .map(chat => (
+              <ChatRoomList
+                key={chat.roomId}
+                chat={chat}
+                onRightClick={openBottomSheet}
+                onClick={roomId =>
+                  handleChatClick(
+                    roomId,
+                    chat.opponentId,
+                    chat.opponentName,
+                    chat.shopName,
+                  )
+                }
+              />
+            ))
+        ) : (
+          <p className="body2 mt-10 text-center text-[var(--color-grey-450)]">
+            채팅이 없습니다.
+          </p>
+        )}
       </div>
       <UserNavbar />
       {/* 모달 */}

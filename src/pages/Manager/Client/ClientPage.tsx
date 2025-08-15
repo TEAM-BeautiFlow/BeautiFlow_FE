@@ -5,7 +5,8 @@ import type { CustomerDetail } from "../../../types/customer";
 import ReservationCard from "./components/ReservationCard";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 // const dummyReservations: Reservations[] = [
 //   {
@@ -65,6 +66,30 @@ export default function ClientPage() {
   const [reservations, setReservations] = useState<Reservations[]>([]);
   const [resLoading, setResLoading] = useState(true);
   const [resError, setResError] = useState<string | null>(null);
+
+  const userIdRef = useRef<number | null>(null);
+  const shopIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) {
+          userIdRef.current = userInfo.id;
+          shopIdRef.current = userInfo.shopMembers?.[0]?.shopId ?? null;
+          if (shopIdRef.current) {
+            localStorage.setItem("shopId", String(shopIdRef.current));
+          }
+        }
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 고객 상세 GET
   useEffect(() => {
@@ -199,8 +224,8 @@ export default function ClientPage() {
   const handleCreateRoom = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const shopId = localStorage.getItem("shopId");
-      const designerId = localStorage.getItem("designerId");
+      const shopId = shopIdRef.current;
+      const designerId = userIdRef.current;
 
       if (!token || !designerId || !shopId) {
         console.error("정보가 부족합니다.");

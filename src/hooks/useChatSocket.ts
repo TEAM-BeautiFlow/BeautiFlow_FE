@@ -1,24 +1,36 @@
 import { useEffect, useRef } from "react";
 import { Client, type IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 export default function useChatSocket(
   roomId: number,
   onMessage: (msg: IMessage) => void,
 ) {
   const clientRef = useRef<Client | null>(null);
+  const userIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // 개발용 accessToken 임시 저장
-    const devToken = "chat-test"; // 테스트용 토큰
-    if (!localStorage.getItem("accessToken")) {
-      localStorage.setItem("accessToken", devToken);
-      console.log("개발용 accessToken이 저장되었습니다.");
-    }
-    localStorage.setItem("senderId", "3"); // 토큰에 맞는 sendId 넣어주세요 실제로는 localStorage에서 id 가져올 예정입니다
-    localStorage.setItem("senderType", "DESIGNER"); // 이것도 !
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) userIdRef.current = userInfo.id;
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
+  useEffect(() => {
     const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("No accessToken found. Skip WS connection.");
+      return;
+    }
     const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/connect`);
     const client = new Client({
       webSocketFactory: () => socket,
@@ -26,6 +38,7 @@ export default function useChatSocket(
         Authorization: `Bearer ${token}`,
       },
       debug: str => console.log("[STOMP]", str),
+      reconnectDelay: 5000,
       onConnect: () => {
         const topic = `/topic/${roomId}`;
         client.subscribe(topic, onMessage, {
@@ -42,20 +55,22 @@ export default function useChatSocket(
 
     return () => {
       client.deactivate();
+      clientRef.current = null;
     };
   }, [roomId, onMessage]);
 
   // 메시지 전송용 함수 반환
   const sendMessage = (content: string) => {
-    const token = localStorage.getItem("accessToken");
-    const senderId = localStorage.getItem("senderId");
-    const senderType = localStorage.getItem("senderType");
-    if (!clientRef.current?.connected) {
+    const client = clientRef.current;
+    if (!client?.connected) {
       console.warn("STOMP client가 연결되지 않았습니다.");
       return;
     }
+    const token = localStorage.getItem("accessToken");
+    const senderId = userIdRef.current;
+    const senderType = localStorage.getItem("loginProvider");
 
-    clientRef.current?.publish({
+    client.publish({
       destination: `/publish/${roomId}`,
       headers: {
         Authorization: `Bearer ${token}`,
