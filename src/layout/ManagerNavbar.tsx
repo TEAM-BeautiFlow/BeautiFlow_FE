@@ -20,7 +20,7 @@ const NAV_LINKS: NavItem[] = [
     label: "채팅",
     icon: ChatIcon,
   },
-  { to: "/store", label: "매장", icon: StoreIcon },
+  { to: "/owner/store-info/:shopId", label: "매장", icon: StoreIcon },
 
   {
     to: "/manager/mypage",
