@@ -12,6 +12,8 @@ export default function ReservationTabBar({ activeTab, setActiveTab }: Props) {
         <div className="flex gap-4 border-b border-[var(--color-grey-750)] px-5">
           {tabs.map(tab => (
             <button
+              key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               className={`h1 flex h-[36px] w-[43px] cursor-pointer items-center justify-center transition-colors duration-200 ${
                 activeTab === tab
