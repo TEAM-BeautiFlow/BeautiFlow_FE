@@ -10,7 +10,7 @@ export default function Layout() {
     path.startsWith("/reservations") || path.startsWith("/client/mypage");
 
   const showManagerNavbar =
-    (path.startsWith("/manager") ||
+    ((path.startsWith("/manager") && !path.startsWith("/manager/onboard")) ||
       path.startsWith("/client") ||
       path.startsWith("/templates")) &&
     !showUserNavbar;
