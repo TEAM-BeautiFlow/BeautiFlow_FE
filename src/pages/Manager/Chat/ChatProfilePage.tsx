@@ -3,6 +3,7 @@ import ChatHeader from "./components/ChatHeader";
 import type { CustomerDetail } from "../../../types/customer";
 import axios from "axios";
 import { useLocation, useParams } from "react-router-dom";
+import ManagerNavbar from "@/layout/ManagerNavbar";
 type LocationState = Partial<CustomerDetail>;
 
 export default function ChatProfile() {
@@ -197,6 +198,7 @@ export default function ChatProfile() {
           </div>
         </div>
       )}
+      <ManagerNavbar />
     </div>
   );
 }

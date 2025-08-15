@@ -176,7 +176,7 @@ export default function ManagerChatPage() {
   };
 
   return (
-    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+    <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] pb-11">
       {/* 상단 */}
       <ChatHeader
         title={name || "상대방 이름"}

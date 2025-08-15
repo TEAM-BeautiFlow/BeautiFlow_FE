@@ -7,35 +7,9 @@ import { useNavigate } from "react-router-dom";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import DeleteModal from "../../../components/DeleteModal";
 import axios from "axios";
-// dummy
-const dummyChats: ChatList[] = [
-  {
-    roomId: 1,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "바보 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-    isExited: false,
-  },
-  {
-    roomId: 2,
-    shopId: 2,
-    shopName: "가게이름",
-    opponentId: 1,
-    opponentName: "상대방 이름",
-    lastMessageContent:
-      "예약했던 시간보다 5분정도 늦을 것 같아요 죄송합니다...",
-    lastMessageTime: "2025-07-21T15:00:00",
-    unreadCount: 9,
-    isExited: true,
-  },
-];
+
 export default function UserChatListPage() {
-  const [chats, setChats] = useState<ChatList[]>(dummyChats);
+  const [chats, setChats] = useState<ChatList[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatList | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
