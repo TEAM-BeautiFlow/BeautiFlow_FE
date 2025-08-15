@@ -3,6 +3,7 @@ import { useReservationContext } from "../../../context/ReservationContext";
 import ReservationTabBar from "./componenets/ReservationTabBar";
 import ReservationCard from "./componenets/ReservationCard";
 import UserNavbar from "../../../layout/UserNavbar";
+import Header from "@/layout/Header";
 
 export default function ReservationListPage() {
   const [activeTab, setActiveTab] = useState("예정");
@@ -21,9 +22,7 @@ export default function ReservationListPage() {
   return (
     <div className="mx-auto h-screen w-[375px] bg-[var(--color-grey-1000)]">
       <div className="">
-        <h1 className="mx-1 h-[101px] px-4 pt-18 pb-10 text-2xl font-bold tracking-tighter text-[var(--color-purple)] transition-colors">
-          BEAUTIFLOW
-        </h1>
+        <Header />
         <ReservationTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 

@@ -7,6 +7,7 @@ import { getKakaoAuthUrl } from "@/apis/login";
 import HeartIcon from "../../../assets/line-md_heart.svg";
 import InquiryIcon from "../../../assets/message-text-02.svg";
 import ChevronRight from "../../../assets/icon_right-chevron.svg";
+import Header from "../../../layout/Header";
 
 export default function Mypage() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function Mypage() {
 
   return (
     <div className="mx-auto flex min-h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
+      <Header />
       <div className="relative flex w-full flex-col items-center overflow-hidden px-5 pt-8 pb-24">
         {/* 상단 네비게이션 */}
         <div
