@@ -12,12 +12,7 @@ import LeftChevron from "../../assets/icon_left-chevron.svg";
 export default function SignupPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const {
-    isAuthenticated,
-    provider: authProvider,
-    setTokens,
-    setUserInfo,
-  } = useAuthStore();
+  const { setTokens, setUserInfo } = useAuthStore();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
