@@ -64,22 +64,40 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <MainPage /> },
-      
+
       // --- ✅ 소비자 예약 플로우 라우트 (7단계 순차 연결) ---
       // 1단계: 매장 메인 페이지 (시술 목록)
       { path: "user/store/:shopId", element: <Reservation /> },
       // 2단계: 시술 상세 정보
-      { path: "user/store/art-detail/:shopId/:treatmentId", element: <ArtDetailPage /> },
+      {
+        path: "user/store/art-detail/:shopId/:treatmentId",
+        element: <ArtDetailPage />,
+      },
       // 3단계: 시술 옵션 선택
-      { path: "user/store/treatment-options/:shopId/:treatmentId", element: <TreatmentOptionsPage /> },
+      {
+        path: "user/store/treatment-options/:shopId/:treatmentId",
+        element: <TreatmentOptionsPage />,
+      },
       // 4단계: 날짜, 시간, 디자이너 선택
-      { path: "user/store/booking/:shopId/:treatmentId", element: <BookingPage /> },
+      {
+        path: "user/store/booking/:shopId/:treatmentId",
+        element: <BookingPage />,
+      },
       // 5단계: 요청사항 입력 및 최종 예약 처리
-      { path: "user/store/appointment-booking/:shopId/:treatmentId", element: <AppointmentBooking /> },
+      {
+        path: "user/store/appointment-booking/:shopId/:treatmentId",
+        element: <AppointmentBooking />,
+      },
       // 6단계: 예약 정보 확인 및 약관 동의
-      { path: "user/store/treatment-booking/:shopId", element: <TreatmentBookingPage /> },
+      {
+        path: "user/store/treatment-booking/:shopId",
+        element: <TreatmentBookingPage />,
+      },
       // 7단계: 최종 결제 정보 확인 (예약금)
-      { path: "user/store/reservation-check/:shopId", element: <ReservationCheck /> },
+      {
+        path: "user/store/reservation-check/:shopId",
+        element: <ReservationCheck />,
+      },
 
       // --- 유저(소비자) 기능 라우트 ---
       {
@@ -117,17 +135,31 @@ const router = createBrowserRouter([
       { path: "manager/onboard/join/fin", element: <OnboardJoinFin /> },
       { path: "manager/onboard/shop", element: <OnboardShopRegister /> },
       { path: "manager/onboard/shop/fin", element: <OnboardShopFin /> },
-      { path: "manager/reservations/:reservationId", element: <ReservationDetailPage /> },
-      { path: "owner/verification/:shopId", element: <OwnerVerificationPage /> },
-      { path: "owner/business-registration/:shopId", element: <OwnerBusinessRegistrationPage /> },
+      {
+        path: "manager/reservations/:reservationId",
+        element: <ReservationDetailPage />,
+      },
+      {
+        path: "owner/verification/:shopId",
+        element: <OwnerVerificationPage />,
+      },
+      {
+        path: "owner/business-registration/:shopId",
+        element: <OwnerBusinessRegistrationPage />,
+      },
       { path: "owner/store-info/:shopId", element: <OwnerStoreInfoPage /> },
       { path: "owner/store-intro/:shopId", element: <OwnerStoreIntroPage /> },
       { path: "owner/sales/:shopId", element: <OwnerSalesPage /> },
       { path: "owner/hours/:shopId", element: <OwnerBusinessHoursPage /> },
-      { path: "owner/treatments/edit/:shopId", element: <OwnerEditTreatmentPage />},
-      { path: "owner/announcements/edit/:shopId", element: <OwnerEditAnnouncementPage />},
-      
-      
+      {
+        path: "owner/treatments/edit/:shopId/:treatmentId",
+        element: <OwnerEditTreatmentPage />,
+      },
+      {
+        path: "owner/announcements/edit/:shopId",
+        element: <OwnerEditAnnouncementPage />,
+      },
+
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
     ],
