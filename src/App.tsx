@@ -51,6 +51,8 @@ import TermsPage from "./pages/Terms/TermsPage";
 import PrivacyPage from "./pages/Privacy/PrivacyPage";
 import MainPage from "./pages/MainPage";
 import Reservation from "./pages/Consumer/Reservation";
+import OwnerEditTreatmentPage from "./pages/Manager/OwnerEditTreatmentPage";
+import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
 
 const router = createBrowserRouter([
   // 레이아웃 바깥 경로 (로그인, 회원가입 등)
@@ -122,8 +124,10 @@ const router = createBrowserRouter([
       { path: "owner/store-intro/:shopId", element: <OwnerStoreIntroPage /> },
       { path: "owner/sales/:shopId", element: <OwnerSalesPage /> },
       { path: "owner/hours/:shopId", element: <OwnerBusinessHoursPage /> },
+      { path: "owner/treatments/edit/:shopId", element: <OwnerEditTreatmentPage />},
+      { path: "owner/announcements/edit/:shopId", element: <OwnerEditAnnouncementPage />},
       
-      // --- 약관 페이지 ---
+      
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
     ],
