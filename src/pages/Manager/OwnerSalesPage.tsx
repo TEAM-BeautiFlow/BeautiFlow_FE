@@ -30,7 +30,7 @@ const OwnerSalesPage = () => {
 
         if (response.data && response.data.data) {
           const data = response.data.data;
-          const depositAmount = data.depositAmount
+          const depositAmount = data.depositAmount;
           const accountValue =
             data.accountHolder ||
             data.account_holder ||
@@ -68,7 +68,7 @@ const OwnerSalesPage = () => {
     }
 
     const requestDto = {
-      deposistAmout: depositAmount ? parseInt(depositAmount, 10) : 0,
+      depositAmount: depositAmount ? parseInt(depositAmount, 10) : 0,
       accountHolder: accountHolder.trim(),
     };
 
