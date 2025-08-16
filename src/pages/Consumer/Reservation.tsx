@@ -145,7 +145,7 @@ const Reservation = () => {
   };
 
   const handleTreatmentClick = (shopId: number, treatmentId: number) => {
-    navigate(`/art-detail/${shopId}/${treatmentId}`);
+    navigate(`/user/store/art-detail/${shopId}/${treatmentId}`);
   };
 
   const handleCopy = (text: string | undefined) => {
