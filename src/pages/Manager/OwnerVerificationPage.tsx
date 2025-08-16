@@ -602,18 +602,19 @@ const OwnerVerificationPage = () => {
                 notices.map(notice => (
                   <div
                     key={notice.id}
-                    className="cursor-pointer rounded-lg bg-[#262626] p-4"
+                    className="group relative cursor-pointer rounded-lg bg-[#262626] p-4"
                     onClick={navigateTo(
                       `/owner/announcements/edit/${shopId}/${notice.id}`,
                     )}
                   >
-                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer relative group" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
                     <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-medium text-white pr-8">{notice.title}</h4>
+                      <h4 className="pr-8 font-medium text-white">
+                        {notice.title}
+                      </h4>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={(e) => handleDeleteNotice(notice.id, e)}
-                          className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 transition-colors opacity-0 group-hover:opacity-100"
+                          onClick={e => handleDeleteNotice(notice.id, e)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-700"
                           title="공지사항 삭제"
                         >
                           <X size={16} className="text-white" />
