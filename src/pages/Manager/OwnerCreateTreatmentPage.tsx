@@ -96,16 +96,36 @@ const OwnerCreateTreatmentPage = () => {
     try {
       setIsLoading(true);
       
-      // JSON으로 전송 (이미지는 임시로 제외)
-      await api.put(`/shops/manage/${shopId}/treatments`, requestDto, {
+      // 1단계: 시술 데이터 생성
+      const response = await api.put(`/shops/manage/${shopId}/treatments`, requestDto, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
       
-      // TODO: 이미지 업로드는 별도 API로 처리 필요
-      if (newImages.length > 0) {
-        console.log("업로드할 이미지가 있지만 별도 API가 필요합니다:", newImages.length);
+      // 응답에서 생성된 시술 ID 추출
+      let treatmentId;
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        treatmentId = response.data[0].id;
+      } else if (response.data && response.data.id) {
+        treatmentId = response.data.id;
+      }
+      
+      // 2단계: 이미지 업로드 (이미지가 있고 treatmentId가 있는 경우)
+      if (newImages.length > 0 && treatmentId) {
+        const imageFormData = new FormData();
+        newImages.forEach(file => {
+          imageFormData.append("images", file);
+        });
+        
+        try {
+          await api.post(`/shops/manage/${shopId}/treatments/${treatmentId}/images`, imageFormData);
+          console.log("이미지 업로드 완료");
+        } catch (imageError) {
+          console.error("이미지 업로드 실패:", imageError);
+          // 시술은 생성되었지만 이미지 업로드 실패
+          alert("시술은 등록되었지만 이미지 업로드에 실패했습니다.");
+        }
       }
       
       alert("시술이 성공적으로 등록되었습니다.");
