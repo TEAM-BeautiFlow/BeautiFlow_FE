@@ -26,11 +26,19 @@ export default function SignupPage() {
   useEffect(() => {
     // URL 또는 localStorage에서 kakaoId / loginKey / provider를 확보
     const lk = search.get("loginKey") ?? localStorage.getItem("loginKey");
-    const p = localStorage.getItem("loginProvider");
+    const pRaw =
+      localStorage.getItem("loginProvider") ?? localStorage.getItem("provider");
+    const kid = localStorage.getItem("kakaoId");
+
+    const p = pRaw
+      ? pRaw.startsWith("kakao-")
+        ? pRaw
+        : `kakao-${pRaw}`
+      : null;
 
     if (lk) setLoginKey(lk);
     if (p) setProvider(p);
-    setKakaoId(lk);
+    if (kid) setKakaoId(kid);
   }, [search]);
 
   // 페이지 진입 시 기존 회원 확인
@@ -43,28 +51,51 @@ export default function SignupPage() {
         const loginResult = await login(loginKey!);
         console.log("✅ 기존 회원 확인 성공:", loginResult);
 
-        // 토큰과 사용자 정보를 Zustand store와 localStorage에 저장
-        if (loginResult?.accessToken && loginResult?.refreshToken) {
-          // Zustand store에 저장
-          setTokens({
-            accessToken: loginResult.accessToken,
-            refreshToken: loginResult.refreshToken,
-          });
-          setUserInfo({
-            kakaoId: loginResult.kakaoId,
-            provider: loginResult.provider,
-          });
+        // 토큰과 사용자 정보를 Zustand store와 localStorage에 저장 (각각 존재 여부에 따라)
+        setUserInfo({
+          kakaoId: loginResult.kakaoId,
+          provider: loginResult.provider?.startsWith("kakao-")
+            ? loginResult.provider
+            : `kakao-${loginResult.provider}`,
+        });
 
-          // localStorage에 저장
+        if (loginResult.kakaoId) {
           localStorage.setItem("kakaoId", loginResult.kakaoId);
-          localStorage.setItem("provider", loginResult.provider);
+        }
+        if (loginResult.provider) {
+          const prov = loginResult.provider.startsWith("kakao-")
+            ? loginResult.provider
+            : `kakao-${loginResult.provider}`;
+          localStorage.setItem("loginProvider", prov);
+          localStorage.setItem("provider", prov);
+        }
+        if (loginResult.accessToken) {
+          setTokens({ accessToken: loginResult.accessToken });
           localStorage.setItem("accessToken", loginResult.accessToken);
+        }
+        if (loginResult.refreshToken) {
+          setTokens({ refreshToken: loginResult.refreshToken });
           localStorage.setItem("refreshToken", loginResult.refreshToken);
         }
 
+        // 신규 사용자라면 회원가입 폼 유지 (리다이렉트 금지)
+        const isNewUser =
+          loginResult?.isNewUser === true ||
+          loginResult?.isNewUser === "true" ||
+          loginResult?.isNewUser === "Y" ||
+          loginResult?.isNewUser === "YES" ||
+          loginResult?.isNewUser === "1";
+        if (isNewUser) {
+          console.log("🆕 신규 사용자이므로 회원가입 페이지에 머뭅니다.");
+          return;
+        }
+
         // 기존 회원이므로 provider에 따라 적절한 페이지로 리다이렉트
+        const normalizedProvider = loginResult.provider?.startsWith("kakao-")
+          ? loginResult.provider
+          : `kakao-${loginResult.provider}`;
         const redirectPath =
-          loginResult.provider === "kakao-staff"
+          normalizedProvider === "kakao-staff"
             ? "/manager/home"
             : "/client/mypage";
         console.log("리다이렉트 확인:", {
@@ -120,36 +151,51 @@ export default function SignupPage() {
 
     console.log("✅ 회원가입 API 호출 시작");
     try {
+      const normalizedProvider = provider?.startsWith("kakao-")
+        ? provider
+        : `kakao-${provider}`;
       const result = await postSignup({
         kakaoId,
-        provider,
+        provider: normalizedProvider!,
         name,
         contact: phone,
         email: "test@test.com",
       });
       console.log("✅ 회원가입 성공:", result);
 
-      // 회원가입 성공 시 토큰과 사용자 정보 저장
-      if (result?.accessToken && result?.refreshToken) {
-        // Zustand store에 저장
-        setTokens({
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-        });
-        setUserInfo({
-          kakaoId: result.kakaoId,
-          provider: result.provider,
-        });
+      // 회원가입 성공 시 토큰과 사용자 정보 저장 (각 토큰 존재 시 저장)
+      setUserInfo({
+        kakaoId: result.kakaoId,
+        provider: result.provider?.startsWith("kakao-")
+          ? result.provider
+          : `kakao-${result.provider}`,
+      });
 
-        // localStorage에 저장
+      if (result.kakaoId) {
         localStorage.setItem("kakaoId", result.kakaoId);
-        localStorage.setItem("provider", result.provider);
+      }
+      if (result.provider) {
+        const prov = result.provider.startsWith("kakao-")
+          ? result.provider
+          : `kakao-${result.provider}`;
+        localStorage.setItem("loginProvider", prov);
+        localStorage.setItem("provider", prov);
+      }
+      if (result.accessToken) {
+        setTokens({ accessToken: result.accessToken });
         localStorage.setItem("accessToken", result.accessToken);
+      }
+      if (result.refreshToken) {
+        setTokens({ refreshToken: result.refreshToken });
         localStorage.setItem("refreshToken", result.refreshToken);
       }
 
       const redirectPath =
-        provider === "kakao-staff" ? "/manager/onboard" : "/client/mypage";
+        (result.provider?.startsWith("kakao-")
+          ? result.provider
+          : `kakao-${result.provider}`) === "kakao-staff"
+          ? "/manager/onboard"
+          : "/client/mypage";
       navigate(redirectPath, { replace: true });
     } catch (signupError) {
       console.error("❌ 회원가입 실패:", signupError);

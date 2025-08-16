@@ -24,7 +24,18 @@ export default function ReservationWrapper() {
           setReservations([]);
         }
       } catch (err) {
-        console.error("GET /reservations/my-reservation 실패:");
+        if (axios.isAxiosError(err)) {
+          console.error("GET /reservations/my-reservation 실패:", {
+            code: err.code,
+            message: err.message,
+            status: err.response?.status,
+            data: err.response?.data,
+            url: err.config?.url,
+            baseURL: err.config?.baseURL,
+          });
+        } else {
+          console.error("알 수 없는 에러", err);
+        }
         setReservations([]);
       }
     };
