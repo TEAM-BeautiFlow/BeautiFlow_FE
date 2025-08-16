@@ -60,7 +60,7 @@ const OwnerEditAnnouncementPage = () => {
 
     try {
       setIsSaving(true);
-      await api.patch(`/shops/manage/${shopId}/notices/${noticeId}`, payload);
+      await api.patch(`/shops/${shopId}/notices/${noticeId}`, payload);
       alert("공지사항이 성공적으로 수정되었습니다.");
       navigate(-1);
     } catch (err) {

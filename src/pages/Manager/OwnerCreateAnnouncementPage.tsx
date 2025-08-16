@@ -32,7 +32,7 @@ const OwnerCreateAnnouncementPage = () => {
 
     try {
       setIsLoading(true);
-      await api.post(`/shops/manage/${shopId}/notices`, payload);
+      await api.post(`/shops/${shopId}/notices`, payload);
       alert("공지사항이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {

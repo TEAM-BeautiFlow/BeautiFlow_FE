@@ -11,6 +11,7 @@ import {
   DollarSign,
   Clock,
   Plus,
+  X,
 } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합니다.
 import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
@@ -110,6 +111,25 @@ const OwnerVerificationPage = () => {
     cycle: "",
     daysOfWeek: [] as string[],
   });
+
+  // 공지사항 삭제 함수
+  const handleDeleteNotice = async (noticeId: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // 클릭 이벤트 전파 방지
+    
+    if (!window.confirm("이 공지사항을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/shops/${shopId}/notices/${noticeId}`);
+      // 성공적으로 삭제되면 목록에서 제거
+      setNotices(prevNotices => prevNotices.filter(notice => notice.id !== noticeId));
+      alert("공지사항이 성공적으로 삭제되었습니다.");
+    } catch (error) {
+      console.error("공지사항 삭제 실패:", error);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   useEffect(() => {
     if (!shopId) {
@@ -440,10 +460,19 @@ const OwnerVerificationPage = () => {
                 <div className="py-8 text-center text-gray-400">등록된 공지사항이 없습니다.</div>
               ) : (
                 notices.map(notice => (
-                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
+                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer relative group" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
                     <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-medium text-white">{notice.title}</h4>
-                      <ChevronRight size={20} className="text-gray-400" />
+                      <h4 className="font-medium text-white pr-8">{notice.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => handleDeleteNotice(notice.id, e)}
+                          className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 transition-colors opacity-0 group-hover:opacity-100"
+                          title="공지사항 삭제"
+                        >
+                          <X size={16} className="text-white" />
+                        </button>
+                        <ChevronRight size={20} className="text-gray-400" />
+                      </div>
                     </div>
                     <p className="line-clamp-2 text-sm leading-relaxed text-gray-400">{notice.content}</p>
                   </div>
