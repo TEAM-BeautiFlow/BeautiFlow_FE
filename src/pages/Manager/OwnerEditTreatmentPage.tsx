@@ -26,7 +26,7 @@ const OwnerEditTreatmentPage = () => {
 
   // --- 상태 관리 ---
   const [treatmentName, setTreatmentName] = useState("");
-  const [category, setCategory] = useState("HAND");
+  const [category, setCategory] = useState("hand");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState(0);
   const [description, setDescription] = useState("");
@@ -63,7 +63,7 @@ const OwnerEditTreatmentPage = () => {
         if (response.data && response.data.data) {
           const data = response.data.data;
           setTreatmentName(data.name || "");
-          setCategory(data.category || "HAND");
+          setCategory(data.category || "hand");
           setPrice(data.price ? String(data.price) : "");
           setDuration(data.durationMinutes || 0);
           setDescription(data.description || "");
@@ -92,18 +92,41 @@ const OwnerEditTreatmentPage = () => {
   const handleSave = async () => {
     if (!shopId) return;
 
-    // 옵션을 백엔드 스키마에 맞게 단일 그룹으로 매핑합니다.
+    // 필수값 검증 (백엔드 Validation 대응)
+    if (!treatmentName.trim()) {
+      alert("시술명을 입력해주세요.");
+      return;
+    }
+    if (!category) {
+      alert("카테고리를 선택해주세요.");
+      return;
+    }
+    if (duration <= 0) {
+      alert("소요시간은 0보다 커야 합니다.");
+      return;
+    }
+
+    // 공백 옵션 제외하고 백엔드 스키마에 맞게 단일 그룹으로 매핑
+    const validOptions = options.filter(
+      opt => (opt.name || "").trim().length > 0,
+    );
     const optionGroups =
-      options.length > 0
+      validOptions.length > 0
         ? [
             {
               id: null,
               name: "기본",
-              items: options.map(opt => ({
+              items: validOptions.map(opt => ({
                 id: typeof opt.id === "number" && opt.id > 0 ? opt.id : null,
-                name: opt.name || "",
-                extraPrice: opt.price || 0,
-                extraMinutes: opt.duration || 0,
+                name: opt.name,
+                extraPrice:
+                  typeof opt.price === "number"
+                    ? opt.price
+                    : parseInt(String(opt.price || 0), 10) || 0,
+                extraMinutes:
+                  typeof opt.duration === "number"
+                    ? opt.duration
+                    : parseInt(String(opt.duration || 0), 10) || 0,
                 description: "",
               })),
             },
@@ -154,7 +177,7 @@ const OwnerEditTreatmentPage = () => {
         navigate(-1);
       } else {
         // 생성 모드
-        // 1) 텍스트/옵션 생성
+        // 1) 텍스트 생성 (백엔드가 신규 생성 시 optionGroups를 반영하지 않으므로 1차로 생성만 수행)
         const upsertDtos = [
           {
             id: null,
@@ -163,7 +186,7 @@ const OwnerEditTreatmentPage = () => {
             price: parseInt(price, 10) || 0,
             durationMinutes: duration,
             description,
-            optionGroups,
+            optionGroups: [],
           },
         ];
         const upsertRes = await api.put(
@@ -172,7 +195,23 @@ const OwnerEditTreatmentPage = () => {
         );
         const newId = upsertRes?.data?.data?.[0]?.id;
 
-        // 2) 이미지 업로드 (있다면)
+        // 2) 옵션 반영을 위한 2차 업데이트 호출 (신규 생성 후에만 필요)
+        if (newId && optionGroups.length > 0) {
+          const secondUpsertDtos = [
+            {
+              id: newId,
+              category,
+              name: treatmentName,
+              price: parseInt(price, 10) || 0,
+              durationMinutes: duration,
+              description,
+              optionGroups,
+            },
+          ];
+          await api.put(`/shops/manage/${shopId}/treatments`, secondUpsertDtos);
+        }
+
+        // 3) 이미지 업로드 (있다면)
         if (newId && newImages.length > 0) {
           const imageForm = new FormData();
           newImages.forEach(file => imageForm.append("images", file));
@@ -369,19 +408,19 @@ const OwnerEditTreatmentPage = () => {
               className="w-full appearance-none rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 pr-10 font-['Pretendard'] text-sm text-white outline-none"
             >
               <option
-                value="HAND"
+                value="hand"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 손
               </option>
               <option
-                value="FEET"
+                value="feet"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 발
               </option>
               <option
-                value="ETC"
+                value="cf"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 기타

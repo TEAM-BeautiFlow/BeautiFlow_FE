@@ -55,12 +55,22 @@ const TreatmentOptionsPage = () => {
 
         // 🔽 3. api 인스턴스를 사용하여 헤더 설정 없이 깔끔하게 요청합니다.
         const response = await api.get<ApiResponse<TreatmentDetailWithOption>>(
-          `/shops/${shopId}/treatments/${treatmentId}/options`
+          `/shops/${shopId}/treatments/${treatmentId}/options`,
         );
 
         if (response.data.success && response.data.data) {
           const fetchedData = response.data.data;
           setTreatmentDetail(fetchedData);
+
+          // 옵션이 하나도 없는 경우: 바로 예약 페이지로 이동
+          const hasSelectableOptions = fetchedData.optionGroups?.some(
+            group => group.enabled && group.items && group.items.length > 0,
+          );
+          if (!hasSelectableOptions) {
+            setSelectedOptions([]);
+            navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+            return;
+          }
 
           setTreatmentInfo({
             name: fetchedData.name,
@@ -87,7 +97,14 @@ const TreatmentOptionsPage = () => {
     };
 
     fetchTreatmentOptions();
-  }, [shopId, treatmentId, setTreatmentIdInStore, setTreatmentInfo]);
+  }, [
+    shopId,
+    treatmentId,
+    setTreatmentIdInStore,
+    setTreatmentInfo,
+    navigate,
+    setSelectedOptions,
+  ]);
 
   const handleOptionSelect = (groupId: number, optionId: number) => {
     setLocalSelectedOptions(prev => ({
@@ -107,7 +124,7 @@ const TreatmentOptionsPage = () => {
     );
 
     setSelectedOptions(optionsToStore);
-    navigate(`/booking/${shopId}/${treatmentId}`);
+    navigate(`/user/store/booking/${shopId}/${treatmentId}`);
   };
 
   const renderOptionGroup = (group: OptionGroup) => (
@@ -254,8 +271,14 @@ const TreatmentOptionsPage = () => {
         className="flex items-center px-4 py-3"
         style={{ backgroundColor: "var(--color-black)" }}
       >
-        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
-            <ChevronLeft className="h-6 w-6" style={{ color: "var(--color-white)" }} />
+        <button
+          onClick={() => navigate(-1)}
+          className="cursor-pointer border-none bg-transparent p-0"
+        >
+          <ChevronLeft
+            className="h-6 w-6"
+            style={{ color: "var(--color-white)" }}
+          />
         </button>
         <h1
           className="title1 flex-1 text-center"
