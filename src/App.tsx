@@ -54,6 +54,7 @@ import Reservation from "./pages/Consumer/Reservation";
 import OwnerEditTreatmentPage from "./pages/Manager/OwnerEditTreatmentPage";
 import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
 import OwnerCreateAnnouncementPage from "./pages/Manager/OwnerCreateAnnouncementPage";
+import OwnerCreateTreatmentPage from "./pages/Manager/OwnerCreateTreatmentPage";
 
 const router = createBrowserRouter([
   // 레이아웃 바깥 경로 (로그인, 회원가입 등)
@@ -152,9 +153,10 @@ const router = createBrowserRouter([
       { path: "owner/store-intro/:shopId", element: <OwnerStoreIntroPage /> },
       { path: "owner/sales/:shopId", element: <OwnerSalesPage /> },
       { path: "owner/hours/:shopId", element: <OwnerBusinessHoursPage /> },
-      { path: "owner/treatments/edit/:shopId", element: <OwnerEditTreatmentPage />},
+      { path: "owner/treatments/edit/:shopId/:treatmentId", element: <OwnerEditTreatmentPage />},
+      { path: "owner/treatments/create/:shopId", element: <OwnerCreateTreatmentPage />},
       { path: "owner/announcements/edit/:shopId/:noticeId", element: <OwnerEditAnnouncementPage />},
-      { path: "owner/announcements/edit/:shopId", element: <OwnerCreateAnnouncementPage />},
+      { path: "owner/announcements/create/:shopId", element: <OwnerCreateAnnouncementPage />},
       
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
