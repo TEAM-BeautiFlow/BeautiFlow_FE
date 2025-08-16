@@ -70,17 +70,19 @@ const OwnerCreateTreatmentPage = () => {
     }
 
     // Swagger 스키마에 맞게 optionGroups 구조로 변경
-    const optionGroups: OptionGroup[] = options.map(option => ({
-      id: null, // 새로 생성할 때는 null
-      name: option.name || "기본 옵션",
-      items: [{
-        id: null, // 새로 생성할 때는 null
-        name: option.name,
-        extraPrice: option.price,
-        extraMinutes: option.duration,
-        description: ""
-      }]
-    }));
+    const optionGroups: OptionGroup[] = options.length > 0 
+      ? options.map(option => ({
+          id: null, // 새로 생성할 때는 null
+          name: option.name || "기본 옵션",
+          items: [{
+            id: null, // 새로 생성할 때는 null
+            name: option.name,
+            extraPrice: option.price,
+            extraMinutes: option.duration,
+            description: ""
+          }]
+        }))
+      : []; // 옵션이 없으면 빈 배열
 
     // API가 배열을 요구하므로 배열로 감싸서 전송
     const requestDto = [{
