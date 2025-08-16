@@ -93,16 +93,21 @@ const OwnerCreateTreatmentPage = () => {
       optionGroups
     }];
 
-    const formData = new FormData();
-    formData.append("requestDto", JSON.stringify(requestDto));
-    newImages.forEach(file => {
-      formData.append("newImages", file);
-    });
-
     try {
       setIsLoading(true);
-      // PUT 방식으로 변경 - Content-Type 헤더는 브라우저가 자동으로 설정하도록 함
-      await api.put(`/shops/manage/${shopId}/treatments`, formData);
+      
+      // JSON으로 전송 (이미지는 임시로 제외)
+      await api.put(`/shops/manage/${shopId}/treatments`, requestDto, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // TODO: 이미지 업로드는 별도 API로 처리 필요
+      if (newImages.length > 0) {
+        console.log("업로드할 이미지가 있지만 별도 API가 필요합니다:", newImages.length);
+      }
+      
       alert("시술이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {
