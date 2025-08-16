@@ -39,6 +39,7 @@ const OwnerEditTreatmentPage = () => {
   const [nextOptionId, setNextOptionId] = useState(1);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const MAX_LENGTH_NAME = 50;
@@ -134,6 +135,7 @@ const OwnerEditTreatmentPage = () => {
         : [];
 
     try {
+      setIsSaving(true);
       if (isEditMode) {
         // 1) 텍스트/옵션 upsert (PUT /shops/manage/{shopId}/treatments)
         const upsertDtos = [
@@ -230,6 +232,8 @@ const OwnerEditTreatmentPage = () => {
     } catch (err) {
       console.error("시술 정보 저장 실패:", err);
       alert("저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -356,15 +360,18 @@ const OwnerEditTreatmentPage = () => {
         <button
           className="label1"
           style={{
-            color: "var(--color-light-purple)",
+            color: isSaving
+              ? "var(--color-grey-450)"
+              : "var(--color-light-purple)",
             fontWeight: "var(--font-weight-semibold)",
             background: "none",
             border: "none",
-            cursor: "pointer",
+            cursor: isSaving ? "not-allowed" : "pointer",
           }}
           onClick={handleSave}
+          disabled={isSaving}
         >
-          저장
+          {isSaving ? "저장 중..." : "저장"}
         </button>
       </div>
 
