@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Plus, Minus, ChevronDown, X } from "lucide-react";
+import {
+  ChevronLeft,
+  Plus,
+  Minus,
+  ChevronDown,
+  X,
+} from "lucide-react";
 import api from "@/apis/axiosInstance";
 import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
 // --- 타입 정의 ---
-interface TreatmentImage {
-  id: number;
-  imageUrl: string;
-}
-
 interface TreatmentOption {
   id: number | null;
   name: string;
@@ -19,10 +20,9 @@ interface TreatmentOption {
   price: number;
 }
 
-const OwnerEditTreatmentPage = () => {
+const OwnerCreateTreatmentPage = () => {
   const navigate = useNavigate();
-  const { shopId, treatmentId } = useParams();
-  const isEditMode = Boolean(treatmentId);
+  const { shopId } = useParams();
 
   // --- 상태 관리 ---
   const [treatmentName, setTreatmentName] = useState("");
@@ -30,68 +30,30 @@ const OwnerEditTreatmentPage = () => {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState(0);
   const [description, setDescription] = useState("");
-
-  const [existingImages, setExistingImages] = useState<TreatmentImage[]>([]);
+  
   const [newImages, setNewImages] = useState<File[]>([]);
-  const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
-
   const [options, setOptions] = useState<TreatmentOption[]>([]);
   const [nextOptionId, setNextOptionId] = useState(1);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const MAX_LENGTH_NAME = 50;
   const MAX_LENGTH_DESCRIPTION = 500;
 
-  useEffect(() => {
-    const fetchTreatmentData = async () => {
-      if (!shopId) {
-        setError("잘못된 접근입니다.");
-        setIsLoading(false);
-        return;
-      }
-      // 생성 모드일 경우 서버 요청 없이 바로 로딩 종료
-      if (!treatmentId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const response = await api.get(
-          `/shops/${shopId}/treatments/${treatmentId}`,
-        );
-        if (response.data && response.data.data) {
-          const data = response.data.data;
-          setTreatmentName(data.name || "");
-          setCategory(data.category || "HAND");
-          setPrice(data.price ? String(data.price) : "");
-          setDuration(data.durationMinutes || 0);
-          setDescription(data.description || "");
-          setExistingImages(data.images || []);
-
-          const formattedOptions =
-            data.options?.map((opt: any) => ({
-              id: opt.optionId,
-              name: opt.name,
-              duration: opt.duration,
-              price: opt.price,
-            })) || [];
-          setOptions(formattedOptions);
-        }
-      } catch (err) {
-        console.error("시술 정보 로딩 실패:", err);
-        setError("시술 정보를 불러오는 데 실패했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTreatmentData();
-  }, [shopId, treatmentId]);
-
   const handleSave = async () => {
-    if (!shopId || !treatmentId) return;
+    if (!shopId) {
+      alert("매장 정보가 없어 저장할 수 없습니다.");
+      return;
+    }
+
+    if (!treatmentName.trim()) {
+      alert("시술명을 입력해주세요.");
+      return;
+    }
+
+    if (!price.trim()) {
+      alert("가격을 입력해주세요.");
+      return;
+    }
 
     const requestDto = {
       name: treatmentName,
@@ -99,11 +61,7 @@ const OwnerEditTreatmentPage = () => {
       price: parseInt(price, 10) || 0,
       durationMinutes: duration,
       description,
-      deleteImageIds,
-      options: options.map(({ id, ...rest }) => ({
-        ...rest,
-        optionId: typeof id === 'number' && id > 0 ? id : null,
-      })),
+      options: options.map(({ id, ...rest }) => rest),
     };
 
     const formData = new FormData();
@@ -113,14 +71,15 @@ const OwnerEditTreatmentPage = () => {
     });
 
     try {
-      await api.patch(`/shops/manage/${shopId}/treatments/${treatmentId}`, formData);
-      alert("시술 정보가 성공적으로 수정되었습니다.");
+      setIsLoading(true);
+      await api.post(`/shops/manage/${shopId}/treatments`, formData);
+      alert("시술이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {
-      console.error("시술 정보 저장 실패:", err);
-      alert("저장에 실패했습니다. 다시 시도해주세요.");
+      console.error("시술 등록 실패:", err);
+      alert("등록에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
@@ -132,28 +91,19 @@ const OwnerEditTreatmentPage = () => {
     });
   };
 
-  const handleOptionChange = (
-    id: number | null,
-    field: keyof Omit<TreatmentOption, "id">,
-    value: any,
-  ) => {
+  const handleOptionChange = (id: number | null, field: keyof Omit<TreatmentOption, 'id'>, value: any) => {
     setOptions(prev =>
       prev.map(opt => (opt.id === id ? { ...opt, [field]: value } : opt)),
     );
   };
-
-  const handleOptionDurationChange = (
-    id: number | null,
-    type: "increase" | "decrease",
-  ) => {
+  
+  const handleOptionDurationChange = (id: number | null, type: "increase" | "decrease") => {
     setOptions(prev =>
       prev.map(opt => {
         if (opt.id === id) {
           const currentDuration = opt.duration;
-          if (type === "increase")
-            return { ...opt, duration: currentDuration + 10 };
-          if (type === "decrease" && currentDuration >= 10)
-            return { ...opt, duration: currentDuration - 10 };
+          if (type === "increase") return { ...opt, duration: currentDuration + 10 };
+          if (type === "decrease" && currentDuration >= 10) return { ...opt, duration: currentDuration - 10 };
         }
         return opt;
       }),
@@ -184,35 +134,11 @@ const OwnerEditTreatmentPage = () => {
     setNewImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const removeExistingImage = (id: number) => {
-    setExistingImages(prev => prev.filter(img => img.id !== id));
-    setDeleteImageIds(prev => [...prev, id]);
-  };
-
-  const displayedImages = [
-    ...existingImages.map(img => ({ ...img, isNew: false })),
-    ...newImages.map((file, index) => ({
-      id: index,
-      imageUrl: URL.createObjectURL(file),
-      isNew: true,
-    })),
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">
-        로딩 중...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">
-        {error}
-      </div>
-    );
-  }
+  const displayedImages = newImages.map((file, index) => ({
+    id: index,
+    imageUrl: URL.createObjectURL(file),
+    isNew: true,
+  }));
 
   return (
     <div
@@ -232,28 +158,29 @@ const OwnerEditTreatmentPage = () => {
           padding: "20px 20px 24px",
         }}
       >
-        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="p-0 bg-transparent border-none cursor-pointer"
+          disabled={isLoading}
+        >
           <ChevronLeft size={24} color="var(--color-white)" />
         </button>
-        <h1
-          className="title1"
-          style={{ color: "var(--color-white)", margin: 0 }}
-        >
-          {isEditMode ? "시술 수정하기" : "시술 추가하기"}
+        <h1 className="title1" style={{ color: "var(--color-white)", margin: 0 }}>
+          시술 등록하기
         </h1>
         <button
           className="label1"
           style={{
-            color: isSaving ? "var(--color-grey-450)" : "var(--color-light-purple)",
+            color: isLoading ? "var(--color-grey-450)" : "var(--color-light-purple)",
             fontWeight: "var(--font-weight-semibold)",
             background: "none",
             border: "none",
-            cursor: isSaving ? "not-allowed" : "pointer",
+            cursor: isLoading ? "not-allowed" : "pointer",
           }}
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isLoading}
         >
-          {isSaving ? "저장 중..." : "저장"}
+          {isLoading ? "저장 중..." : "저장"}
         </button>
       </div>
 
@@ -261,10 +188,7 @@ const OwnerEditTreatmentPage = () => {
       <div style={{ padding: "0 20px 110px" }}>
         {/* 시술명 */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            htmlFor="treatmentName"
-            className="label1 mb-2 block text-white"
-          >
+          <label htmlFor="treatmentName" className="label1 block mb-2 text-white">
             시술명 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
           <div className="relative">
@@ -275,9 +199,11 @@ const OwnerEditTreatmentPage = () => {
               value={treatmentName}
               onChange={e => setTreatmentName(e.target.value)}
               maxLength={MAX_LENGTH_NAME}
+              disabled={isLoading}
               className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             />
-            <span className="caption2 absolute right-4 bottom-3 text-[color:var(--color-grey-450)]">
+            <span className="caption2 absolute bottom-3 right-4 text-[color:var(--color-grey-450)]">
               {treatmentName.length}/{MAX_LENGTH_NAME}
             </span>
           </div>
@@ -285,7 +211,7 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 카테고리 */}
         <div style={{ marginBottom: "24px" }}>
-          <label htmlFor="category" className="label1 mb-2 block text-white">
+          <label htmlFor="category" className="label1 block mb-2 text-white">
             카테고리 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
           <div className="relative">
@@ -293,37 +219,21 @@ const OwnerEditTreatmentPage = () => {
               id="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
+              disabled={isLoading}
               className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none appearance-none pr-10"
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             >
-              <option
-                value="HAND"
-                style={{ backgroundColor: "var(--color-grey-850)" }}
-              >
-                손
-              </option>
-              <option
-                value="FEET"
-                style={{ backgroundColor: "var(--color-grey-850)" }}
-              >
-                발
-              </option>
-              <option
-                value="ETC"
-                style={{ backgroundColor: "var(--color-grey-850)" }}
-              >
-                기타
-              </option>
+              <option value="HAND" style={{ backgroundColor: "var(--color-grey-850)" }}>손</option>
+              <option value="FEET" style={{ backgroundColor: "var(--color-grey-850)" }}>발</option>
+              <option value="ETC" style={{ backgroundColor: "var(--color-grey-850)" }}>기타</option>
             </select>
-            <ChevronDown
-              size={20}
-              className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--color-grey-450)]"
-            />
+            <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)] pointer-events-none" />
           </div>
         </div>
 
         {/* 가격 */}
         <div style={{ marginBottom: "24px" }}>
-          <label htmlFor="price" className="label1 mb-2 block text-white">
+          <label htmlFor="price" className="label1 block mb-2 text-white">
             가격 <span style={{ color: "var(--color-status-red)" }}>*</span>
           </label>
           <div className="relative">
@@ -333,32 +243,41 @@ const OwnerEditTreatmentPage = () => {
               placeholder="가격을 입력해주세요."
               value={price}
               onChange={e => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+              disabled={isLoading}
               className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             />
-            <span className="body2 absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--color-grey-450)]">
-              원
-            </span>
+             <span className="body2 absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)]">원</span>
           </div>
         </div>
 
         {/* 소요시간 */}
         <div style={{ marginBottom: "24px" }}>
-          <label className="label1 mb-2 block text-white">소요시간</label>
-          <p className="caption2 mb-2 text-[color:var(--color-grey-450)]">
-            10분 단위로 조작 가능해요
-          </p>
+          <label className="label1 block mb-2 text-white">소요시간</label>
+          <p className="caption2 mb-2 text-[color:var(--color-grey-450)]">10분 단위로 조작 가능해요</p>
           <div className="flex items-center gap-2">
             <input
               type="text"
               readOnly
               value={`${duration}분`}
               className="flex-grow bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm text-center outline-none"
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             />
             <div className="flex gap-1">
-              <button onClick={() => handleDurationChange("decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+              <button 
+                onClick={() => handleDurationChange("decrease")} 
+                disabled={isLoading}
+                className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none"
+                style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+              >
                 <Minus size={20} color="var(--color-light-purple)" />
               </button>
-              <button onClick={() => handleDurationChange("increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+              <button 
+                onClick={() => handleDurationChange("increase")} 
+                disabled={isLoading}
+                className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none"
+                style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+              >
                 <Plus size={20} color="var(--color-light-purple)" />
               </button>
             </div>
@@ -367,9 +286,7 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 설명글 */}
         <div style={{ marginBottom: "24px" }}>
-          <label htmlFor="description" className="label1 mb-2 block text-white">
-            설명글
-          </label>
+          <label htmlFor="description" className="label1 block mb-2 text-white">설명글</label>
           <div className="relative">
             <textarea
               id="description"
@@ -378,9 +295,11 @@ const OwnerEditTreatmentPage = () => {
               onChange={e => setDescription(e.target.value)}
               maxLength={MAX_LENGTH_DESCRIPTION}
               rows={5}
+              disabled={isLoading}
               className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm resize-none outline-none"
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             />
-            <span className="caption2 absolute right-4 bottom-3 text-[color:var(--color-grey-450)]">
+            <span className="caption2 absolute bottom-3 right-4 text-[color:var(--color-grey-450)]">
               {description.length}/{MAX_LENGTH_DESCRIPTION}
             </span>
           </div>
@@ -388,80 +307,87 @@ const OwnerEditTreatmentPage = () => {
 
         {/* 대표 이미지 */}
         <div style={{ marginBottom: "24px" }}>
-          <label className="label1 mb-2 block text-white">대표 이미지</label>
-          <p className="caption2 mb-4 text-[color:var(--color-grey-450)]">
-            맨 처음 들어왔을 때 보여질 썸네일을 직접 지정해요
-          </p>
-          <div className="flex flex-wrap gap-2">
+          <label className="label1 block mb-2 text-white">대표 이미지</label>
+          <p className="caption2 mb-4 text-[color:var(--color-grey-450)]">맨 처음 들어왔을 때 보여질 썸네일을 직접 지정해요</p>
+          <div className="flex gap-2 flex-wrap">
             {displayedImages.map((image, index) => (
-              <div
-                key={image.isNew ? `new-${index}` : `existing-${image.id}`}
-                className="relative h-20 w-20 overflow-hidden rounded-lg"
-              >
-                <img
-                  src={image.imageUrl}
-                  alt={`시술 이미지 ${index + 1}`}
-                  className="h-full w-full object-cover"
-                />
+              <div key={`new-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden">
+                <img src={image.imageUrl} alt={`시술 이미지 ${index + 1}`} className="w-full h-full object-cover" />
                 <button
-                  onClick={() => image.isNew ? removeNewImage(index) : removeExistingImage(image.id as number)}
+                  onClick={() => removeNewImage(index)}
+                  disabled={isLoading}
                   className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 border-none flex items-center justify-center cursor-pointer z-10"
+                  style={{ cursor: isLoading ? "not-allowed" : "pointer" }}
                 >
                   <X size={12} color="white" />
                 </button>
               </div>
             ))}
-            <label htmlFor="imageUpload" className="w-20 h-20 rounded-lg bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] flex flex-col items-center justify-center cursor-pointer gap-1">
+            <label 
+              htmlFor="imageUpload" 
+              className="w-20 h-20 rounded-lg bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] flex flex-col items-center justify-center cursor-pointer gap-1"
+              style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+            >
               <Plus size={20} className="text-[color:var(--color-grey-450)]" />
-              <span className="caption2 text-[color:var(--color-grey-450)]">
-                사진 {displayedImages.length}/5
-              </span>
+              <span className="caption2 text-[color:var(--color-grey-450)]">사진 {displayedImages.length}/5</span>
             </label>
-            <input type="file" id="imageUpload" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <input 
+              type="file" 
+              id="imageUpload" 
+              multiple 
+              accept="image/*" 
+              onChange={handleImageUpload} 
+              className="hidden" 
+              disabled={isLoading}
+            />
           </div>
         </div>
 
         {/* 옵션 추가 섹션 */}
         <div>
-          <label className="label1 mb-2 block text-white">옵션 추가</label>
+          <label className="label1 block mb-2 text-white">옵션 추가</label>
           <div className="space-y-4">
             {options.map(option => (
-              <div key={option.id} className="bg-[color:var(--color-grey-1000)] rounded-lg p-4 relative">
-                <button onClick={() => removeOption(option.id)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[color:var(--color-grey-750)] border-none flex items-center justify-center cursor-pointer z-10">
+              <div key={option.id} className="bg-[color:var(--color-grey-1000)] rounded-lg p-4 relative" style={{ opacity: isLoading ? 0.7 : 1 }}>
+                <button 
+                  onClick={() => removeOption(option.id)} 
+                  disabled={isLoading}
+                  className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[color:var(--color-grey-750)] border-none flex items-center justify-center cursor-pointer z-10"
+                  style={{ cursor: isLoading ? "not-allowed" : "pointer" }}
+                >
                   <X size={16} color="white" />
                 </button>
                 <div className="mb-4">
-                  <label
-                    htmlFor={`optionName-${option.id}`}
-                    className="body1 mb-2 block text-white"
-                  >
-                    옵션명
-                  </label>
+                  <label htmlFor={`optionName-${option.id}`} className="body1 block mb-2 text-white">옵션명</label>
                   <input
                     id={`optionName-${option.id}`}
                     type="text"
                     placeholder="옵션명을 입력해주세요"
                     value={option.name}
                     onChange={e => handleOptionChange(option.id, "name", e.target.value)}
+                    disabled={isLoading}
                     className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="body1 mb-2 block text-white">
-                    소요 시간
-                  </label>
+                  <label className="body1 block mb-2 text-white">소요 시간</label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={`${option.duration}분`}
-                      className="flex-grow rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-3 text-center text-sm text-white outline-none"
-                    />
+                    <input type="text" readOnly value={`${option.duration}분`} className="flex-grow bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm text-center outline-none" />
                     <div className="flex gap-1">
-                      <button onClick={() => handleOptionDurationChange(option.id, "decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                      <button 
+                        onClick={() => handleOptionDurationChange(option.id, "decrease")} 
+                        disabled={isLoading}
+                        className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none"
+                        style={{ cursor: isLoading ? "not-allowed" : "pointer" }}
+                      >
                         <Minus size={20} color="var(--color-light-purple)" />
                       </button>
-                      <button onClick={() => handleOptionDurationChange(option.id, "increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                      <button 
+                        onClick={() => handleOptionDurationChange(option.id, "increase")} 
+                        disabled={isLoading}
+                        className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none"
+                        style={{ cursor: isLoading ? "not-allowed" : "pointer" }}
+                      >
                         <Plus size={20} color="var(--color-light-purple)" />
                       </button>
                     </div>
@@ -476,6 +402,7 @@ const OwnerEditTreatmentPage = () => {
                         placeholder="가격을 입력해주세요"
                         value={option.price === 0 ? "" : option.price}
                         onChange={e => handleOptionChange(option.id, "price", parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0)}
+                        disabled={isLoading}
                         className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
                       />
                       <span className="body2 absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)]">원</span>
@@ -483,17 +410,22 @@ const OwnerEditTreatmentPage = () => {
                 </div>
               </div>
             ))}
-            <button onClick={addOption} className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm font-semibold cursor-pointer mt-6 flex items-center justify-center">
+            <button 
+              onClick={addOption} 
+              disabled={isLoading}
+              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm font-semibold cursor-pointer mt-6 flex items-center justify-center"
+              style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
+            >
               <Plus size={20} className="mr-2" />
               옵션 추가
             </button>
           </div>
         </div>
       </div>
-
+      
       <ManagerNavbar />
     </div>
   );
 };
 
-export default OwnerEditTreatmentPage;
+export default OwnerCreateTreatmentPage;

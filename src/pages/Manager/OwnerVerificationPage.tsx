@@ -440,7 +440,7 @@ const OwnerVerificationPage = () => {
                 <div className="py-8 text-center text-gray-400">등록된 공지사항이 없습니다.</div>
               ) : (
                 notices.map(notice => (
-                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/create/${shopId}`)}>
+                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
                     <div className="mb-2 flex items-center justify-between">
                       <h4 className="font-medium text-white">{notice.title}</h4>
                       <ChevronRight size={20} className="text-gray-400" />
@@ -459,8 +459,8 @@ const OwnerVerificationPage = () => {
         <button
           onClick={
             activeTab === 'services' 
-            ? navigateTo(`/owner/treatments/edit/${shopId}`)
-            : navigateTo(`/owner/announcements/edit/${shopId}`)
+            ? navigateTo(`/owner/treatments/create/${shopId}`)
+            : navigateTo(`/owner/announcements/create/${shopId}`)
           }
           className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors bg-[#8B5CF6]"
         >
