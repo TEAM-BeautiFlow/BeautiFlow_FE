@@ -94,23 +94,29 @@ const OwnerEditTreatmentPage = () => {
     if (!shopId || !treatmentId) return;
 
     const requestDto = {
-      id: treatmentId != null ? Number(treatmentId) : null,
       name: treatmentName,
       category,
       price: parseInt(price, 10) || 0,
       durationMinutes: duration,
       description,
-      deleteImageIds, // 삭제할 이미지 id 배열
+      deleteImageIds,
       options: options.map(({ id, ...rest }) => ({
         ...rest,
         optionId: typeof id === "number" && id > 0 ? id : null,
       })),
     };
 
+    const formData = new FormData();
+    formData.append("requestDto", JSON.stringify(requestDto));
+    newImages.forEach(file => {
+      formData.append("newImages", file);
+    });
+
     try {
-      await api.put(`/shops/manage/${shopId}/treatments`, [requestDto], {
-        headers: { "Content-Type": "application/json" },
-      });
+      await api.patch(
+        `/shops/manage/${shopId}/treatments/${treatmentId}`,
+        formData,
+      );
       alert("시술 정보가 성공적으로 수정되었습니다.");
       navigate(-1);
     } catch (err) {
