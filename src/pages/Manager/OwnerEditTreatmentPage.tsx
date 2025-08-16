@@ -94,26 +94,23 @@ const OwnerEditTreatmentPage = () => {
     if (!shopId || !treatmentId) return;
 
     const requestDto = {
+      id: treatmentId ?? null,
       name: treatmentName,
       category,
       price: parseInt(price, 10) || 0,
       durationMinutes: duration,
       description,
-      deleteImageIds,
+      deleteImageIds, // 삭제할 이미지 id 배열
       options: options.map(({ id, ...rest }) => ({
         ...rest,
-        optionId: typeof id === 'number' && id > 0 ? id : null,
+        optionId: typeof id === "number" && id > 0 ? id : null,
       })),
     };
 
-    const formData = new FormData();
-    formData.append("requestDto", JSON.stringify(requestDto));
-    newImages.forEach(file => {
-      formData.append("newImages", file);
-    });
-
     try {
-      await api.patch(`/shops/manage/${shopId}/treatments/${treatmentId}`, formData);
+      await api.put(`/shops/manage/${shopId}/treatments`, [requestDto], {
+        headers: { "Content-Type": "application/json" },
+      });
       alert("시술 정보가 성공적으로 수정되었습니다.");
       navigate(-1);
     } catch (err) {
@@ -232,7 +229,10 @@ const OwnerEditTreatmentPage = () => {
           padding: "20px 20px 24px",
         }}
       >
-        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
+        <button
+          onClick={() => navigate(-1)}
+          className="cursor-pointer border-none bg-transparent p-0"
+        >
           <ChevronLeft size={24} color="var(--color-white)" />
         </button>
         <h1
@@ -244,7 +244,9 @@ const OwnerEditTreatmentPage = () => {
         <button
           className="label1"
           style={{
-            color: isSaving ? "var(--color-grey-450)" : "var(--color-light-purple)",
+            color: isSaving
+              ? "var(--color-grey-450)"
+              : "var(--color-light-purple)",
             fontWeight: "var(--font-weight-semibold)",
             background: "none",
             border: "none",
@@ -275,7 +277,7 @@ const OwnerEditTreatmentPage = () => {
               value={treatmentName}
               onChange={e => setTreatmentName(e.target.value)}
               maxLength={MAX_LENGTH_NAME}
-              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
+              className="w-full rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 font-['Pretendard'] text-sm text-white outline-none"
             />
             <span className="caption2 absolute right-4 bottom-3 text-[color:var(--color-grey-450)]">
               {treatmentName.length}/{MAX_LENGTH_NAME}
@@ -293,7 +295,7 @@ const OwnerEditTreatmentPage = () => {
               id="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none appearance-none pr-10"
+              className="w-full appearance-none rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 pr-10 font-['Pretendard'] text-sm text-white outline-none"
             >
               <option
                 value="HAND"
@@ -333,7 +335,7 @@ const OwnerEditTreatmentPage = () => {
               placeholder="가격을 입력해주세요."
               value={price}
               onChange={e => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm font-['Pretendard'] outline-none"
+              className="w-full rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 font-['Pretendard'] text-sm text-white outline-none"
             />
             <span className="body2 absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--color-grey-450)]">
               원
@@ -352,13 +354,19 @@ const OwnerEditTreatmentPage = () => {
               type="text"
               readOnly
               value={`${duration}분`}
-              className="flex-grow bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm text-center outline-none"
+              className="flex-grow rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 text-center text-sm text-white outline-none"
             />
             <div className="flex gap-1">
-              <button onClick={() => handleDurationChange("decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+              <button
+                onClick={() => handleDurationChange("decrease")}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-[color:var(--color-dark-purple)] p-0"
+              >
                 <Minus size={20} color="var(--color-light-purple)" />
               </button>
-              <button onClick={() => handleDurationChange("increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+              <button
+                onClick={() => handleDurationChange("increase")}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-[color:var(--color-dark-purple)] p-0"
+              >
                 <Plus size={20} color="var(--color-light-purple)" />
               </button>
             </div>
@@ -378,7 +386,7 @@ const OwnerEditTreatmentPage = () => {
               onChange={e => setDescription(e.target.value)}
               maxLength={MAX_LENGTH_DESCRIPTION}
               rows={5}
-              className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-4 text-white text-sm resize-none outline-none"
+              className="w-full resize-none rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 text-sm text-white outline-none"
             />
             <span className="caption2 absolute right-4 bottom-3 text-[color:var(--color-grey-450)]">
               {description.length}/{MAX_LENGTH_DESCRIPTION}
@@ -404,20 +412,34 @@ const OwnerEditTreatmentPage = () => {
                   className="h-full w-full object-cover"
                 />
                 <button
-                  onClick={() => image.isNew ? removeNewImage(index) : removeExistingImage(image.id as number)}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 border-none flex items-center justify-center cursor-pointer z-10"
+                  onClick={() =>
+                    image.isNew
+                      ? removeNewImage(index)
+                      : removeExistingImage(image.id as number)
+                  }
+                  className="absolute top-1 right-1 z-10 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border-none bg-black/60"
                 >
                   <X size={12} color="white" />
                 </button>
               </div>
             ))}
-            <label htmlFor="imageUpload" className="w-20 h-20 rounded-lg bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] flex flex-col items-center justify-center cursor-pointer gap-1">
+            <label
+              htmlFor="imageUpload"
+              className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)]"
+            >
               <Plus size={20} className="text-[color:var(--color-grey-450)]" />
               <span className="caption2 text-[color:var(--color-grey-450)]">
                 사진 {displayedImages.length}/5
               </span>
             </label>
-            <input type="file" id="imageUpload" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <input
+              type="file"
+              id="imageUpload"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
           </div>
         </div>
 
@@ -426,8 +448,14 @@ const OwnerEditTreatmentPage = () => {
           <label className="label1 mb-2 block text-white">옵션 추가</label>
           <div className="space-y-4">
             {options.map(option => (
-              <div key={option.id} className="bg-[color:var(--color-grey-1000)] rounded-lg p-4 relative">
-                <button onClick={() => removeOption(option.id)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[color:var(--color-grey-750)] border-none flex items-center justify-center cursor-pointer z-10">
+              <div
+                key={option.id}
+                className="relative rounded-lg bg-[color:var(--color-grey-1000)] p-4"
+              >
+                <button
+                  onClick={() => removeOption(option.id)}
+                  className="absolute top-3 right-3 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-[color:var(--color-grey-750)]"
+                >
                   <X size={16} color="white" />
                 </button>
                 <div className="mb-4">
@@ -442,8 +470,10 @@ const OwnerEditTreatmentPage = () => {
                     type="text"
                     placeholder="옵션명을 입력해주세요"
                     value={option.name}
-                    onChange={e => handleOptionChange(option.id, "name", e.target.value)}
-                    className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
+                    onChange={e =>
+                      handleOptionChange(option.id, "name", e.target.value)
+                    }
+                    className="w-full rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-3 text-sm text-white outline-none"
                   />
                 </div>
                 <div className="mb-4">
@@ -458,32 +488,58 @@ const OwnerEditTreatmentPage = () => {
                       className="flex-grow rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-3 text-center text-sm text-white outline-none"
                     />
                     <div className="flex gap-1">
-                      <button onClick={() => handleOptionDurationChange(option.id, "decrease")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                      <button
+                        onClick={() =>
+                          handleOptionDurationChange(option.id, "decrease")
+                        }
+                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-[color:var(--color-dark-purple)] p-0"
+                      >
                         <Minus size={20} color="var(--color-light-purple)" />
                       </button>
-                      <button onClick={() => handleOptionDurationChange(option.id, "increase")} className="bg-[color:var(--color-dark-purple)] rounded-full w-10 h-10 flex items-center justify-center cursor-pointer p-0 border-none">
+                      <button
+                        onClick={() =>
+                          handleOptionDurationChange(option.id, "increase")
+                        }
+                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-none bg-[color:var(--color-dark-purple)] p-0"
+                      >
                         <Plus size={20} color="var(--color-light-purple)" />
                       </button>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label htmlFor={`optionPrice-${option.id}`} className="body1 block mb-2 text-white">가격</label>
-                   <div className="relative">
-                      <input
-                        id={`optionPrice-${option.id}`}
-                        type="text"
-                        placeholder="가격을 입력해주세요"
-                        value={option.price === 0 ? "" : option.price}
-                        onChange={e => handleOptionChange(option.id, "price", parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0)}
-                        className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm outline-none"
-                      />
-                      <span className="body2 absolute right-4 top-1/2 -translate-y-1/2 text-[color:var(--color-grey-450)]">원</span>
-                   </div>
+                  <label
+                    htmlFor={`optionPrice-${option.id}`}
+                    className="body1 mb-2 block text-white"
+                  >
+                    가격
+                  </label>
+                  <div className="relative">
+                    <input
+                      id={`optionPrice-${option.id}`}
+                      type="text"
+                      placeholder="가격을 입력해주세요"
+                      value={option.price === 0 ? "" : option.price}
+                      onChange={e =>
+                        handleOptionChange(
+                          option.id,
+                          "price",
+                          parseInt(e.target.value.replace(/[^0-9]/g, "")) || 0,
+                        )
+                      }
+                      className="w-full rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-3 text-sm text-white outline-none"
+                    />
+                    <span className="body2 absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--color-grey-450)]">
+                      원
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
-            <button onClick={addOption} className="w-full bg-[color:var(--color-grey-850)] border border-[color:var(--color-grey-750)] rounded-lg p-3 text-white text-sm font-semibold cursor-pointer mt-6 flex items-center justify-center">
+            <button
+              onClick={addOption}
+              className="mt-6 flex w-full cursor-pointer items-center justify-center rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-3 text-sm font-semibold text-white"
+            >
               <Plus size={20} className="mr-2" />
               옵션 추가
             </button>
