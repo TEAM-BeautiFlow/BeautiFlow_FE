@@ -94,7 +94,7 @@ const OwnerEditTreatmentPage = () => {
     if (!shopId || !treatmentId) return;
 
     const requestDto = {
-      id: treatmentId ?? null,
+      id: treatmentId != null ? Number(treatmentId) : null,
       name: treatmentName,
       category,
       price: parseInt(price, 10) || 0,
