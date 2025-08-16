@@ -16,6 +16,7 @@ import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합�
 import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
+import Header from "@/layout/Header";
 
 // --- 타입 정의 ---
 interface ShopImage {
@@ -138,7 +139,7 @@ const OwnerVerificationPage = () => {
           shopManageResponse.value.data?.data
         ) {
           const rawData = shopManageResponse.value.data.data;
-          const depositAmount = rawData.depositAmount
+          const depositAmount = rawData.depositAmount;
 
           const mappedShopData: ShopData = {
             shopName: rawData.shopName,
@@ -158,21 +159,27 @@ const OwnerVerificationPage = () => {
           setShopData(null);
         }
 
-        if (noticesResponse.status === "fulfilled" && noticesResponse.value.data?.data) {
-            const mappedNotices = noticesResponse.value.data.data.map(
-              (item: any) => ({
-                id: item.noticeId,
-                title: item.title,
-                content: item.content,
-              }),
-            );
-            setNotices(mappedNotices);
+        if (
+          noticesResponse.status === "fulfilled" &&
+          noticesResponse.value.data?.data
+        ) {
+          const mappedNotices = noticesResponse.value.data.data.map(
+            (item: any) => ({
+              id: item.noticeId,
+              title: item.title,
+              content: item.content,
+            }),
+          );
+          setNotices(mappedNotices);
         } else if (noticesResponse.status === "rejected") {
           console.error("공지사항 로딩 실패:", noticesResponse.reason);
           setNotices([]);
         }
 
-        if (hoursResponse.status === "fulfilled" && hoursResponse.value.data?.data) {
+        if (
+          hoursResponse.status === "fulfilled" &&
+          hoursResponse.value.data?.data
+        ) {
           const { openTime, closeTime, breakStart, breakEnd } =
             hoursResponse.value.data.data;
           setBusinessHours({
@@ -185,7 +192,10 @@ const OwnerVerificationPage = () => {
           console.error("영업 시간 로딩 중 에러 발생:", hoursResponse.reason);
         }
 
-        if (holidaysResponse.status === "fulfilled" && holidaysResponse.value.data?.data) {
+        if (
+          holidaysResponse.status === "fulfilled" &&
+          holidaysResponse.value.data?.data
+        ) {
           const holidayData = holidaysResponse.value.data.data;
           if (Array.isArray(holidayData) && holidayData.length > 0) {
             const { cycle, daysOfWeek } = holidayData[0];
@@ -195,7 +205,10 @@ const OwnerVerificationPage = () => {
             });
           }
         } else if (holidaysResponse.status === "rejected") {
-          console.error("휴일 정보 로딩 중 에러 발생:", holidaysResponse.reason);
+          console.error(
+            "휴일 정보 로딩 중 에러 발생:",
+            holidaysResponse.reason,
+          );
         }
       } catch (err) {
         console.error("초기 데이터 로딩 실패:", err);
@@ -238,7 +251,7 @@ const OwnerVerificationPage = () => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-white">
+      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-[var(--color-grey-150)]">
         데이터를 불러오는 중...
       </div>
     );
@@ -246,7 +259,7 @@ const OwnerVerificationPage = () => {
 
   if (error) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-white">
+      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-[var(--color-grey-150)]">
         {error}
       </div>
     );
@@ -254,7 +267,7 @@ const OwnerVerificationPage = () => {
 
   if (!shopData) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-white">
+      <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-[#1A1A1A] text-[var(--color-grey-150)]">
         매장 정보를 표시할 수 없습니다.
       </div>
     );
@@ -262,28 +275,30 @@ const OwnerVerificationPage = () => {
 
   const formatBusinessHours = () => {
     const { openTime, closeTime, breakStart, breakEnd } = businessHours;
-    let hoursString = (openTime && closeTime) ? `${openTime} ~ ${closeTime}` : "정보 없음";
-    if (breakStart && breakEnd) hoursString += ` (브레이크 ${breakStart} ~ ${breakEnd})`;
+    let hoursString =
+      openTime && closeTime ? `${openTime} ~ ${closeTime}` : "정보 없음";
+    if (breakStart && breakEnd)
+      hoursString += ` (브레이크 ${breakStart} ~ ${breakEnd})`;
     return hoursString;
   };
 
   const formatRegularHoliday = () => {
     const { cycle, daysOfWeek } = regularHoliday;
-    return (cycle && daysOfWeek.length > 0) ? `${cycle} ${daysOfWeek.join(", ")}` : "정기 휴무일 없음";
+    return cycle && daysOfWeek.length > 0
+      ? `${cycle} ${daysOfWeek.join(", ")}`
+      : "정기 휴무일 없음";
   };
-  
+
   const navigateTo = (path: string) => () => navigate(path);
 
   return (
-    <div className="relative mx-auto min-h-screen max-w-sm font-sans text-white bg-[#1A1A1A]">
+    <div className="relative mx-auto min-h-screen max-w-sm bg-[#1A1A1A] text-[var(--color-grey-150)]">
       {/* 🔽 pb-20 -> pb-28 로 수정하여 네비게이션 바 공간 확보 */}
       <div className="pb-28">
-        <header className="flex items-center justify-between px-5 py-4">
-          <span className="text-2xl font-bold text-[#8B5CF6]">BEAUTIFLOW</span>
-        </header>
+        <Header />
 
         <div className="flex items-center space-x-3 px-5 py-4">
-          <div className="h-14 w-14 flex-shrink-0 rounded-full bg-gray-600">
+          <div className="h-14 w-14 flex-shrink-0 rounded-full bg-[var(--color-grey-950)]">
             {shopData.mainImageUrl && (
               <img
                 src={shopData.mainImageUrl}
@@ -293,8 +308,10 @@ const OwnerVerificationPage = () => {
             )}
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold text-white">{shopData.shopName}</h2>
-            <p className="truncate text-sm text-gray-400">
+            <h2 className="title1 text-[var(--color-grey-150)]">
+              {shopData.shopName}
+            </h2>
+            <p className="caption2 truncate text-[var(--color-grey-450)]">
               {shopData.introduction || "매장 소개가 없습니다."}
             </p>
           </div>
@@ -306,10 +323,10 @@ const OwnerVerificationPage = () => {
               onClick={navigateTo(`/owner/business-registration/${shopId}`)}
               className="w-full cursor-pointer"
             >
-              <div className="flex w-full items-center justify-between rounded-lg bg-red-900 p-4 text-red-300">
+              <div className="flex w-full items-center justify-between rounded-lg bg-[#4B2024] p-4 text-[#D2636A]">
                 <div className="flex items-center gap-2">
                   <ShieldAlert size={20} />
-                  <span className="font-medium">사업자등록증 인증 필요</span>
+                  <span className="body1">사업자등록증 인증 필요</span>
                 </div>
                 <ChevronRight size={20} />
               </div>
@@ -317,7 +334,7 @@ const OwnerVerificationPage = () => {
           </div>
         )}
 
-        <div className="mt-2 flex border-b border-gray-800 px-5">
+        <div className="mt-2 flex border-b border-[var(--color-grey-750)] px-5">
           {[
             { key: "basic", label: "기본" },
             { key: "services", label: "시술" },
@@ -326,10 +343,10 @@ const OwnerVerificationPage = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
-              className={`border-b-2 px-2 py-3 font-medium transition-colors ${
+              className={`h1 border-b-2 px-2 py-3 transition-colors ${
                 activeTab === tab.key
-                  ? "border-b-2 font-semibold border-[#A78BFA] text-[#A78BFA]"
-                  : "border-transparent text-[#9CA3AF]"
+                  ? "border-b-2 border-[var(--color-grey-150)] text-[var(--color-grey-150)]"
+                  : "border-transparent text-[var(--color-grey-750)]"
               }`}
             >
               {tab.label}
@@ -341,45 +358,137 @@ const OwnerVerificationPage = () => {
           {activeTab === "basic" && (
             <div className="space-y-6">
               {/* 매장 정보, 소개, 매출 관리, 영업 시간 카드들 */}
-              <div className="rounded-lg p-4 bg-[#1A1A1A]">
+              <div className="rounded-lg bg-[#1A1A1A] p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-medium text-white">매장 정보</h3>
-                  <button className="text-sm text-[#A78BFA]" onClick={navigateTo(`/owner/store-info/${shopId}`)}>수정</button>
+                  <h3 className="title2 text-[var(--color-grey-150)]">
+                    매장 정보
+                  </h3>
+                  <button
+                    className="body2 text-[var(--color-light-purple)]"
+                    onClick={navigateTo(`/owner/store-info/${shopId}`)}
+                  >
+                    수정
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2"><Home size={16} className="text-gray-400" /><span className="text-sm">{shopData.shopName || "-"}</span></div>
-                  <div className="flex items-center gap-2"><MessageSquare size={16} className="text-gray-400" /><span className="text-sm">{shopData.contact || "-"}</span></div>
-                  <div className="flex items-start gap-2"><Clock size={16} className="mt-0.5 text-gray-400" /><span className="text-sm leading-relaxed">{shopData.address || "-"}</span></div>
+                  <div className="flex items-center gap-2">
+                    <Home size={16} className="text-[var(--color-grey-150)]" />
+                    <span className="body2">{shopData.shopName || "-"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageSquare
+                      size={16}
+                      className="text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2">{shopData.contact || "-"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Clock
+                      size={16}
+                      className="mt-0.5 text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2 leading-relaxed">
+                      {shopData.address || "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-lg p-4 bg-[#1A1A1A]">
+              <div className="rounded-lg bg-[#1A1A1A] p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-medium text-white">매장 소개</h3>
-                  <button className="text-sm text-[#A78BFA]" onClick={navigateTo(`/owner/store-intro/${shopId}`)}>수정</button>
+                  <h3 className="title2 text-[var(--color-grey-150)]">
+                    매장 소개
+                  </h3>
+                  <button
+                    className="body2 text-[var(--color-light-purple)]"
+                    onClick={navigateTo(`/owner/store-intro/${shopId}`)}
+                  >
+                    수정
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2"><Pencil size={16} className="text-gray-400" /><span className="text-sm">{shopData.introduction || "-"}</span></div>
-                  <div className="flex items-center gap-2"><Image size={16} className="text-gray-400" /><span className="text-sm">{shopData.mainImageUrl ? "대표 이미지 등록됨" : "-"}</span></div>
+                  <div className="flex items-center gap-2">
+                    <Pencil
+                      size={16}
+                      className="text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2">
+                      {shopData.introduction || "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Image size={16} className="text-[var(--color-grey-150)]" />
+                    <span className="body2">
+                      {shopData.mainImageUrl ? "대표 이미지 등록됨" : "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-lg p-4 bg-[#1A1A1A]">
+              <div className="rounded-lg bg-[#1A1A1A] p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-medium text-white">매출 관리</h3>
-                  <button className="text-sm text-[#A78BFA]" onClick={navigateTo(`/owner/sales/${shopId}`)}>수정</button>
+                  <h3 className="title2 text-[var(--color-grey-150)]">
+                    매출 관리
+                  </h3>
+                  <button
+                    className="body2 text-[var(--color-light-purple)]"
+                    onClick={navigateTo(`/owner/sales/${shopId}`)}
+                  >
+                    수정
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2"><DollarSign size={16} className="text-gray-400" /><span className="text-sm">{shopData.depositAmount ? `${shopData.depositAmount.toLocaleString()}원` : "-"}</span></div>
-                  <div className="flex items-center gap-2"><Pencil size={16} className="text-gray-400" /><span className="text-sm">{shopData.accountHolder || "-"}</span></div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign
+                      size={16}
+                      className="text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2">
+                      {shopData.depositAmount
+                        ? `${shopData.depositAmount.toLocaleString()}원`
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Pencil
+                      size={16}
+                      className="text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2">
+                      {shopData.accountHolder || "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-lg p-4 bg-[#1A1A1A]">
+              <div className="rounded-lg bg-[#1A1A1A] p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-medium text-white">영업 시간</h3>
-                  <button className="text-sm text-[#A78BFA]" onClick={navigateTo(`/owner/hours/${shopId}`)}>수정</button>
+                  <h3 className="title2 text-[var(--color-grey-150)]">
+                    영업 시간
+                  </h3>
+                  <button
+                    className="body2 text-[var(--color-light-purple)]"
+                    onClick={navigateTo(`/owner/hours/${shopId}`)}
+                  >
+                    수정
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-2"><Clock size={16} className="mt-0.5 text-gray-400" /><span className="text-sm leading-relaxed">{formatBusinessHours()}</span></div>
-                  <div className="flex items-start gap-2"><Calendar size={16} className="mt-0.5 text-gray-400" /><span className="text-sm leading-relaxed">{formatRegularHoliday()}</span></div>
+                  <div className="flex items-start gap-2">
+                    <Clock
+                      size={16}
+                      className="mt-0.5 text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2 leading-relaxed">
+                      {formatBusinessHours()}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Calendar
+                      size={16}
+                      className="mt-0.5 text-[var(--color-grey-150)]"
+                    />
+                    <span className="body2 leading-relaxed">
+                      {formatRegularHoliday()}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -395,11 +504,13 @@ const OwnerVerificationPage = () => {
                 ].map(category => (
                   <button
                     key={category.key}
-                    onClick={() => setActiveServiceCategory(category.key as ServiceCategory)}
-                    className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    onClick={() =>
+                      setActiveServiceCategory(category.key as ServiceCategory)
+                    }
+                    className={`body1 rounded-full border px-4 py-2 transition-colors ${
                       activeServiceCategory === category.key
-                        ? "font-semibold text-white bg-[#6B21A8] border-[#A78BFA]"
-                        : "text-gray-300 bg-transparent border-[#404040]"
+                        ? "body1 border-[var(--color-light-purple)] bg-[var(--color-purple)] text-[var(--color-grey-150)]"
+                        : "border-[var(--color-grey-750)] bg-transparent text-[var(--color-grey-150)]"
                     }`}
                   >
                     {category.label}
@@ -407,24 +518,49 @@ const OwnerVerificationPage = () => {
                 ))}
               </div>
               {isServiceLoading ? (
-                <div className="py-8 text-center">시술 목록을 불러오는 중...</div>
+                <div className="py-8 text-center">
+                  시술 목록을 불러오는 중...
+                </div>
               ) : (
                 <div className="space-y-4">
                   {services.length === 0 ? (
-                    <div className="py-8 text-center text-gray-400">등록된 시술이 없습니다.</div>
+                    <div className="py-8 text-center text-[var(--color-grey-650)]">
+                      등록된 시술이 없습니다.
+                    </div>
                   ) : (
                     services.map(service => (
-                      <div key={service.id} className="flex gap-4 cursor-pointer" onClick={navigateTo(`/owner/treatments/edit/${shopId}/${service.id}`)}>
-                        <div className="h-20 w-20 flex-shrink-0 rounded-md bg-gray-700">
-                          {service.imageUrl && <img src={service.imageUrl} alt={service.name} className="h-full w-full rounded-md object-cover" />}
+                      <div
+                        key={service.id}
+                        className="flex cursor-pointer gap-4"
+                        onClick={navigateTo(
+                          `/owner/treatments/edit/${shopId}/${service.id}`,
+                        )}
+                      >
+                        <div className="h-20 w-20 flex-shrink-0 rounded-md bg-[var(--color-grey-850)]">
+                          {service.imageUrl && (
+                            <img
+                              src={service.imageUrl}
+                              alt={service.name}
+                              className="h-full w-full rounded-md object-cover"
+                            />
+                          )}
                         </div>
                         <div className="flex-1">
                           <div className="mb-1 flex items-start justify-between">
-                            <h4 className="text-base font-medium text-white">{service.name}</h4>
-                            <span className="flex items-center gap-1 rounded-full bg-gray-800 px-2 py-1 text-xs text-gray-400"><Clock size={12} />{service.duration}분</span>
+                            <h4 className="title1 text-[var(--color-grey-50)]">
+                              {service.name}
+                            </h4>
+                            <span className="caption1 flex items-center gap-1 rounded-full bg-[var(--color-grey-950)] px-2 py-1 text-[var(--color-grey-150)]">
+                              <Clock size={12} />
+                              {service.duration}분
+                            </span>
                           </div>
-                          <p className="mb-1 text-lg font-bold text-[#A78BFA]">{service.price.toLocaleString()}원</p>
-                          <p className="line-clamp-2 text-sm leading-relaxed text-gray-400">{service.description}</p>
+                          <p className="body1 mb-1 text-[var(--color-light-purple)]">
+                            {service.price.toLocaleString()}원
+                          </p>
+                          <p className="caption2 line-clamp-2 leading-relaxed text-[var(--color-grey-150)]">
+                            {service.description}
+                          </p>
                         </div>
                       </div>
                     ))
@@ -437,15 +573,30 @@ const OwnerVerificationPage = () => {
           {activeTab === "notices" && (
             <div className="space-y-4">
               {notices.length === 0 ? (
-                <div className="py-8 text-center text-gray-400">등록된 공지사항이 없습니다.</div>
+                <div className="py-8 text-center text-[var(--color-grey-650)]">
+                  등록된 공지사항이 없습니다.
+                </div>
               ) : (
                 notices.map(notice => (
-                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
+                  <div
+                    key={notice.id}
+                    className="cursor-pointer rounded-lg bg-[#262626] p-4"
+                    onClick={navigateTo(
+                      `/owner/announcements/edit/${shopId}/${notice.id}`,
+                    )}
+                  >
                     <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-medium text-white">{notice.title}</h4>
-                      <ChevronRight size={20} className="text-gray-400" />
+                      <h4 className="font-medium text-[var(--color-grey-150)]">
+                        {notice.title}
+                      </h4>
+                      <ChevronRight
+                        size={20}
+                        className="text-[var(--color-grey-150)]"
+                      />
                     </div>
-                    <p className="line-clamp-2 text-sm leading-relaxed text-gray-400">{notice.content}</p>
+                    <p className="body2 line-clamp-2 leading-relaxed text-[var(--color-grey-150)]">
+                      {notice.content}
+                    </p>
                   </div>
                 ))
               )}
@@ -458,13 +609,13 @@ const OwnerVerificationPage = () => {
       {(activeTab === "services" || activeTab === "notices") && (
         <button
           onClick={
-            activeTab === 'services' 
-            ? navigateTo(`/owner/treatments/create/${shopId}`)
-            : navigateTo(`/owner/announcements/create/${shopId}`)
+            activeTab === "services"
+              ? navigateTo(`/owner/treatments/create/${shopId}`)
+              : navigateTo(`/owner/announcements/create/${shopId}`)
           }
-          className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors bg-[#8B5CF6]"
+          className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full bg-[#8B5CF6] shadow-lg transition-colors"
         >
-          <Plus size={28} className="text-white" />
+          <Plus size={28} className="text-[var(--color-grey-150)]" />
         </button>
       )}
 
