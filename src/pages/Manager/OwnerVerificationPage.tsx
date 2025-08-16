@@ -440,7 +440,7 @@ const OwnerVerificationPage = () => {
                 <div className="py-8 text-center text-gray-400">등록된 공지사항이 없습니다.</div>
               ) : (
                 notices.map(notice => (
-                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/edit/${shopId}/${notice.id}`)}>
+                  <div key={notice.id} className="rounded-lg p-4 bg-[#262626] cursor-pointer" onClick={navigateTo(`/owner/announcements/create/${shopId}`)}>
                     <div className="mb-2 flex items-center justify-between">
                       <h4 className="font-medium text-white">{notice.title}</h4>
                       <ChevronRight size={20} className="text-gray-400" />
