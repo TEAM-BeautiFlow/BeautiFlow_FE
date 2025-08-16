@@ -93,16 +93,41 @@ const OwnerCreateTreatmentPage = () => {
       optionGroups
     }];
 
-    const formData = new FormData();
-    formData.append("requestDto", JSON.stringify(requestDto));
-    newImages.forEach(file => {
-      formData.append("newImages", file);
-    });
-
     try {
       setIsLoading(true);
-      // PUT 방식으로 변경 - Content-Type 헤더는 브라우저가 자동으로 설정하도록 함
-      await api.put(`/shops/manage/${shopId}/treatments`, formData);
+      
+      // 1단계: 시술 데이터 생성
+      const response = await api.put(`/shops/manage/${shopId}/treatments`, requestDto, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // 응답에서 생성된 시술 ID 추출
+      let treatmentId;
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        treatmentId = response.data[0].id;
+      } else if (response.data && response.data.id) {
+        treatmentId = response.data.id;
+      }
+      
+      // 2단계: 이미지 업로드 (이미지가 있고 treatmentId가 있는 경우)
+      if (newImages.length > 0 && treatmentId) {
+        const imageFormData = new FormData();
+        newImages.forEach(file => {
+          imageFormData.append("images", file);
+        });
+        
+        try {
+          await api.post(`/shops/manage/${shopId}/treatments/${treatmentId}/images`, imageFormData);
+          console.log("이미지 업로드 완료");
+        } catch (imageError) {
+          console.error("이미지 업로드 실패:", imageError);
+          // 시술은 생성되었지만 이미지 업로드 실패
+          alert("시술은 등록되었지만 이미지 업로드에 실패했습니다.");
+        }
+      }
+      
       alert("시술이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {
