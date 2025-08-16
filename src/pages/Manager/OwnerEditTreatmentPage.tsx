@@ -26,7 +26,7 @@ const OwnerEditTreatmentPage = () => {
 
   // --- 상태 관리 ---
   const [treatmentName, setTreatmentName] = useState("");
-  const [category, setCategory] = useState("HAND");
+  const [category, setCategory] = useState("hand");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState(0);
   const [description, setDescription] = useState("");
@@ -64,7 +64,7 @@ const OwnerEditTreatmentPage = () => {
         if (response.data && response.data.data) {
           const data = response.data.data;
           setTreatmentName(data.name || "");
-          setCategory(data.category || "HAND");
+          setCategory(data.category || "hand");
           setPrice(data.price ? String(data.price) : "");
           setDuration(data.durationMinutes || 0);
           setDescription(data.description || "");
@@ -91,34 +91,137 @@ const OwnerEditTreatmentPage = () => {
   }, [shopId, treatmentId]);
 
   const handleSave = async () => {
-    if (!shopId || !treatmentId) return;
+    if (!shopId) return;
 
-    const requestDto = {
-      name: treatmentName,
-      category,
-      price: parseInt(price, 10) || 0,
-      durationMinutes: duration,
-      description,
-      deleteImageIds,
-      options: options.map(({ id, ...rest }) => ({
-        ...rest,
-        optionId: typeof id === "number" && id > 0 ? id : null,
-      })),
-    };
+    // 필수값 검증
+    if (!treatmentName.trim()) {
+      alert("시술명을 입력해주세요.");
+      return;
+    }
+    if (duration <= 0) {
+      alert("소요시간은 0보다 커야 합니다.");
+      return;
+    }
 
-    const formData = new FormData();
-    formData.append("requestDto", JSON.stringify(requestDto));
-    newImages.forEach(file => {
-      formData.append("newImages", file);
-    });
+    // 옵션 그룹 매핑 (이름이 있는 옵션만)
+    const validOptions = options.filter(
+      opt => (opt.name || "").trim().length > 0,
+    );
+    const optionGroups =
+      validOptions.length > 0
+        ? [
+            {
+              id: null,
+              name: "기본",
+              items: validOptions.map(opt => ({
+                id: typeof opt.id === "number" && opt.id > 0 ? opt.id : null,
+                name: opt.name,
+                extraPrice:
+                  typeof opt.price === "number"
+                    ? opt.price
+                    : parseInt(String(opt.price || 0), 10) || 0,
+                extraMinutes:
+                  typeof opt.duration === "number"
+                    ? opt.duration
+                    : parseInt(String(opt.duration || 0), 10) || 0,
+                description: "",
+              })),
+            },
+          ]
+        : [];
 
     try {
-      await api.patch(
-        `/shops/manage/${shopId}/treatments/${treatmentId}`,
-        formData,
-      );
-      alert("시술 정보가 성공적으로 수정되었습니다.");
-      navigate(-1);
+      setIsSaving(true);
+      if (isEditMode) {
+        // 텍스트/옵션 upsert
+        const upsertDtos = [
+          {
+            id: Number(treatmentId),
+            category,
+            name: treatmentName,
+            price: parseInt(price, 10) || 0,
+            durationMinutes: duration,
+            description,
+            optionGroups,
+          },
+        ];
+        await api.put(`/shops/manage/${shopId}/treatments`, upsertDtos);
+
+        // 삭제 예정 이미지 개별 삭제
+        if (deleteImageIds.length > 0 && treatmentId) {
+          await Promise.all(
+            deleteImageIds.map(imageId =>
+              api.delete(
+                `/shops/manage/${shopId}/treatments/${treatmentId}/images/${imageId}`,
+              ),
+            ),
+          );
+        }
+
+        // 신규 이미지 업로드
+        if (newImages.length > 0 && treatmentId) {
+          const imageForm = new FormData();
+          newImages.forEach(file => imageForm.append("images", file));
+          await api.post(
+            `/shops/manage/${shopId}/treatments/${treatmentId}/images`,
+            imageForm,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            },
+          );
+        }
+
+        alert("시술 정보가 성공적으로 수정되었습니다.");
+        navigate(-1);
+      } else {
+        // 생성 → 옵션 2단계 업데이트 → 이미지 업로드
+        const createDtos = [
+          {
+            id: null,
+            category,
+            name: treatmentName,
+            price: parseInt(price, 10) || 0,
+            durationMinutes: duration,
+            description,
+            optionGroups: [],
+          },
+        ];
+        const upsertRes = await api.put(
+          `/shops/manage/${shopId}/treatments`,
+          createDtos,
+        );
+        const newId = upsertRes?.data?.data?.[0]?.id;
+
+        if (newId && optionGroups.length > 0) {
+          const secondDtos = [
+            {
+              id: newId,
+              category,
+              name: treatmentName,
+              price: parseInt(price, 10) || 0,
+              durationMinutes: duration,
+              description,
+              optionGroups,
+            },
+          ];
+          await api.put(`/shops/manage/${shopId}/treatments`, secondDtos);
+        }
+
+        if (newId && newImages.length > 0) {
+          const imageForm = new FormData();
+          newImages.forEach(file => imageForm.append("images", file));
+          await api.post(
+            `/shops/manage/${shopId}/treatments/${newId}/images`,
+            imageForm,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            },
+          );
+        }
+
+        alert("시술이 성공적으로 등록되었습니다.");
+        navigate(-1);
+      }
     } catch (err) {
       console.error("시술 정보 저장 실패:", err);
       alert("저장에 실패했습니다. 다시 시도해주세요.");
@@ -304,19 +407,19 @@ const OwnerEditTreatmentPage = () => {
               className="w-full appearance-none rounded-lg border border-[color:var(--color-grey-750)] bg-[color:var(--color-grey-850)] p-4 pr-10 font-['Pretendard'] text-sm text-white outline-none"
             >
               <option
-                value="HAND"
+                value="hand"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 손
               </option>
               <option
-                value="FEET"
+                value="feet"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 발
               </option>
               <option
-                value="ETC"
+                value="cf"
                 style={{ backgroundColor: "var(--color-grey-850)" }}
               >
                 기타
