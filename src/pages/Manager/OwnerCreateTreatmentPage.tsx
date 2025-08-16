@@ -20,6 +20,20 @@ interface TreatmentOption {
   price: number;
 }
 
+interface OptionGroupItem {
+  id: number | null;
+  name: string;
+  extraPrice: number;
+  extraMinutes: number;
+  description: string;
+}
+
+interface OptionGroup {
+  id: number | null;
+  name: string;
+  items: OptionGroupItem[];
+}
+
 const OwnerCreateTreatmentPage = () => {
   const navigate = useNavigate();
   const { shopId } = useParams();
@@ -55,13 +69,27 @@ const OwnerCreateTreatmentPage = () => {
       return;
     }
 
+    // Swagger 스키마에 맞게 optionGroups 구조로 변경
+    const optionGroups: OptionGroup[] = options.map(option => ({
+      id: null, // 새로 생성할 때는 null
+      name: option.name || "기본 옵션",
+      items: [{
+        id: null, // 새로 생성할 때는 null
+        name: option.name,
+        extraPrice: option.price,
+        extraMinutes: option.duration,
+        description: ""
+      }]
+    }));
+
     const requestDto = {
-      name: treatmentName,
+      id: null, // 새로 생성할 때는 null로 설정
       category,
+      name: treatmentName,
       price: parseInt(price, 10) || 0,
       durationMinutes: duration,
       description,
-      options: options.map(({ id, ...rest }) => rest),
+      optionGroups
     };
 
     const formData = new FormData();
@@ -72,7 +100,12 @@ const OwnerCreateTreatmentPage = () => {
 
     try {
       setIsLoading(true);
-      await api.post(`/shops/manage/${shopId}/treatments`, formData);
+      // PUT 방식으로 변경
+      await api.put(`/shops/manage/${shopId}/treatments`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       alert("시술이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {
