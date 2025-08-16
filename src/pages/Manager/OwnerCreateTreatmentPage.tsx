@@ -82,15 +82,16 @@ const OwnerCreateTreatmentPage = () => {
       }]
     }));
 
-    const requestDto = {
+    // API가 배열을 요구하므로 배열로 감싸서 전송
+    const requestDto = [{
       id: null, // 새로 생성할 때는 null로 설정
-      category,
+      category: category.toLowerCase(), // 소문자로 변경 (hand, feet, etc)
       name: treatmentName,
       price: parseInt(price, 10) || 0,
       durationMinutes: duration,
       description,
       optionGroups
-    };
+    }];
 
     const formData = new FormData();
     formData.append("requestDto", JSON.stringify(requestDto));
@@ -100,12 +101,8 @@ const OwnerCreateTreatmentPage = () => {
 
     try {
       setIsLoading(true);
-      // PUT 방식으로 변경
-      await api.put(`/shops/manage/${shopId}/treatments`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      // PUT 방식으로 변경 - Content-Type 헤더는 브라우저가 자동으로 설정하도록 함
+      await api.put(`/shops/manage/${shopId}/treatments`, formData);
       alert("시술이 성공적으로 등록되었습니다.");
       navigate(-1);
     } catch (err) {
