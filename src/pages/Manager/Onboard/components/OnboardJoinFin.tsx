@@ -1,8 +1,10 @@
 import check from "@/assets/check.svg";
 import bgLeft from "@/assets/Left_W.png";
 import bgRight from "@/assets/Right_W.png";
+import { useNavigate } from "react-router-dom";
 
 export default function OnboardJoinFin() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-[812px] min-w-[375px] flex-col items-center justify-center">
       <div
@@ -35,9 +37,12 @@ export default function OnboardJoinFin() {
           해당 샵의 시술자로 로그인할 수 있어요.
         </div>
         {/* 버튼 영역 */}
-        <button className="mb-4 flex h-[56px] w-[335px] flex-row items-center justify-center rounded-[4px] bg-[var(--color-purple)]">
+        <button
+          onClick={() => navigate("/manager/mypage")}
+          className="mb-4 flex h-[56px] w-[335px] flex-row items-center justify-center rounded-[4px] bg-[var(--color-purple)]"
+        >
           <div className="label1 flex items-center justify-center text-[var(--color-white)]">
-            로그인 화면으로 이동
+            마이페이지로 이동
           </div>
         </button>
       </div>

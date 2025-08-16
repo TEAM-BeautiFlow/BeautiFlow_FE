@@ -8,6 +8,7 @@ import {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
 import LeftChevron from "../../assets/icon_left-chevron.svg";
+import CheckIcon from "@/assets/check.svg";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -255,36 +256,58 @@ export default function SignupPage() {
             </div>
             <div className="mb-4 flex gap-2">
               <input
-                className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${phone ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
+                className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${isVerified ? "border-[var(--color-purple)] opacity-80" : phone ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
                 placeholder="연락처를 입력해주세요."
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
+                disabled={isVerified}
               />
               <button
                 type="button"
                 className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${phone && !isSent ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
-                disabled={!phone || isSent}
+                disabled={!phone || isSent || isVerified}
                 onClick={handleSendCode}
               >
                 번호 인증
               </button>
             </div>
             {isSent && (
-              <div className="mb-4 flex gap-2">
+              <div className="mb-2 flex gap-2">
                 <input
-                  className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${code ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
+                  className={`body2 w-[243px] rounded-[4px] border bg-[var(--color-grey-950)] px-4 py-4 text-[var(--color-white)] focus:outline-none ${isVerified ? "border-[var(--color-purple)] opacity-80" : code ? "border-[var(--color-purple)]" : "border-[var(--color-grey-650)]"}`}
                   placeholder="인증번호"
                   value={code}
                   onChange={e => setCode(e.target.value)}
+                  disabled={isVerified}
                 />
                 <button
                   type="button"
-                  className={`caption1 my-1 ml-3 w-[76px] rounded-[20px] border text-[var(--color-white)] ${code ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
+                  className={`caption1 my-1 ml-3 flex w-[96px] items-center justify-center gap-1 rounded-[20px] border text-[var(--color-white)] transition-colors ${isVerified ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : code ? "border-[var(--color-purple)] bg-[var(--color-purple)]" : "border-[var(--color-grey-550)]"}`}
                   disabled={!code || isVerified}
                   onClick={handleVerify}
                 >
-                  확인
+                  {isVerified ? (
+                    <>
+                      <img
+                        src={CheckIcon}
+                        alt="인증 완료"
+                        className="h-4 w-4"
+                      />
+                      <span>인증완료</span>
+                    </>
+                  ) : (
+                    <span>확인</span>
+                  )}
                 </button>
+              </div>
+            )}
+            {isVerified && (
+              <div
+                className="mb-4 flex items-center gap-2 text-[var(--color-purple)] transition-opacity duration-300"
+                aria-live="polite"
+              >
+                <img src={CheckIcon} alt="인증 완료" className="h-4 w-4" />
+                <span className="caption1">휴대폰 인증이 완료되었어요.</span>
               </div>
             )}
           </div>

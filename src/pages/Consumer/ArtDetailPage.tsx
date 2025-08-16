@@ -5,6 +5,7 @@ import api from "@/apis/axiosInstance"; // api 인스턴스 사용
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, Treatment } from "../../types/api";
+import { getKakaoAuthUrl } from "@/apis/login";
 
 const ArtDetailPage = () => {
   const navigate = useNavigate();
@@ -42,7 +43,11 @@ const ArtDetailPage = () => {
         }
       } catch (err: any) {
         console.error("API 호출 중 에러 발생:", err);
-        setError(err.response?.data?.message || err.message || "알 수 없는 에러가 발생했습니다.");
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "알 수 없는 에러가 발생했습니다.",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -52,13 +57,12 @@ const ArtDetailPage = () => {
   }, [shopId, treatmentId]);
 
   const handleModalOpen = () => {
-    // TODO: 실제 로그인 상태를 확인하는 로직 추가 필요
-    const isLoggedIn = false; // 임시로 로그인되지 않은 상태로 가정
-    if (isLoggedIn) {
+    const hasToken = Boolean(localStorage.getItem("accessToken"));
+    if (hasToken) {
       navigate(`/treatment-options/${shopId}/${treatmentId}`);
-    } else {
-      setIsModalOpen(true);
+      return;
     }
+    setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
@@ -67,7 +71,8 @@ const ArtDetailPage = () => {
 
   // ✅ 카카오 로그인 버튼 클릭 시 지정된 URL로 리디렉션
   const handleKakaoLogin = () => {
-    window.location.href = "https://beautiflow.co.kr/oauth2/code/kakao-customer";
+    const url = getKakaoAuthUrl("customer");
+    window.location.href = url;
   };
 
   if (isLoading) {
@@ -106,12 +111,15 @@ const ArtDetailPage = () => {
         color: "var(--color-white)",
       }}
     >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-black px-4 py-3 flex items-center">
-            <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
-                <ChevronLeft className="h-6 w-6 text-white" />
-            </button>
-        </div>
+      {/* Header */}
+      <div className="sticky top-0 z-10 flex items-center bg-black px-4 py-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="cursor-pointer border-none bg-transparent p-0"
+        >
+          <ChevronLeft className="h-6 w-6 text-white" />
+        </button>
+      </div>
 
       {/* Image Banner */}
       <div
@@ -169,7 +177,11 @@ const ArtDetailPage = () => {
           </h2>
           <div
             className="body2 space-y-4"
-            style={{ color: "var(--color-grey-450)", lineHeight: "1.5", whiteSpace: "pre-wrap" }}
+            style={{
+              color: "var(--color-grey-450)",
+              lineHeight: "1.5",
+              whiteSpace: "pre-wrap",
+            }}
           >
             <p>{treatmentData.description}</p>
           </div>
@@ -177,21 +189,20 @@ const ArtDetailPage = () => {
       </div>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-sm px-5 py-4 bg-black">
-          <button
-            className="label1 w-full rounded-lg py-4"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)",
-              color: "var(--color-white)",
-              fontWeight: "var(--font-weight-semibold)",
-            }}
-            onClick={handleModalOpen}
-          >
-            예약하기
-          </button>
-        </div>
-
+      <div className="fixed right-0 bottom-0 left-0 mx-auto w-full max-w-sm bg-black px-5 py-4">
+        <button
+          className="label1 w-full rounded-lg py-4"
+          style={{
+            background:
+              "linear-gradient(90deg, var(--color-purple) 0%, var(--color-light-purple) 100%)",
+            color: "var(--color-white)",
+            fontWeight: "var(--font-weight-semibold)",
+          }}
+          onClick={handleModalOpen}
+        >
+          예약하기
+        </button>
+      </div>
 
       {/* Login Modal */}
       {isModalOpen && (

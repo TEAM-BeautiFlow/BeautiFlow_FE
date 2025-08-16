@@ -2,8 +2,10 @@ import check from "@/assets/check.svg";
 import bgLeft from "@/assets/Left_W.png";
 import bgRight from "@/assets/Right_W.png";
 import arrowRight from "@/assets/icon_right-chevron.svg";
+import { useNavigate } from "react-router-dom";
 
 export default function OnboardShopFin() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-[100dvh] min-w-[375px] flex-col items-center">
       <div
@@ -42,7 +44,10 @@ export default function OnboardShopFin() {
           </div>
           <img src={arrowRight} alt="arrow-right" />
         </button>
-        <button className="z-10 mb-4 flex h-[82px] w-[335px] flex-row justify-between rounded-xl bg-[var(--color-grey-950)] py-5 pr-4 pl-6 text-left">
+        <button
+          onClick={() => navigate("/manager/mypage")}
+          className="z-10 mb-4 flex h-[82px] w-[335px] flex-row justify-between rounded-xl bg-[var(--color-grey-950)] py-5 pr-4 pl-6 text-left"
+        >
           <div className="label1 flex items-center justify-between text-[var(--color-white)]">
             일단 둘러보기
           </div>
