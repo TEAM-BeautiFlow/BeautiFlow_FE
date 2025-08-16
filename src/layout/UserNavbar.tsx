@@ -1,4 +1,6 @@
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+// 1. useParams 대신 useAuthStore를 import 합니다.
+import { useAuthStore } from "../stores/auth"; // auth.ts 파일 경로에 맞게 수정하세요
 import StoreIcon from "../assets/icons/StoreIcon";
 import ChatIcon from "../assets/icons/ChatIcon";
 import ReservationIcon from "../assets/icons/ReservationIcon";
@@ -11,7 +13,12 @@ type NavItem = {
 };
 
 export default function UserNavbar() {
-  const { shopId } = useParams<{ shopId: string }>();
+  const shopIdArr = useAuthStore(state => state.shopId);
+  const lastVisitedShopId = useAuthStore(state => state.lastVisitedShopId);
+
+  const fallbackShopId =
+    shopIdArr && shopIdArr.length > 0 ? shopIdArr[0] : null;
+  const shopId = lastVisitedShopId ?? fallbackShopId;
 
   const NAV_LINKS: NavItem[] = [
     {

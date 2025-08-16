@@ -12,19 +12,29 @@ export function getKakaoAuthUrl(role: KakaoLoginRole = "customer") {
   return `${base}/oauth2/authorization/${registrationId}`;
 }
 
-// 백엔드로 코드 전달해 토큰/세션 발급
-export async function exchangeKakaoCode(code: string) {
-  const { data } = await api.post("/auth/kakao/callback", { code });
-  // 예상 응답: { accessToken, refreshToken, user }
-  if (data?.accessToken) {
-    localStorage.setItem("accessToken", data.accessToken);
-  }
-  return data;
-}
-
 export async function login(loginKey: string) {
   const { data } = await api.post("/users/login", { loginKey });
-  return data;
+  // 공통 응답 언래핑
+  const payload = data?.data ?? data;
+
+  // 로그인 응답 기반으로 안전 저장 (필드 존재 시에만)
+  if (payload?.accessToken) {
+    localStorage.setItem("accessToken", payload.accessToken);
+  }
+  if (payload?.refreshToken) {
+    localStorage.setItem("refreshToken", payload.refreshToken);
+  }
+  if (payload?.kakaoId) {
+    localStorage.setItem("kakaoId", payload.kakaoId);
+  }
+  if (payload?.provider) {
+    const prov = payload.provider.startsWith("kakao-")
+      ? payload.provider
+      : `kakao-${payload.provider}`;
+    localStorage.setItem("loginProvider", prov);
+    localStorage.setItem("provider", prov);
+  }
+  return payload;
 }
 
 // 회원가입 API

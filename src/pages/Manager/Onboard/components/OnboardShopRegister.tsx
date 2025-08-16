@@ -115,7 +115,7 @@ export default function OnboardShopRegister() {
           </div>
         </form>
         {/* 하단 버튼 */}
-        <div className="w-full px-5 pb-6">
+        <div className="w-full px-5 pb-40">
           <button
             onClick={handleCreateShop}
             className={`label1 h-[56px] w-full max-w-[335px] rounded-[4px] transition-colors duration-200 ${isFormValid && !isSubmitting ? "bg-[var(--color-purple)] text-[var(--color-white)]" : "bg-[var(--color-grey-750)] text-[var(--color-grey-500)]"}`}

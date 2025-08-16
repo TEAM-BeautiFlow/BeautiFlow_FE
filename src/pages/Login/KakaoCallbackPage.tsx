@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { exchangeKakaoCode } from "@/apis/login";
+import { login } from "@/apis/login";
 
 export default function KakaoCallbackPage() {
   const navigate = useNavigate();
@@ -14,12 +14,19 @@ export default function KakaoCallbackPage() {
     }
     (async () => {
       try {
-        await exchangeKakaoCode(code);
-        // 우선순위 1: 로그인 전 저장한 postLoginRedirect
-        const stored = localStorage.getItem("postLoginRedirect");
-        localStorage.removeItem("postLoginRedirect");
-        const target = stored || "/signup";
-        navigate(target, { replace: true });
+        const loginResult = await login(code);
+        console.log("🔑 로그인 결과:", loginResult);
+
+        // 로그인 성공 시 토큰 저장
+        if (loginResult.accessToken) {
+          localStorage.setItem("accessToken", loginResult.accessToken);
+        }
+        if (loginResult.refreshToken) {
+          localStorage.setItem("refreshToken", loginResult.refreshToken);
+        }
+
+        // 서버 결정에 따르되, 프런트에서는 일단 회원가입 페이지로 이동
+        navigate("/signup", { replace: true });
       } catch (e) {
         console.error(e);
         navigate("/login", { replace: true });

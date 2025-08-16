@@ -9,6 +9,7 @@ export interface AuthState {
   kakaoId: Nullable<string>;
   provider: Nullable<string>;
   shopId: Nullable<number[]>;
+  lastVisitedShopId: Nullable<number>;
   isAuthenticated: boolean;
   setTokens: (tokens: {
     accessToken?: string | null;
@@ -19,6 +20,7 @@ export interface AuthState {
     provider?: string | null;
     shopId?: number[] | null;
   }) => void;
+  setLastVisitedShopId: (shopId: number | null) => void;
   hydrateFromStorage: () => void;
   clear: () => void;
 }
@@ -31,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
       kakaoId: null,
       provider: null,
       shopId: null,
+      lastVisitedShopId: null,
       get isAuthenticated() {
         return Boolean(get().accessToken);
       },
@@ -63,6 +66,14 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch {}
       },
+      setLastVisitedShopId: shopId => {
+        set({ lastVisitedShopId: shopId });
+        try {
+          if (shopId !== undefined && shopId !== null) {
+            localStorage.setItem("lastVisitedShopId", String(shopId));
+          }
+        } catch {}
+      },
       hydrateFromStorage: () => {
         try {
           const accessToken = localStorage.getItem("accessToken");
@@ -70,11 +81,17 @@ export const useAuthStore = create<AuthState>()(
           const provider = localStorage.getItem("loginProvider");
           const shopIdStr = localStorage.getItem("shopId");
           const shopId = shopIdStr ? JSON.parse(shopIdStr) : null;
+          const lastVisitedShopIdStr =
+            localStorage.getItem("lastVisitedShopId");
+          const lastVisitedShopId = lastVisitedShopIdStr
+            ? Number(lastVisitedShopIdStr)
+            : null;
           set(state => ({
             accessToken: accessToken ?? state.accessToken,
             refreshToken: refreshToken ?? state.refreshToken,
             provider: provider ?? state.provider,
             shopId: shopId ?? state.shopId,
+            lastVisitedShopId: lastVisitedShopId ?? state.lastVisitedShopId,
           }));
         } catch {}
       },
@@ -85,11 +102,13 @@ export const useAuthStore = create<AuthState>()(
           kakaoId: null,
           provider: null,
           shopId: null,
+          lastVisitedShopId: null,
         });
         try {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("shopId");
+          localStorage.removeItem("lastVisitedShopId");
         } catch {}
       },
     }),
@@ -102,6 +121,7 @@ export const useAuthStore = create<AuthState>()(
         kakaoId: state.kakaoId,
         provider: state.provider,
         shopId: state.shopId,
+        lastVisitedShopId: state.lastVisitedShopId,
       }),
     },
   ),

@@ -138,13 +138,7 @@ const OwnerVerificationPage = () => {
           shopManageResponse.value.data?.data
         ) {
           const rawData = shopManageResponse.value.data.data;
-          const depositAmount =
-            rawData.depositAmount ||
-            rawData.deposit_amount ||
-            rawData.depositPrice ||
-            rawData.deposit_price ||
-            rawData.reservationDeposit ||
-            rawData.reservation_deposit;
+          const depositAmount = rawData.depositAmount
 
           const mappedShopData: ShopData = {
             shopName: rawData.shopName,
@@ -374,7 +368,7 @@ const OwnerVerificationPage = () => {
                   <button className="text-sm text-[#A78BFA]" onClick={navigateTo(`/owner/sales/${shopId}`)}>수정</button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2"><DollarSign size={16} className="text-gray-400" /><span className="text-sm">{shopData.depositAmount ? `${shopData.depositAmount.toLocaleString()}원` : "예약금 미설정"}</span></div>
+                  <div className="flex items-center gap-2"><DollarSign size={16} className="text-gray-400" /><span className="text-sm">{shopData.depositAmount ? `${shopData.depositAmount.toLocaleString()}원` : "-"}</span></div>
                   <div className="flex items-center gap-2"><Pencil size={16} className="text-gray-400" /><span className="text-sm">{shopData.accountHolder || "-"}</span></div>
                 </div>
               </div>
@@ -465,8 +459,8 @@ const OwnerVerificationPage = () => {
         <button
           onClick={
             activeTab === 'services' 
-            ? navigateTo(`/owner/treatments/add/${shopId}`)
-            : navigateTo(`/owner/announcements/add/${shopId}`)
+            ? navigateTo(`/owner/treatments/create/${shopId}`)
+            : navigateTo(`/owner/announcements/create/${shopId}`)
           }
           className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors bg-[#8B5CF6]"
         >
