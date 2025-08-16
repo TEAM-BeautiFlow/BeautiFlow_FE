@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ChevronLeft,
-} from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import api from "@/apis/axiosInstance";
 import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
 import "../../styles/color-system.css";
@@ -77,7 +75,7 @@ const OwnerSalesPage = () => {
     }
 
     const requestDto = {
-      depositPrice: depositAmount ? parseInt(depositAmount, 10) : 0,
+      deposistAmout: depositAmount ? parseInt(depositAmount, 10) : 0,
       accountHolder: accountHolder.trim(),
     };
 
