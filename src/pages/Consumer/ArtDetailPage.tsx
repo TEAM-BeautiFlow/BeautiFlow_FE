@@ -56,13 +56,33 @@ const ArtDetailPage = () => {
     fetchTreatmentDetail();
   }, [shopId, treatmentId]);
 
-  const handleModalOpen = () => {
+  const handleModalOpen = async () => {
     const hasToken = Boolean(localStorage.getItem("accessToken"));
-    if (hasToken) {
-      navigate(`/treatment-options/${shopId}/${treatmentId}`);
+    if (!hasToken) {
+      setIsModalOpen(true);
       return;
     }
-    setIsModalOpen(true);
+
+    if (!shopId || !treatmentId) return;
+
+    try {
+      // 옵션 존재 여부 확인 후 분기
+      const res = await api.get<ApiResponse<any>>(
+        `/shops/${shopId}/treatments/${treatmentId}/options`,
+      );
+      const groups = res?.data?.data?.optionGroups ?? [];
+      const hasEnabledItems = groups.some(
+        (g: any) => g.enabled && Array.isArray(g.items) && g.items.length > 0,
+      );
+      if (hasEnabledItems) {
+        navigate(`/user/store/treatment-options/${shopId}/${treatmentId}`);
+      } else {
+        navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+      }
+    } catch {
+      // 옵션 조회 실패 시 기본적으로 옵션 선택 단계로 진입
+      navigate(`/user/store/treatment-options/${shopId}/${treatmentId}`);
+    }
   };
 
   const handleModalClose = () => {
