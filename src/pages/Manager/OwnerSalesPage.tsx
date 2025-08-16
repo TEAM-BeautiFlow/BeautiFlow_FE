@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ChevronLeft,
-} from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import api from "@/apis/axiosInstance";
 import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
@@ -32,7 +30,7 @@ const OwnerSalesPage = () => {
 
         if (response.data && response.data.data) {
           const data = response.data.data;
-          const depositAmount = data.depositAmount
+          const depositAmount = data.depositAmount;
           const accountValue =
             data.accountHolder ||
             data.account_holder ||
@@ -70,7 +68,7 @@ const OwnerSalesPage = () => {
     }
 
     const requestDto = {
-      depositPrice: depositAmount ? parseInt(depositAmount, 10) : 0,
+      depositAmount: depositAmount ? parseInt(depositAmount, 10) : 0,
       accountHolder: accountHolder.trim(),
     };
 
