@@ -91,7 +91,7 @@ const TreatmentBookingPage = () => {
     if(!isButtonEnabled) return;
     console.log("결제 정보 확인하기 버튼 클릭");
     // navigate to payment page
-    navigate(`/reservation-check/${shopId}`); 
+    navigate(`/user/store/reservation-check/${shopId}`); 
   }
 
   const isButtonEnabled = agreements.privacy && agreements.terms;
