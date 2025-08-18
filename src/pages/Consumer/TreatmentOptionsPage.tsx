@@ -106,18 +106,26 @@ const TreatmentOptionsPage = () => {
     }));
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (!shopId || !treatmentId) return;
-
-    const optionsToStore = Object.entries(localSelectedOptions).map(
-      ([groupId, optionId]) => ({
-        optionGroupId: Number(groupId),
-        optionItemId: optionId,
-      }),
-    );
-
-    setSelectedOptions(optionsToStore);
-    navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+  
+    try {
+      // 옵션을 선택한 경우 스토어에 저장
+      const optionsToStore = Object.entries(localSelectedOptions).map(
+        ([groupId, optionId]) => ({
+          optionGroupId: Number(groupId),
+          optionItemId: optionId,
+        }),
+      );
+      setSelectedOptions(optionsToStore);
+  
+      // 다음 페이지로 이동
+      navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+  
+    } catch (error) {
+      console.error("다음 단계 이동 중 오류:", error);
+      setError("다음 단계로 이동하는 중 오류가 발생했습니다.");
+    }
   };
 
   const renderOptionGroup = (group: OptionGroup) => (
