@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, X, Plus, ChevronRight } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -32,10 +32,6 @@ const AppointmentBookingPage = () => {
     "idle" | "uploading" | "processing"
   >("idle");
 
-  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
-
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -55,7 +51,6 @@ const AppointmentBookingPage = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    // 🔽 3. api 인스턴스를 사용하여 이미지 업로드 요청을 보냅니다.
     const response = await api.post("/upload/image", formData);
     return response.data.url || response.data.data?.url || response.data;
   };
@@ -78,20 +73,25 @@ const AppointmentBookingPage = () => {
       }
 
       setSubmitStatus("processing");
+      
+      // 🔽🔽🔽 수정된 부분 🔽🔽🔽
       const requestBody = {
-        deleteTempReservation: true,
-        tempSaveData: false,
-        treatmentId,
-        selectedOptions,
+        // 스웨거 이미지와 같이 tempSaveData를 객체로 구성합니다.
+        tempSaveData: {
+          treatmentId,
+          selectedOptions,
+        },
+        // 다른 필수 필드도 추가합니다.
         dateTimeDesignerData: { date, time, designerId },
         requestNotesAndStyleData: {
           requestNotes: description,
           styleImageUrls: finalImageUrls,
         },
+        deleteTempReservation: true,
         saveFinalReservation: true,
       };
+      // 🔼🔼🔼 수정된 부분 🔼🔼🔼
 
-      // 🔽 4. api 인스턴스를 사용하여 예약 처리 요청을 보냅니다.
       const response = await api.post(
         `/reservations/${shopId}/process`,
         requestBody,
