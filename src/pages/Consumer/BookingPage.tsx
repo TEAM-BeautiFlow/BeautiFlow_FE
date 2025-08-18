@@ -201,7 +201,7 @@ const BookingPage = () => {
         referenceImages: [],
       });
 
-      navigate(`/appointment-booking/${shopId}/${treatmentId}`);
+      navigate(`user/store/appointment-booking/${shopId}/${treatmentId}`);
     } else {
       alert("날짜, 시간, 디자이너를 모두 선택해주세요.");
     }
