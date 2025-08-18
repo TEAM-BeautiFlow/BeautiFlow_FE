@@ -135,13 +135,30 @@ const TreatmentOptionsPage = () => {
         }),
       );
       setSelectedOptions(optionsToStore);
-  
-      // 다음 페이지로 이동
-      navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+
+      // POST 요청 - 옵션이 있는 경우
+      const requestBody = {
+        tempSaveData: {
+          treatmentId: Number(treatmentId),
+          selectedOptions: optionsToStore
+        }
+      };
+
+      const processResponse = await api.post(
+        `/reservations/${shopId}/process`,
+        requestBody
+      );
+
+      if (processResponse.data.success) {
+        // 성공시 다음 페이지로 이동
+        navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+      } else {
+        setError("예약 처리 중 오류가 발생했습니다.");
+      }
   
     } catch (error) {
-      console.error("다음 단계 이동 중 오류:", error);
-      setError("다음 단계로 이동하는 중 오류가 발생했습니다.");
+      console.error("예약 처리 중 오류:", error);
+      setError("예약 처리 중 오류가 발생했습니다.");
     }
   };
 
