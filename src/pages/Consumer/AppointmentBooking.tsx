@@ -100,7 +100,7 @@ const AppointmentBookingPage = () => {
       if (response.data.success) {
         alert("예약이 성공적으로 완료되었습니다!");
         resetBookingState();
-        navigate("/reservation");
+        navigate(`/user/store/treatment-booking/${shopId}`);
       } else {
         throw new Error(
           response.data.message || "알 수 없는 오류가 발생했습니다.",
