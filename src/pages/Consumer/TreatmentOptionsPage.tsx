@@ -33,10 +33,6 @@ const TreatmentOptionsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
-
   useEffect(() => {
     if (treatmentId) {
       setTreatmentIdInStore(Number(treatmentId));
@@ -68,13 +64,34 @@ const TreatmentOptionsPage = () => {
             imageUrl: fetchedData.images?.[0]?.imageUrl || "",
           });
 
-          // 옵션이 하나도 없거나 비활성인 경우 → 바로 4단계로 이동
+          // 옵션이 하나도 없거나 비활성인 경우 → POST 요청 후 4단계로 이동
           const hasEnabledItems = (fetchedData.optionGroups ?? []).some(
             (g: any) =>
               g.enabled && Array.isArray(g.items) && g.items.length > 0,
           );
           if (!hasEnabledItems) {
-            navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+            // 옵션이 없는 경우 POST 요청
+            try {
+              const requestBody = {
+                tempSaveData: {
+                  treatmentId: Number(treatmentId)
+                }
+              };
+
+              const processResponse = await api.post(
+                `/reservations/${shopId}/process`,
+                requestBody
+              );
+
+              if (processResponse.data.success) {
+                navigate(`/user/store/booking/${shopId}/${treatmentId}`);
+              } else {
+                setError("예약 처리 중 오류가 발생했습니다.");
+              }
+            } catch (processError) {
+              console.error("POST 요청 중 오류:", processError);
+              setError("예약 처리 중 오류가 발생했습니다.");
+            }
             return;
           }
 
@@ -97,7 +114,7 @@ const TreatmentOptionsPage = () => {
     };
 
     fetchTreatmentOptions();
-  }, [shopId, treatmentId, setTreatmentIdInStore, setTreatmentInfo]);
+  }, [shopId, treatmentId, setTreatmentIdInStore, setTreatmentInfo, navigate]);
 
   const handleOptionSelect = (groupId: number, optionId: number) => {
     setLocalSelectedOptions(prev => ({
