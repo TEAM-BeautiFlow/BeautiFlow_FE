@@ -109,9 +109,9 @@ export async function createShop(payload: CreateShopRequest) {
 }
 
 // 샵 존재 여부 확인 (사업자등록번호)
-export async function checkShopExists(businessRegistrationNumber: string) {
+export async function checkShopExists(businessNumber: string) {
   const { data } = await api.get("/shops/exists", {
-    params: { businessRegistrationNumber },
+    params: { businessNumber },
   });
   return data?.data ?? data; // { exists: boolean, shop: { id, ... } }
 }
