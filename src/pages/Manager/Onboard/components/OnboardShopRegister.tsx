@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createShop } from "@/apis/login";
+import LeftChevron from "@/assets/icon_left-chevron.svg";
 
 export default function OnboardShopRegister() {
   const navigate = useNavigate();
@@ -46,11 +47,7 @@ export default function OnboardShopRegister() {
             onClick={() => navigate(-1)}
             aria-label="뒤로가기"
           >
-            <img
-              src="/src/assets/icon_left-chevron.svg"
-              alt="뒤로가기"
-              className="h-6 w-6"
-            />
+            <LeftChevron />
           </button>
           <div className="label1 flex-1 text-center text-[var(--color-white)]">
             샵 등록하기
