@@ -21,7 +21,6 @@ const AppointmentBookingPage = () => {
     date,
     time,
     designerId,
-    resetBookingState,
   } = useBookingStore();
 
   const [description, setDescription] = useState("");
@@ -46,9 +45,8 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-
-
-  const handleProcessReservation = async () => {
+  // 임시 예약 저장을 위한 함수 (다음 페이지로 이동)
+  const handleSaveTempReservation = async () => {
     if (!shopId || !treatmentId || !date || !time || !designerId) {
       alert("예약 정보가 불완전합니다. 이전 단계로 돌아가 다시 시도해주세요.");
       return;
@@ -59,10 +57,9 @@ const AppointmentBookingPage = () => {
     try {
       setSubmitStatus("processing");
       
-      // 🔽🔽🔽 multipart/form-data로 변경 🔽🔽🔽
       const formData = new FormData();
       
-      // JSON 데이터를 문자열로 변환하여 추가
+      // 임시 예약으로 저장 (saveFinalReservation을 false로 설정)
       formData.append('deleteTempReservation', 'true');
       formData.append('tempSaveData', JSON.stringify({
         treatmentId,
@@ -76,7 +73,7 @@ const AppointmentBookingPage = () => {
       formData.append('requestNotesStyleData', JSON.stringify({
         requestNotes: description,
       }));
-      formData.append('saveFinalReservation', 'true');
+      formData.append('saveFinalReservation', 'false'); // ✅ 임시 저장으로 변경
       
       imageFiles.forEach((file) => {
         formData.append('requestNotesStyleData.referenceImages', file);
@@ -93,8 +90,7 @@ const AppointmentBookingPage = () => {
       );
 
       if (response.data.success) {
-        alert("예약이 성공적으로 완료되었습니다!");
-        resetBookingState();
+        // 임시 예약 저장 성공 시 다음 페이지로 이동
         navigate(`/user/store/treatment-booking/${shopId}`);
       } else {
         throw new Error(
@@ -115,8 +111,10 @@ const AppointmentBookingPage = () => {
     }
   };
 
+
+
   const getButtonText = () => {
-    if (submitStatus === "processing") return "예약 처리 중...";
+    if (submitStatus === "processing") return "처리 중...";
     return "다음으로";
   };
 
@@ -320,7 +318,7 @@ const AppointmentBookingPage = () => {
       {/* 하단 버튼 */}
       <div style={{ padding: "0 20px 40px" }}>
         <button
-          onClick={handleProcessReservation}
+          onClick={handleSaveTempReservation} // ✅ 임시 저장 함수로 변경
           disabled={isSubmitting}
           style={{
             width: "100%",
