@@ -7,6 +7,7 @@ import "../../styles/type-system.css";
 
 import useBookingStore from "../../stores/bookingStore";
 
+// AppointmentBookingPage 컴포넌트
 const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
@@ -20,7 +21,6 @@ const AppointmentBookingPage = () => {
     date,
     time,
     designerId,
-    referenceImageUrls,
     resetBookingState,
   } = useBookingStore();
 
@@ -28,7 +28,7 @@ const AppointmentBookingPage = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "uploading" | "processing"
+    "idle" | "processing"
   >("idle");
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,13 +46,7 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
 
-    const response = await api.post("/upload/image", formData);
-    return response.data.url || response.data.data?.url || response.data;
-  };
 
   const handleProcessReservation = async () => {
     if (!shopId || !treatmentId || !date || !time || !designerId) {
@@ -61,35 +55,41 @@ const AppointmentBookingPage = () => {
     }
 
     setIsSubmitting(true);
-    let finalImageUrls = [...(referenceImageUrls || [])];
 
     try {
-      if (imageFiles.length > 0) {
-        setSubmitStatus("uploading");
-        const uploadPromises = imageFiles.map(file => uploadImage(file));
-        const uploadedUrls = await Promise.all(uploadPromises);
-        finalImageUrls = [...finalImageUrls, ...uploadedUrls];
-      }
-
       setSubmitStatus("processing");
       
-      const requestBody = {
-        deleteTempReservation: true,
-        tempSaveData: {
-          treatmentId,
-          selectedOptions,
-        },
-        dateTimeDesignerData: { date, time, designerId },
-        requestNotesStyleData: {  // "And" 제거
-          requestNotes: description,
-          styleImageUrls: finalImageUrls,
-        },
-        saveFinalReservation: true,
-      };
+      // 🔽🔽🔽 multipart/form-data로 변경 🔽🔽🔽
+      const formData = new FormData();
+      
+      // JSON 데이터를 문자열로 변환하여 추가
+      formData.append('deleteTempReservation', 'true');
+      formData.append('tempSaveData', JSON.stringify({
+        treatmentId,
+        selectedOptions,
+      }));
+      formData.append('dateTimeDesignerData', JSON.stringify({
+        date, 
+        time, 
+        designerId
+      }));
+      formData.append('requestNotesStyleData', JSON.stringify({
+        requestNotes: description,
+      }));
+      formData.append('saveFinalReservation', 'true');
+      
+      imageFiles.forEach((file) => {
+        formData.append('requestNotesStyleData.referenceImages', file);
+      });
 
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        requestBody,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
 
       if (response.data.success) {
@@ -116,7 +116,6 @@ const AppointmentBookingPage = () => {
   };
 
   const getButtonText = () => {
-    if (submitStatus === "uploading") return "이미지 업로드 중...";
     if (submitStatus === "processing") return "예약 처리 중...";
     return "다음으로";
   };
