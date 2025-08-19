@@ -70,17 +70,22 @@ const TreatmentOptionsPage = () => {
               g.enabled && Array.isArray(g.items) && g.items.length > 0,
           );
           if (!hasEnabledItems) {
-            // 옵션이 없는 경우 POST 요청
+            // 옵션이 없는 경우 POST 요청 - FormData 사용
             try {
-              const requestBody = {
+              const formData = new FormData();
+              
+              // JSON 데이터를 FormData에 추가 (request라는 이름으로)
+              const requestData = {
                 tempSaveData: {
                   treatmentId: Number(treatmentId)
                 }
               };
+              
+              formData.append('request', JSON.stringify(requestData));
 
               const processResponse = await api.post(
                 `/reservations/${shopId}/process`,
-                requestBody
+                formData
               );
 
               if (processResponse.data.success) {
@@ -136,17 +141,22 @@ const TreatmentOptionsPage = () => {
       );
       setSelectedOptions(optionsToStore);
 
-      // POST 요청 - 옵션이 있는 경우
-      const requestBody = {
+      // FormData 생성
+      const formData = new FormData();
+      
+      // JSON 데이터를 FormData에 추가
+      const requestData = {
         tempSaveData: {
           treatmentId: Number(treatmentId),
           selectedOptions: optionsToStore
         }
       };
+      
+      formData.append('request', JSON.stringify(requestData));
 
       const processResponse = await api.post(
         `/reservations/${shopId}/process`,
-        requestBody
+        formData
       );
 
       if (processResponse.data.success) {
