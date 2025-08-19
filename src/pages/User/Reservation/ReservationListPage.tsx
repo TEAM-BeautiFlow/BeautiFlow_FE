@@ -24,7 +24,7 @@ export default function ReservationListPage() {
 
   // + 탭 변경 시 백엔드에서 status별로 조회( CSV 미지원 가정: 다중 상태는 개별 호출 후 병합 )
   useEffect(() => {
-    let alive = true;
+    const controller = new AbortController();
 
     const statuses =
       activeTab === "예정"
@@ -35,30 +35,42 @@ export default function ReservationListPage() {
 
     (async () => {
       try {
-        const parts = await Promise.all(
+        const results = await Promise.allSettled(
           statuses.map(s =>
-            api
-              .get("/reservations/my-reservation", { params: { status: s } })
-              .then(r => (Array.isArray(r.data?.data) ? r.data.data : [])),
+            api.get("/reservations/my-reservation", {
+              params: { status: s },
+              signal: controller.signal, // 탭 전환/언마운트 시 취소
+            }),
           ),
         );
+        const parts = results
+          .filter(
+            (r): r is PromiseFulfilledResult<any> => r.status === "fulfilled",
+          )
+          .map(r => r.value)
+          .map(r => (Array.isArray(r.data?.data) ? r.data.data : []));
         const merged = parts.flat();
 
         // 중복 제거 (reservationId 기준)
         const uniq = Array.from(
           new Map(merged.map(r => [r.reservationId, r])).values(),
         );
+        uniq.sort((a, b) =>
+          `${a.reservationDate ?? ""} ${a.startTime ?? ""}`.localeCompare(
+            `${b.reservationDate ?? ""} ${b.startTime ?? ""}`,
+          ),
+        );
 
-        if (alive) setItems(uniq);
+        setItems(uniq);
       } catch (e) {
         // 실패 시 기존 클라 필터 결과로 폴백
-        if (alive) setItems(filteredReservations);
+        setItems(filteredReservations);
         console.error("예약 조회 실패:", e);
       }
     })();
 
     return () => {
-      alive = false;
+      controller.abort(); // 진행 중 요청 취소
     };
     // filteredReservations는 폴백용이므로 의존성에 넣지 않음
   }, [activeTab]);

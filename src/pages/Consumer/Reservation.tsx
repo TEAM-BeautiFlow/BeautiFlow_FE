@@ -30,7 +30,9 @@ const Reservation = () => {
     "HAND" | "FEET" | "ETC"
   >("HAND");
 
-  const [activeTab, setActiveTab] = useState<'TREATMENTS' | 'INFO'>('TREATMENTS');
+  const [activeTab, setActiveTab] = useState<"TREATMENTS" | "INFO">(
+    "TREATMENTS",
+  );
 
   // --- 2. businessHours 데이터를 가공하여 표시할 문자열 생성 ---
   // API의 businessHours 배열을 사용자에게 보여주기 좋은 형태의 문자열로 변환합니다.
@@ -45,10 +47,11 @@ const Reservation = () => {
     };
 
     const firstDay = shopData.businessHours[0];
-    const allDaysSame = shopData.businessHours.every(day =>
-      !day.isClosed &&
-      day.openTime === firstDay.openTime &&
-      day.closeTime === firstDay.closeTime
+    const allDaysSame = shopData.businessHours.every(
+      day =>
+        !day.isClosed &&
+        day.openTime === firstDay.openTime &&
+        day.closeTime === firstDay.closeTime,
     );
 
     // 모든 요일의 영업시간이 동일한 경우
@@ -58,15 +61,21 @@ const Reservation = () => {
 
     // 요일별 영업시간이 다른 경우, 각 요일 정보를 나열
     const dayMap: { [key: string]: string } = {
-      MON: "월", TUE: "화", WED: "수", THU: "목", FRI: "금", SAT: "토", SUN: "일"
+      MON: "월",
+      TUE: "화",
+      WED: "수",
+      THU: "목",
+      FRI: "금",
+      SAT: "토",
+      SUN: "일",
     };
     return shopData.businessHours
-      .map(day =>
-        `${dayMap[day.dayOfWeek]}: ${day.isClosed ? '휴무' : `${formatTime(day.openTime)} ~ ${formatTime(day.closeTime)}`}`
+      .map(
+        day =>
+          `${dayMap[day.dayOfWeek]}: ${day.isClosed ? "휴무" : `${formatTime(day.openTime)} ~ ${formatTime(day.closeTime)}`}`,
       )
-      .join('\n');
+      .join("\n");
   }, [shopData]);
-
 
   useEffect(() => {
     // 마지막 방문 매장 저장
@@ -99,7 +108,7 @@ const Reservation = () => {
   }, [SHOP_ID]);
 
   useEffect(() => {
-    if (!shopData || activeTab !== 'TREATMENTS') return;
+    if (!shopData || activeTab !== "TREATMENTS") return;
 
     const fetchTreatments = async () => {
       try {
@@ -150,11 +159,11 @@ const Reservation = () => {
 
   const handleCopy = (text: string | undefined) => {
     if (!text) return;
-    navigator.clipboard.writeText(text)
+    navigator.clipboard
+      .writeText(text)
       .then(() => alert("복사되었습니다."))
       .catch(err => console.error("복사 실패:", err));
   };
-
 
   if (isLoading && !shopData) {
     return (
@@ -248,31 +257,31 @@ const Reservation = () => {
           </div>
         </section>
 
-        <div className="flex border-b px-5 border-[color:var(--color-grey-850)] bg-black">
+        <div className="flex border-b border-[color:var(--color-grey-850)] bg-black px-5">
           <button
-            onClick={() => setActiveTab('TREATMENTS')}
+            onClick={() => setActiveTab("TREATMENTS")}
             className={`label1 px-2 py-3 ${
-              activeTab === 'TREATMENTS'
-                ? 'text-white font-semibold border-b-2 border-white'
-                : 'text-[color:var(--color-grey-450)] font-medium'
+              activeTab === "TREATMENTS"
+                ? "border-b-2 border-white font-semibold text-white"
+                : "font-medium text-[color:var(--color-grey-450)]"
             }`}
           >
             시술
           </button>
           <button
-            onClick={() => setActiveTab('INFO')}
+            onClick={() => setActiveTab("INFO")}
             className={`label1 px-2 py-3 ${
-              activeTab === 'INFO'
-                ? 'text-white font-semibold border-b-2 border-white'
-                : 'text-[color:var(--color-grey-450)] font-medium'
+              activeTab === "INFO"
+                ? "border-b-2 border-white font-semibold text-white"
+                : "font-medium text-[color:var(--color-grey-450)]"
             }`}
           >
             정보
           </button>
         </div>
-        
-        <div className="flex-1 overflow-y-auto px-5 py-4 pb-32 bg-black">
-          {activeTab === 'TREATMENTS' ? (
+
+        <div className="flex-1 overflow-y-auto bg-black px-5 py-4 pb-32">
+          {activeTab === "TREATMENTS" ? (
             <>
               <div className="mb-6 flex gap-2 bg-black">
                 {(["HAND", "FEET", "ETC"] as const).map(cat => (
@@ -280,26 +289,39 @@ const Reservation = () => {
                     key={cat}
                     className={`caption2 rounded-full px-2.5 py-1`}
                     style={{
-                      backgroundColor: selectedCategory === cat ? "var(--color-dark-purple)" : "var(--color-grey-750)",
-                      border: selectedCategory === cat ? "1.5px solid var(--color-light-purple)" : "none",
-                      color: selectedCategory === cat ? "#F3F3F3" : "var(--color-grey-450)",
+                      backgroundColor:
+                        selectedCategory === cat
+                          ? "var(--color-dark-purple)"
+                          : "var(--color-grey-750)",
+                      border:
+                        selectedCategory === cat
+                          ? "1.5px solid var(--color-light-purple)"
+                          : "none",
+                      color:
+                        selectedCategory === cat
+                          ? "#F3F3F3"
+                          : "var(--color-grey-450)",
                     }}
                     onClick={() => handleCategoryClick(cat)}
                   >
-                    {cat === 'HAND' ? '손' : cat === 'FEET' ? '발' : '기타'}
+                    {cat === "HAND" ? "손" : cat === "FEET" ? "발" : "기타"}
                   </button>
                 ))}
               </div>
 
               <section className="flex-1 overflow-y-auto bg-black">
                 {isLoading ? (
-                    <p className="body2 text-center text-[color:var(--color-grey-450)]">시술 목록을 불러오는 중...</p>
+                  <p className="body2 text-center text-[color:var(--color-grey-450)]">
+                    시술 목록을 불러오는 중...
+                  </p>
                 ) : treatments.length > 0 ? (
                   treatments.map(treatment => (
                     <div
                       key={treatment.id}
                       className="mb-6 cursor-pointer"
-                      onClick={() => handleTreatmentClick(SHOP_ID, treatment.id)}
+                      onClick={() =>
+                        handleTreatmentClick(SHOP_ID, treatment.id)
+                      }
                     >
                       <div className="flex items-start gap-4">
                         <div className="h-24 w-24 flex-shrink-0 rounded-md bg-[color:var(--color-grey-350)]">
@@ -313,16 +335,26 @@ const Reservation = () => {
                         </div>
                         <div className="flex-1">
                           <div className="mb-1 flex items-start justify-between">
-                            <span className="label1 text-white">{treatment.name}</span>
+                            <span className="label1 text-white">
+                              {treatment.name}
+                            </span>
                             <div className="flex flex-shrink-0 items-center gap-1">
-                              <Clock size={16} className="text-[color:var(--color-grey-450)]" />
-                              <span className="caption2 text-[color:var(--color-grey-450)] whitespace-nowrap">
+                              <Clock
+                                size={16}
+                                className="text-[color:var(--color-grey-450)]"
+                              />
+                              <span className="caption2 whitespace-nowrap text-[color:var(--color-grey-450)]">
                                 {treatment.durationMinutes}분
                               </span>
                             </div>
                           </div>
-                          <div className="label1 text-white mb-2">{treatment.price?.toLocaleString()}원</div>
-                          <p className="body2 text-[color:var(--color-grey-450)] line-clamp-2" style={{ lineHeight: "1.5" }}>
+                          <div className="label1 mb-2 text-white">
+                            {treatment.price?.toLocaleString()}원
+                          </div>
+                          <p
+                            className="body2 line-clamp-2 text-[color:var(--color-grey-450)]"
+                            style={{ lineHeight: "1.5" }}
+                          >
                             {treatment.description}
                           </p>
                         </div>
@@ -339,7 +371,9 @@ const Reservation = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="body2 text-center text-[color:var(--color-grey-450)]">해당 카테고리의 시술이 없습니다.</p>
+                  <p className="body2 text-center text-[color:var(--color-grey-450)]">
+                    해당 카테고리의 시술이 없습니다.
+                  </p>
                 )}
               </section>
             </>
@@ -347,27 +381,46 @@ const Reservation = () => {
             // --- 3. 정보 탭 UI 변수명 수정 ---
             <section className="space-y-6 py-4">
               <div className="flex items-start gap-3">
-                <Clock size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                <Clock
+                  size={20}
+                  className="flex-shrink-0 text-[color:var(--color-grey-450)]"
+                />
                 {/* `operatingHoursText`를 사용하여 가공된 영업시간을 표시합니다. */}
-                <span className="body2 text-white whitespace-pre-line">
+                <span className="body2 whitespace-pre-line text-white">
                   {operatingHoursText}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Phone size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                  <Phone
+                    size={20}
+                    className="flex-shrink-0 text-[color:var(--color-grey-450)]"
+                  />
                   {/* `phoneNumber`를 `contact`로 변경합니다. */}
                   <span className="body2 text-white">{shopData.contact}</span>
                 </div>
                 {/* `phoneNumber`를 `contact`로 변경합니다. */}
-                <button onClick={() => handleCopy(shopData.contact)} className="label2 text-[color:var(--color-purple)]">복사</button>
+                <button
+                  onClick={() => handleCopy(shopData.contact)}
+                  className="label2 text-[color:var(--color-purple)]"
+                >
+                  복사
+                </button>
               </div>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <MapPin size={20} className="text-[color:var(--color-grey-450)] flex-shrink-0" />
+                  <MapPin
+                    size={20}
+                    className="flex-shrink-0 text-[color:var(--color-grey-450)]"
+                  />
                   <span className="body2 text-white">{shopData.address}</span>
                 </div>
-                <button onClick={() => handleCopy(shopData.address)} className="label2 text-[color:var(--color-purple)]">복사</button>
+                <button
+                  onClick={() => handleCopy(shopData.address)}
+                  className="label2 text-[color:var(--color-purple)]"
+                >
+                  복사
+                </button>
               </div>
             </section>
           )}
