@@ -44,7 +44,7 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // ✅ 최종 수정된 함수
+  // ✅ API 명세에 맞게 수정된 함수
   const handleSaveTempReservation = async () => {
     if (!shopId || !treatmentId || !date || !time || !designerId) {
       alert("예약 정보가 불완전합니다. 이전 단계로 돌아가 다시 시도해주세요.");
@@ -55,9 +55,11 @@ const AppointmentBookingPage = () => {
     setSubmitStatus("processing");
 
     try {
-      const requestBody = {
+      const formData = new FormData();
+
+      // 1. API가 요구하는 'request' JSON 객체 구조를 만듭니다.
+      const requestData = {
         deleteTempReservation: false,
-        saveFinalReservation: false,
         tempSaveData: {
           treatmentId: treatmentId,
           selectedOptions: selectedOptions,
@@ -69,13 +71,23 @@ const AppointmentBookingPage = () => {
         },
         requestNotesStyleData: {
           requestNotes: description,
-          referenceImages: [],
         },
+        saveFinalReservation: false,
       };
 
+      // 2. 생성한 객체를 JSON 문자열로 변환하여 'request' 키로 FormData에 추가합니다.
+      // API는 이 JSON 문자열을 받아서 객체로 파싱합니다.
+      formData.append("request", JSON.stringify(requestData));
+
+      // 3. 이미지 파일들을 'referenceImages' 라는 별도의 키로 각각 추가합니다.
+      imageFiles.forEach(file => {
+        formData.append("referenceImages", file);
+      });
+
+      // 4. 수정된 formData로 API를 호출합니다.
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        requestBody,
+        formData,
       );
 
       if (response.data.success) {
@@ -101,12 +113,12 @@ const AppointmentBookingPage = () => {
     }
   };
 
+
   const getButtonText = () => {
     if (submitStatus === "processing") return "처리 중...";
     return "다음으로";
   };
 
-  // ... 이하 return 문 및 JSX는 기존 코드와 동일합니다 ...
   return (
     <div
       className="mx-auto min-h-screen max-w-sm"
