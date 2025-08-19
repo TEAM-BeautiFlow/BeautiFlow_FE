@@ -57,11 +57,10 @@ const AppointmentBookingPage = () => {
     try {
       setSubmitStatus("processing");
 
-      // FormData를 사용하여 이미지 유무에 관계없이 일관된 요청을 보냅니다.
       const formData = new FormData();
       
-      // 모든 텍스트 기반 데이터를 문자열로 변환하여 FormData에 추가
-      formData.append('deleteTempReservation', 'true');
+      // ✅ deleteTempReservation 값을 false로 수정합니다.
+      formData.append('deleteTempReservation', 'false');
       formData.append('tempSaveData', JSON.stringify({
         treatmentId,
         selectedOptions,
@@ -76,7 +75,6 @@ const AppointmentBookingPage = () => {
       }));
       formData.append('saveFinalReservation', 'false');
       
-      // 이미지 파일이 있는 경우에만 FormData에 추가
       imageFiles.forEach((file) => {
         formData.append('requestNotesStyleData.referenceImages', file);
       });
@@ -84,8 +82,6 @@ const AppointmentBookingPage = () => {
       const response = await api.post(
         `/reservations/${shopId}/process`,
         formData,
-        // FormData를 사용할 때는 Content-Type을 수동으로 설정할 필요가 없습니다.
-        // 브라우저가 자동으로 'multipart/form-data'로 설정합니다.
       );
 
       if (response.data.success) {
