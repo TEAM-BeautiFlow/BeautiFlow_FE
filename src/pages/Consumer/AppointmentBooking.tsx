@@ -55,25 +55,27 @@ const AppointmentBookingPage = () => {
     setSubmitStatus("processing");
 
     try {
-      const formData = new FormData();
-
-      formData.append('treatmentId', String(treatmentId));
-      formData.append('selectedOptions', JSON.stringify(selectedOptions));
-      formData.append('date', date);
-      formData.append('time', time);
-      formData.append('designerId', String(designerId));
-      formData.append('requestNotesStyleData.requestNotes', description);
-
-      imageFiles.forEach(file => {
-        formData.append('requestNotesStyleData.referenceImages', file);
-      });
-      
-      formData.append('deleteTempReservation', 'false');
-      formData.append('saveFinalReservation', 'false');
+      const requestBody = {
+        deleteTempReservation: false,
+        saveFinalReservation: false,
+        tempSaveData: {
+          treatmentId: treatmentId,
+          selectedOptions: selectedOptions,
+        },
+        dateTimeDesignerData: {
+          date: date,
+          time: time,
+          designerId: designerId,
+        },
+        requestNotesStyleData: {
+          requestNotes: description,
+          referenceImages: [],
+        },
+      };
 
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        formData,
+        requestBody,
       );
 
       if (response.data.success) {
