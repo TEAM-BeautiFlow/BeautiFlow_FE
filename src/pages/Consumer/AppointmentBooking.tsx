@@ -8,7 +8,6 @@ import "../../styles/type-system.css";
 import useBookingStore from "../../stores/bookingStore";
 
 // API 요청 본문(request)의 타입을 정의합니다.
-// 어떤 값이든 허용하기 위해 [key: string]: any를 추가할 수 있습니다.
 interface ReservationStepData {
   deleteTempReservation: boolean;
   tempSaveData?: {
@@ -31,12 +30,16 @@ const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
 
+  // Zustand 스토어에서 예약에 필요한 모든 상태를 불러옵니다.
   const {
     treatmentId,
     treatmentName,
     treatmentPrice,
     treatmentImageUrl,
     selectedOptions,
+    date,
+    time,
+    designerId,
   } = useBookingStore();
 
   const [description, setDescription] = useState("");
@@ -62,7 +65,7 @@ const AppointmentBookingPage = () => {
   };
 
   /**
-   * ✅ 각 예약 단계를 처리하는 범용 POST 함수
+   * 각 예약 단계를 처리하는 범용 POST 함수
    * @param stepData API의 'request' 필드에 들어갈 JSON 객체
    * @param images 첨부할 이미지 파일 배열
    */
@@ -131,7 +134,13 @@ const AppointmentBookingPage = () => {
         treatmentId: treatmentId,
         selectedOptions: selectedOptions,
       },
-      dateTimeDesignerData: null,
+      // Zustand 스토어의 값으로 채웁니다.
+      // 만약 값이 없다면 (초기 상태) 빈 문자열이나 0을 기본값으로 사용합니다.
+      dateTimeDesignerData: {
+        date: date || "",
+        time: time || "",
+        designerId: designerId || 0,
+      },
       requestNotesStyleData: {
         requestNotes: description,
       },
@@ -143,12 +152,11 @@ const AppointmentBookingPage = () => {
       const result = await postStep(step1Data, imageFiles);
 
       if (result) {
-        // 성공 시 다음 단계로 이동 (예: 날짜/시간 선택 페이지)
+        // 성공 시 다음 페이지로 이동
         navigate(`/user/store/treatment-booking/${shopId}`);
-        alert("요청사항이 임시 저장되었습니다. 다음 단계로 이동합니다.");
       }
     } catch (error) {
-      // postStep에서 던져진 에러 처리 (이미 alert가 표시되었으므로 추가 작업이 필요 없다면 비워둠)
+      // postStep에서 이미 alert로 에러를 표시하므로 여기서는 추가 작업이 필요 없습니다.
       console.error("1단계 처리 실패");
     }
   };
@@ -401,11 +409,11 @@ const AppointmentBookingPage = () => {
       </div>
       <style>
         {`
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                `}
+          @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+          }
+        `}
       </style>
     </div>
   );
