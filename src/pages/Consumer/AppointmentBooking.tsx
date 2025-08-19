@@ -7,7 +7,6 @@ import "../../styles/type-system.css";
 
 import useBookingStore from "../../stores/bookingStore";
 
-// AppointmentBookingPage 컴포넌트
 const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
@@ -74,23 +73,19 @@ const AppointmentBookingPage = () => {
 
       setSubmitStatus("processing");
       
-      // 🔽🔽🔽 수정된 부분 🔽🔽🔽
       const requestBody = {
-        // 스웨거 이미지와 같이 tempSaveData를 객체로 구성합니다.
+        deleteTempReservation: true,
         tempSaveData: {
           treatmentId,
           selectedOptions,
         },
-        // 다른 필수 필드도 추가합니다.
         dateTimeDesignerData: { date, time, designerId },
-        requestNotesAndStyleData: {
+        requestNotesStyleData: {  // "And" 제거
           requestNotes: description,
           styleImageUrls: finalImageUrls,
         },
-        deleteTempReservation: true,
         saveFinalReservation: true,
       };
-      // 🔼🔼🔼 수정된 부분 🔼🔼🔼
 
       const response = await api.post(
         `/reservations/${shopId}/process`,
