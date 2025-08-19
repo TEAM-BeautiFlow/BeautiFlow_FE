@@ -56,11 +56,13 @@ const AppointmentBookingPage = () => {
 
     try {
       setSubmitStatus("processing");
-
+      
       const formData = new FormData();
       
-      // ✅ deleteTempReservation 값을 false로 수정합니다.
+      // ✅ 기존 임시 예약 정보를 유지하기 위해 'false'로 설정
       formData.append('deleteTempReservation', 'false');
+      
+      // 서버의 API가 JSON 객체를 예상하므로, 관련 데이터들을 JSON 문자열로 묶어 보냅니다.
       formData.append('tempSaveData', JSON.stringify({
         treatmentId,
         selectedOptions,
@@ -73,15 +75,18 @@ const AppointmentBookingPage = () => {
       formData.append('requestNotesStyleData', JSON.stringify({
         requestNotes: description,
       }));
+      
       formData.append('saveFinalReservation', 'false');
       
+      // 이미지가 있는 경우 FormData에 추가
       imageFiles.forEach((file) => {
         formData.append('requestNotesStyleData.referenceImages', file);
       });
-
+      
+      // 이미지가 있든 없든 FormData를 사용
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        formData,
+        formData
       );
 
       if (response.data.success) {
