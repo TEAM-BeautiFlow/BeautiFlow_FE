@@ -7,7 +7,6 @@ import "../../styles/type-system.css";
 
 import useBookingStore from "../../stores/bookingStore";
 
-// AppointmentBookingPage 컴포넌트
 const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // ✅ 수정된 함수
+  // ✅ 최종 수정된 함수
   const handleSaveTempReservation = async () => {
     if (!shopId || !treatmentId || !date || !time || !designerId) {
       alert("예약 정보가 불완전합니다. 이전 단계로 돌아가 다시 시도해주세요.");
@@ -58,33 +57,20 @@ const AppointmentBookingPage = () => {
     try {
       const formData = new FormData();
 
-      // 1. 백엔드가 요구하는 JSON 데이터 구조 생성
-      const requestDto = {
-        treatmentId,
-        selectedOptions,
-        date,
-        time,
-        designerId,
-        requestNotesStyleData: {
-          requestNotes: description,
-        },
-        deleteTempReservation: false,
-        saveFinalReservation: false,
-      };
+      formData.append('treatmentId', String(treatmentId));
+      formData.append('selectedOptions', JSON.stringify(selectedOptions));
+      formData.append('date', date);
+      formData.append('time', time);
+      formData.append('designerId', String(designerId));
+      formData.append('requestNotesStyleData.requestNotes', description);
 
-      // 2. 생성된 JSON 객체를 문자열로 변환하여 FormData에 추가
-      // 'dto' key는 백엔드와 협의된 값이어야 합니다.
-      formData.append(
-        "dto", // 👈 이 key 이름은 백엔드 개발자에게 반드시 확인하세요!
-        new Blob([JSON.stringify(requestDto)], { type: "application/json" }),
-      );
-
-      // 3. 이미지 파일들을 백엔드가 지정한 key로 FormData에 추가
       imageFiles.forEach(file => {
-        formData.append("requestNotesStyleData.referenceImages", file);
+        formData.append('requestNotesStyleData.referenceImages', file);
       });
+      
+      formData.append('deleteTempReservation', 'false');
+      formData.append('saveFinalReservation', 'false');
 
-      // 4. 서버에 FormData 전송
       const response = await api.post(
         `/reservations/${shopId}/process`,
         formData,
@@ -101,10 +87,11 @@ const AppointmentBookingPage = () => {
       let errorMessage = "예약 처리 중 오류가 발생했습니다.";
       if (err.response) {
         errorMessage = err.response.data.message || errorMessage;
+        console.error("API Error Data:", err.response.data);
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-      console.error("Reservation Error:", err); // 오류 디버깅을 위한 로그
+      console.error("Reservation Error:", err);
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -117,6 +104,7 @@ const AppointmentBookingPage = () => {
     return "다음으로";
   };
 
+  // ... 이하 return 문 및 JSX는 기존 코드와 동일합니다 ...
   return (
     <div
       className="mx-auto min-h-screen max-w-sm"
