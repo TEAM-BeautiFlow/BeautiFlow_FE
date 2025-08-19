@@ -11,15 +11,13 @@ const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
 
+  // date, time, designerId가 이 페이지에서 더 이상 필요 없으므로 제거했습니다.
   const {
     treatmentId,
     treatmentName,
     treatmentPrice,
     treatmentImageUrl,
     selectedOptions,
-    date,
-    time,
-    designerId,
   } = useBookingStore();
 
   const [description, setDescription] = useState("");
@@ -44,10 +42,11 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // ✅ API 명세에 맞게 수정된 함수
+  // ✅ 백엔드 요청에 맞게 최종 수정된 함수
   const handleSaveTempReservation = async () => {
-    if (!shopId || !treatmentId || !date || !time || !designerId) {
-      alert("예약 정보가 불완전합니다. 이전 단계로 돌아가 다시 시도해주세요.");
+    // 필수 시술 정보가 있는지 확인합니다.
+    if (!shopId || !treatmentId) {
+      alert("시술 정보가 없습니다. 이전 단계로 돌아가 다시 시 d도해주세요.");
       return;
     }
 
@@ -64,11 +63,8 @@ const AppointmentBookingPage = () => {
           treatmentId: treatmentId,
           selectedOptions: selectedOptions,
         },
-        dateTimeDesignerData: {
-          date: date,
-          time: time,
-          designerId: designerId,
-        },
+        // 백엔드 요청에 따라 이 부분을 null로 설정합니다.
+        dateTimeDesignerData: null,
         requestNotesStyleData: {
           requestNotes: description,
         },
@@ -76,7 +72,6 @@ const AppointmentBookingPage = () => {
       };
 
       // 2. 생성한 객체를 JSON 문자열로 변환하여 'request' 키로 FormData에 추가합니다.
-      // API는 이 JSON 문자열을 받아서 객체로 파싱합니다.
       formData.append("request", JSON.stringify(requestData));
 
       // 3. 이미지 파일들을 'referenceImages' 라는 별도의 키로 각각 추가합니다.
@@ -91,6 +86,8 @@ const AppointmentBookingPage = () => {
       );
 
       if (response.data.success) {
+        // 성공 후 로직 (예: 결제 페이지 또는 예약 목록으로 이동)
+        // 이 부분은 기획에 따라 변경이 필요합니다.
         navigate(`/user/store/treatment-booking/${shopId}`);
       } else {
         throw new Error(
