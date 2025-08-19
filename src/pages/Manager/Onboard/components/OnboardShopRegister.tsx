@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createShop } from "@/apis/login";
-import LeftChevron from "@/assets/icon_left-chevron.svg";
+import LeftChevron from "../../../../assets/icon_left-chevron.svg";
 
 export default function OnboardShopRegister() {
   const navigate = useNavigate();

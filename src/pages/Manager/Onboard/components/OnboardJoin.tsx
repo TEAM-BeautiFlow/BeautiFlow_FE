@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import bgLeft from "@/assets/Left_W.png";
 import bgRight from "@/assets/Right_W.png";
 import { checkShopExists, applyShop } from "@/apis/login";
-import LeftChevron from "@/assets/icon_left-chevron.svg";
+import LeftChevron from "../../../../assets/icon_left-chevron.svg";
 
 export default function OnboardJoin() {
   const navigate = useNavigate();
