@@ -57,41 +57,78 @@ const AppointmentBookingPage = () => {
     try {
       setSubmitStatus("processing");
       
-      const formData = new FormData();
-      
-      // 임시 예약으로 저장 (saveFinalReservation을 false로 설정)
-      formData.append('deleteTempReservation', 'true');
-      formData.append('tempSaveData', JSON.stringify({
-        treatmentId,
-        selectedOptions,
-      }));
-      formData.append('dateTimeDesignerData', JSON.stringify({
-        date, 
-        time, 
-        designerId
-      }));
-      formData.append('requestNotesStyleData', JSON.stringify({
-        requestNotes: description,
-      }));
-      formData.append('saveFinalReservation', 'false'); // ✅ 임시 저장으로 변경
-      
-      imageFiles.forEach((file) => {
-        formData.append('requestNotesStyleData.referenceImages', file);
-      });
+      // 이미지가 있는 경우와 없는 경우를 구분하여 처리
+      if (imageFiles.length > 0) {
+        // 이미지가 있는 경우: FormData 사용
+        const formData = new FormData();
+        
+        formData.append('deleteTempReservation', 'true');
+        formData.append('tempSaveData', JSON.stringify({
+          treatmentId,
+          selectedOptions,
+        }));
+        formData.append('dateTimeDesignerData', JSON.stringify({
+          date, 
+          time, 
+          designerId
+        }));
+        formData.append('requestNotesStyleData', JSON.stringify({
+          requestNotes: description,
+        }));
+        formData.append('saveFinalReservation', 'false');
+        
+        imageFiles.forEach((file) => {
+          formData.append('requestNotesStyleData.referenceImages', file);
+        });
 
-      const response = await api.post(
-        `/reservations/${shopId}/process`,
-        formData
-        // FormData 사용 시 Content-Type 헤더를 명시하지 않음 (브라우저가 자동 설정)
-      );
-
-      if (response.data.success) {
-        // 임시 예약 저장 성공 시 다음 페이지로 이동
-        navigate(`/user/store/treatment-booking/${shopId}`);
-      } else {
-        throw new Error(
-          response.data.message || "알 수 없는 오류가 발생했습니다.",
+        const response = await api.post(
+          `/reservations/${shopId}/process`,
+          formData
         );
+
+        if (response.data.success) {
+          navigate(`/user/store/treatment-booking/${shopId}`);
+        } else {
+          throw new Error(
+            response.data.message || "알 수 없는 오류가 발생했습니다.",
+          );
+        }
+      } else {
+        // 이미지가 없는 경우: 일반 JSON 사용
+        const requestData = {
+          deleteTempReservation: true,
+          tempSaveData: {
+            treatmentId,
+            selectedOptions,
+          },
+          dateTimeDesignerData: {
+            date, 
+            time, 
+            designerId
+          },
+          requestNotesStyleData: {
+            requestNotes: description,
+          },
+          saveFinalReservation: false,
+        };
+
+        const response = await api.post(
+          `/reservations/${shopId}/process`,
+          requestData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.data.success) {
+          navigate(`/user/store/treatment-booking/${shopId}`);
+        } else {
+          throw new Error(
+            response.data.message || "알 수 없는 오류가 발생했습니다.",
+          );
+        }
       }
     } catch (err: any) {
       let errorMessage = "예약 처리 중 오류가 발생했습니다.";
