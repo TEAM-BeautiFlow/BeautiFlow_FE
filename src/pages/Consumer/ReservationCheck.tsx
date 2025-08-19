@@ -31,7 +31,7 @@ const ReservationCheck = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ 1. 제출(로딩) 상태 추가
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchBookingInfo = async () => {
@@ -70,13 +70,14 @@ const ReservationCheck = () => {
       document.execCommand('copy');
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch (err) {
+    } catch (err)
+    {
       console.error('Failed to copy text: ', err);
     }
     document.body.removeChild(textArea);
   };
   
-  // ✅ 2. 예약 확정을 위한 API 요청 함수 생성
+  // ✅ API 명세에 맞게 FormData를 사용하도록 수정한 함수
   const handleFinalizeReservation = async () => {
     if (!shopId) {
       alert("매장 ID가 없어 요청을 보낼 수 없습니다.");
@@ -86,15 +87,32 @@ const ReservationCheck = () => {
     setError(null);
 
     try {
-      const response = await api.post(`/reservations/${shopId}/process`, {
+      // 1. FormData 객체를 생성합니다.
+      const formData = new FormData();
+
+      // 2. 서버에서 요구하는 JSON 데이터를 객체로 만듭니다.
+      const requestData = {
         deleteTempReservation: true,
         saveFinalReservation: true,
-      });
+      };
+
+      // 3. JSON 객체를 문자열로 변환하여 'request' 키에 추가합니다.
+      // Swagger 문서에 따라 'request' 필드에 JSON 문자열을 담아야 합니다.
+      formData.append('request', JSON.stringify(requestData));
+      
+      // 참고: 만약 referenceImages 파일들을 함께 보내야 한다면 아래처럼 추가할 수 있습니다.
+      // files.forEach(file => formData.append('referenceImages', file));
+
+      // 4. Axios POST 요청 시 body에 FormData 객체를 전달합니다.
+      // 이렇게 하면 Content-Type이 자동으로 'multipart/form-data'로 설정됩니다.
+      const response = await api.post(
+        `/reservations/${shopId}/process`,
+        formData,
+      );
 
       if (response.data.success) {
-        // 성공 시 예약 완료 페이지 등으로 이동
         alert("예약이 확정되었습니다!");
-        navigate(`/reservation-complete`); // 성공 페이지 경로는 알맞게 수정해주세요.
+        navigate(`/reservation-complete`); // 성공 페이지 경로
       } else {
         setError(response.data.message || "예약 확정에 실패했습니다.");
         alert(`오류: ${response.data.message || "예약 확정에 실패했습니다."}`);
@@ -108,14 +126,13 @@ const ReservationCheck = () => {
     }
   };
 
-
   if (isLoading)
     return (
       <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black text-white">
         로딩 중...
       </div>
     );
-  if (error && !bookingInfo) // 수정: bookingInfo가 없을 때만 전체 에러 화면을 보여줍니다.
+  if (error && !bookingInfo)
     return (
       <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black p-4 text-center text-white">
         오류가 발생했습니다:
@@ -149,7 +166,6 @@ const ReservationCheck = () => {
     .map(([label, price]) => ({ label, price }));
 
   const totalAmount = payInfoItems.reduce((sum, [, price]) => sum + price, 0);
-
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
@@ -188,9 +204,7 @@ const ReservationCheck = () => {
           paddingBottom: "20px",
         }}
       >
-        {/* ... (기존 JSX 코드와 동일) ... */}
-        {/* 결제금액, 매장에서 결제할 금액, 지금 결제할 금액, 결제 정보 등 */}
-        
+        {/* ... (기존 JSX는 변경사항 없음) ... */}
         <div style={{ marginBottom: "32px" }}>
           <h2 className="label1" style={{ marginBottom: "16px" }}>
             결제 금액
@@ -387,7 +401,6 @@ const ReservationCheck = () => {
             </p>
           )}
         </div>
-
       </div>
 
       <div
@@ -402,7 +415,6 @@ const ReservationCheck = () => {
           backgroundColor: "var(--color-black)",
         }}
       >
-        {/* ✅ 3. 버튼에 onClick 핸들러와 disabled 속성 추가 */}
         <button
           onClick={handleFinalizeReservation}
           disabled={isSubmitting}
