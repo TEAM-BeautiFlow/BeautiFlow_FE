@@ -59,7 +59,7 @@ const AppointmentBookingPage = () => {
       
       const formData = new FormData();
       
-      // ✅ 기존 임시 예약 정보를 유지하기 위해 'false'로 설정
+      // ✅ 가장 중요한 수정: 기존 임시 예약 정보를 유지하기 위해 'false'로 설정
       formData.append('deleteTempReservation', 'false');
       
       // 서버의 API가 JSON 객체를 예상하므로, 관련 데이터들을 JSON 문자열로 묶어 보냅니다.
