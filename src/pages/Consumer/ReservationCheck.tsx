@@ -108,7 +108,7 @@ const ReservationCheck = () => {
     reservationDate,
     startTime,
     durationMinutes,
-    customerUsername,
+    customerName,
     shopAccountInfo,
   } = bookingInfo;
 
@@ -298,7 +298,7 @@ const ReservationCheck = () => {
               className="font-semibold"
               style={{ color: "var(--color-white)" }}
             >
-              {customerUsername}
+              {customerName}
             </span>
           </p>
 
