@@ -7,40 +7,19 @@ import "../../styles/type-system.css";
 
 import useBookingStore from "../../stores/bookingStore";
 
-// API 요청 본문(request)의 타입을 정의합니다.
+// API 요청 본문(request)의 타입
 interface ReservationStepData {
-  deleteTempReservation: boolean;
-  tempSaveData?: {
-    treatmentId: number;
-    selectedOptions: any[]; // 실제 옵션 타입으로 지정하는 것이 좋습니다.
-  } | null;
-  dateTimeDesignerData?: {
-    date: string;
-    time: string;
-    designerId: number;
-  } | null;
   requestNotesStyleData?: {
     requestNotes: string;
   } | null;
-  saveFinalReservation: boolean;
-  [key: string]: any; // 다른 추가적인 속성을 허용합니다.
 }
 
 const AppointmentBookingPage = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
 
-  // Zustand 스토어에서 예약에 필요한 모든 상태를 불러옵니다.
-  const {
-    treatmentId,
-    treatmentName,
-    treatmentPrice,
-    treatmentImageUrl,
-    selectedOptions,
-    date,
-    time,
-    designerId,
-  } = useBookingStore();
+  // Zustand 스토어에서 예약에 필요한 정보
+  const { treatmentName, treatmentPrice, treatmentImageUrl } = useBookingStore();
 
   const [description, setDescription] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -65,25 +44,20 @@ const AppointmentBookingPage = () => {
   };
 
   /**
-   * 각 예약 단계를 처리하는 범용 POST 함수
-   * @param stepData API의 'request' 필드에 들어갈 JSON 객체
-   * @param images 첨부할 이미지 파일 배열
+   * POST 함수 (JSON + 이미지)
    */
   const postStep = async (stepData: ReservationStepData, images: File[] = []) => {
     if (!shopId) {
       alert("샵 정보가 없습니다. 다시 시도해주세요.");
-      return; // 함수 실행 중단
+      return;
     }
 
     setIsSubmitting(true);
     setSubmitStatus("processing");
 
     const formData = new FormData();
-
-    // 1. stepData 객체를 JSON 문자열로 변환하여 'request' 키로 추가
     formData.append("request", JSON.stringify(stepData));
 
-    // 2. 이미지 파일들을 'referenceImages' 키로 각각 추가
     images.forEach(file => {
       formData.append("referenceImages", file);
     });
@@ -96,7 +70,7 @@ const AppointmentBookingPage = () => {
 
       if (response.data.success) {
         console.log("API 호출 성공:", response.data);
-        return response.data; // 성공 시 응답 데이터 반환
+        return response.data;
       } else {
         throw new Error(
           response.data.message || "서버에서 요청 처리에 실패했습니다.",
@@ -112,52 +86,28 @@ const AppointmentBookingPage = () => {
       }
       console.error("Reservation Step Error:", err);
       alert(errorMessage);
-      throw err; // 에러를 다시 던져서 호출한 쪽에서 후속 처리를 막을 수 있게 함
+      throw err;
     } finally {
       setIsSubmitting(false);
       setSubmitStatus("idle");
     }
   };
 
-  // ✅ 1단계: 요청사항 저장 (임시 저장)
+  // ✅ 요청사항만 보내는 단계
   const handleSaveRequestNotesStep = async () => {
-    // 필수 시술 정보 확인
-    if (!treatmentId) {
-      alert("시술 정보가 없습니다. 이전 단계로 돌아가 다시 시도해주세요.");
-      return;
-    }
-
-    // 현재 단계에 필요한 데이터만 구성
-    const step1Data: ReservationStepData = {
-      deleteTempReservation: false,
-      tempSaveData: {
-        treatmentId: treatmentId,
-        selectedOptions: selectedOptions,
-      },
-      // Zustand 스토어의 값으로 채웁니다.
-      // 만약 값이 없다면 (초기 상태) 빈 문자열이나 0을 기본값으로 사용합니다.
-      dateTimeDesignerData: {
-        date: date || "",
-        time: time || "",
-        designerId: designerId || 0,
-      },
+    const stepData: ReservationStepData = {
       requestNotesStyleData: {
         requestNotes: description,
       },
-      saveFinalReservation: false,
     };
 
     try {
-      // postStep 함수 호출
-      const result = await postStep(step1Data, imageFiles);
-
+      const result = await postStep(stepData, imageFiles);
       if (result) {
-        // 성공 시 다음 페이지로 이동
         navigate(`/user/store/treatment-booking/${shopId}`);
       }
     } catch (error) {
-      // postStep에서 이미 alert로 에러를 표시하므로 여기서는 추가 작업이 필요 없습니다.
-      console.error("1단계 처리 실패");
+      console.error("요청사항 단계 처리 실패");
     }
   };
 
