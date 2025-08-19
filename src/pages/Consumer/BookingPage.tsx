@@ -41,6 +41,7 @@ const BookingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTimeSlotsLoading, setIsTimeSlotsLoading] = useState(false);
   const [isDesignersLoading, setIsDesignersLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
   // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -190,21 +191,58 @@ const BookingPage = () => {
     setSelectedDesignerId(null);
   };
 
-  const handleNextStep = () => {
-    if (selectedDate && selectedTime && selectedDesignerId) {
-      const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
-
-      setDateTimeDesigner({
-        date: dateString,
-        time: selectedTime,
-        designerId: selectedDesignerId,
-        referenceImages: [],
-      });
-
-      navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
-    } else {
+  const handleNextStep = async () => {
+    if (!selectedDate || !selectedTime || !selectedDesignerId) {
       alert("날짜, 시간, 디자이너를 모두 선택해주세요.");
+      return;
     }
+
+    const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+
+    setDateTimeDesigner({
+      date: dateString,
+      time: selectedTime,
+      designerId: selectedDesignerId,
+      referenceImages: [],
+    });
+
+    // 만약 이 단계에서도 /reservations/{shopId}/process API를 호출해야 한다면:
+    try {
+      setIsProcessing(true);
+      
+      const formData = new FormData();
+      
+      // 날짜/시간/디자이너 정보를 포함한 데이터
+      const requestData = {
+        dateTimeDesignerData: {
+          date: dateString,
+          time: selectedTime,
+          designerId: selectedDesignerId,
+        }
+      };
+      
+      formData.append('request', JSON.stringify(requestData));
+
+      const processResponse = await api.post(
+        `/reservations/${shopId}/process`,
+        formData
+      );
+
+      if (processResponse.data.success) {
+        // 성공시 다음 페이지로 이동
+        navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
+      } else {
+        alert("예약 처리 중 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      console.error("예약 처리 중 오류:", error);
+      alert("예약 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
+    }
+
+    // 또는 API 호출 없이 단순히 다음 페이지로 이동하는 경우:
+    // navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
   };
 
   const generateCalendar = () => {
@@ -456,13 +494,13 @@ const BookingPage = () => {
     >
       <div className="sticky top-0 z-10 flex items-center justify-between bg-black px-4 py-3">
         <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-6 w-6" style={{ color: "var(--color-white)" }} />
         </button>
         <h1 className="title1" style={{ color: "var(--color-white)" }}>
           시술 예약하기
         </h1>
         <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6" style={{ color: "var(--color-white)" }} />
         </button>
       </div>
 
@@ -620,16 +658,16 @@ const BookingPage = () => {
             color: "var(--color-white)",
             fontWeight: "var(--font-weight-semibold)",
             opacity:
-              !selectedDate || !selectedTime || !selectedDesignerId ? 0.5 : 1,
+              !selectedDate || !selectedTime || !selectedDesignerId || isProcessing ? 0.5 : 1,
             cursor:
-              !selectedDate || !selectedTime || !selectedDesignerId
+              !selectedDate || !selectedTime || !selectedDesignerId || isProcessing
                 ? "not-allowed"
                 : "pointer",
           }}
-          disabled={!selectedDate || !selectedTime || !selectedDesignerId}
+          disabled={!selectedDate || !selectedTime || !selectedDesignerId || isProcessing}
           onClick={handleNextStep}
         >
-          다음으로
+          {isProcessing ? "처리 중..." : "다음으로"}
         </button>
       </div>
     </div>
