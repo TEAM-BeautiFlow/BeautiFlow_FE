@@ -26,9 +26,9 @@ const AppointmentBookingPage = () => {
   const [description, setDescription] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "processing"
-  >("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "processing">(
+    "idle",
+  );
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -45,7 +45,7 @@ const AppointmentBookingPage = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // 임시 예약 저장을 위한 함수 (다음 페이지로 이동)
+  // ✅ 수정된 함수
   const handleSaveTempReservation = async () => {
     if (!shopId || !treatmentId || !date || !time || !designerId) {
       alert("예약 정보가 불완전합니다. 이전 단계로 돌아가 다시 시도해주세요.");
@@ -53,40 +53,41 @@ const AppointmentBookingPage = () => {
     }
 
     setIsSubmitting(true);
+    setSubmitStatus("processing");
 
     try {
-      setSubmitStatus("processing");
-      
       const formData = new FormData();
-      
-      // ✅ 가장 중요한 수정: 기존 임시 예약 정보를 유지하기 위해 'false'로 설정
-      formData.append('deleteTempReservation', 'false');
-      
-      // 서버의 API가 JSON 객체를 예상하므로, 관련 데이터들을 JSON 문자열로 묶어 보냅니다.
-      formData.append('tempSaveData', JSON.stringify({
+
+      // 1. 백엔드가 요구하는 JSON 데이터 구조 생성
+      const requestDto = {
         treatmentId,
         selectedOptions,
-      }));
-      formData.append('dateTimeDesignerData', JSON.stringify({
-        date, 
-        time, 
-        designerId
-      }));
-      formData.append('requestNotesStyleData', JSON.stringify({
-        requestNotes: description,
-      }));
-      
-      formData.append('saveFinalReservation', 'false');
-      
-      // 이미지가 있는 경우 FormData에 추가
-      imageFiles.forEach((file) => {
-        formData.append('requestNotesStyleData.referenceImages', file);
+        date,
+        time,
+        designerId,
+        requestNotesStyleData: {
+          requestNotes: description,
+        },
+        deleteTempReservation: false,
+        saveFinalReservation: false,
+      };
+
+      // 2. 생성된 JSON 객체를 문자열로 변환하여 FormData에 추가
+      // 'dto' key는 백엔드와 협의된 값이어야 합니다.
+      formData.append(
+        "dto", // 👈 이 key 이름은 백엔드 개발자에게 반드시 확인하세요!
+        new Blob([JSON.stringify(requestDto)], { type: "application/json" }),
+      );
+
+      // 3. 이미지 파일들을 백엔드가 지정한 key로 FormData에 추가
+      imageFiles.forEach(file => {
+        formData.append("requestNotesStyleData.referenceImages", file);
       });
-      
-      // 이미지가 있든 없든 FormData를 사용
+
+      // 4. 서버에 FormData 전송
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        formData
+        formData,
       );
 
       if (response.data.success) {
@@ -103,6 +104,7 @@ const AppointmentBookingPage = () => {
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
+      console.error("Reservation Error:", err); // 오류 디버깅을 위한 로그
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -132,12 +134,18 @@ const AppointmentBookingPage = () => {
           padding: "20px",
         }}
       >
-        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
-            <ChevronLeft size={24} />
+        <button
+          onClick={() => navigate(-1)}
+          className="p-0 bg-transparent border-none cursor-pointer"
+        >
+          <ChevronLeft size={24} />
         </button>
         <h1 className="title1">시술 예약하기</h1>
-        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
-            <X size={24} />
+        <button
+          onClick={() => navigate("/")}
+          className="p-0 bg-transparent border-none cursor-pointer"
+        >
+          <X size={24} />
         </button>
       </div>
 
