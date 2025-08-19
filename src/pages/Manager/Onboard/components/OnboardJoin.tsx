@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import bgLeft from "@/assets/Left_W.png";
 import bgRight from "@/assets/Right_W.png";
 import { checkShopExists, applyShop } from "@/apis/login";
-import LeftChevron from "../../../../assets/icon_left-chevron.svg";
+import LeftChevron from "@/assets/icon_left-chevron.svg";
 
 export default function OnboardJoin() {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function OnboardJoin() {
         {/* 상단 네비게이션 */}
         <div className="z-10 mb-8 flex w-full items-center px-5 pt-8">
           <button onClick={() => navigate(-1)} aria-label="뒤로가기">
-            <LeftChevron />
+            <img src={LeftChevron} alt="뒤로가기" className="h-6 w-6" />
           </button>
           <div className="label1 flex-1 text-center text-[var(--color-white)]">
             입사 신청하기

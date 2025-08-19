@@ -47,7 +47,7 @@ export default function OnboardShopRegister() {
             onClick={() => navigate(-1)}
             aria-label="뒤로가기"
           >
-            <LeftChevron />
+            <img src={LeftChevron} alt="뒤로가기" className="h-6 w-6" />
           </button>
           <div className="label1 flex-1 text-center text-[var(--color-white)]">
             샵 등록하기
