@@ -129,7 +129,7 @@ const TreatmentBookingPage = () => {
       : mainTreatmentName;
 
   const reservationDetails = [
-    { label: "예약자명", value: bookingInfo.customerUsername },
+    { label: "예약자명", value: bookingInfo.customerName },
     {
       label: "시술일시",
       value: formatDateTime(bookingInfo.reservationDate, bookingInfo.startTime),

@@ -137,7 +137,7 @@ export interface ReservationPortfolio {
 }
 
 export interface MyReservationInfo {
-  customerUsername: string;
+  customerName: string;
   reservationDate: string;
   startTime: string;
   durationMinutes: number;

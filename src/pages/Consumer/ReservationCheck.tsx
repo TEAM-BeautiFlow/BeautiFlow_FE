@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, X, Copy } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, MyReservationInfo } from "../../types/api";
@@ -31,10 +31,7 @@ const ReservationCheck = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ 1. 제출(로딩) 상태 추가
 
   useEffect(() => {
     const fetchBookingInfo = async () => {
@@ -45,7 +42,6 @@ const ReservationCheck = () => {
       }
       try {
         setIsLoading(true);
-        // 🔽 3. api 인스턴스를 사용하여 헤더 설정 없이 깔끔하게 요청합니다.
         const response = await api.get<ApiResponse<MyReservationInfo>>(
           `/reservations/shops/${shopId}/my-reserv-info`,
         );
@@ -66,8 +62,6 @@ const ReservationCheck = () => {
   const handleCopy = () => {
     if (!bookingInfo?.shopAccountInfo) return;
     const accountInfo = `${bookingInfo.shopAccountInfo.bank} ${bookingInfo.shopAccountInfo.accountNumber}`;
-    // The `navigator.clipboard.writeText` might fail in some sandboxed environments.
-    // A fallback using `document.execCommand('copy')` is more robust.
     const textArea = document.createElement("textarea");
     textArea.value = accountInfo;
     document.body.appendChild(textArea);
@@ -81,6 +75,39 @@ const ReservationCheck = () => {
     }
     document.body.removeChild(textArea);
   };
+  
+  // ✅ 2. 예약 확정을 위한 API 요청 함수 생성
+  const handleFinalizeReservation = async () => {
+    if (!shopId) {
+      alert("매장 ID가 없어 요청을 보낼 수 없습니다.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await api.post(`/reservations/${shopId}/process`, {
+        deleteTempReservation: true,
+        saveFinalReservation: true,
+      });
+
+      if (response.data.success) {
+        // 성공 시 예약 완료 페이지 등으로 이동
+        alert("예약이 확정되었습니다!");
+        navigate(`/reservation-complete`); // 성공 페이지 경로는 알맞게 수정해주세요.
+      } else {
+        setError(response.data.message || "예약 확정에 실패했습니다.");
+        alert(`오류: ${response.data.message || "예약 확정에 실패했습니다."}`);
+      }
+    } catch (err) {
+        const errorMessage = "예약 확정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        setError(errorMessage);
+        alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   if (isLoading)
     return (
@@ -88,7 +115,7 @@ const ReservationCheck = () => {
         로딩 중...
       </div>
     );
-  if (error)
+  if (error && !bookingInfo) // 수정: bookingInfo가 없을 때만 전체 에러 화면을 보여줍니다.
     return (
       <div className="mx-auto flex min-h-screen max-w-sm items-center justify-center bg-black p-4 text-center text-white">
         오류가 발생했습니다:
@@ -108,7 +135,7 @@ const ReservationCheck = () => {
     reservationDate,
     startTime,
     durationMinutes,
-    customerUsername,
+    customerName,
     shopAccountInfo,
   } = bookingInfo;
 
@@ -161,6 +188,9 @@ const ReservationCheck = () => {
           paddingBottom: "20px",
         }}
       >
+        {/* ... (기존 JSX 코드와 동일) ... */}
+        {/* 결제금액, 매장에서 결제할 금액, 지금 결제할 금액, 결제 정보 등 */}
+        
         <div style={{ marginBottom: "32px" }}>
           <h2 className="label1" style={{ marginBottom: "16px" }}>
             결제 금액
@@ -298,7 +328,7 @@ const ReservationCheck = () => {
               className="font-semibold"
               style={{ color: "var(--color-white)" }}
             >
-              {customerUsername}
+              {customerName}
             </span>
           </p>
 
@@ -357,6 +387,7 @@ const ReservationCheck = () => {
             </p>
           )}
         </div>
+
       </div>
 
       <div
@@ -371,7 +402,10 @@ const ReservationCheck = () => {
           backgroundColor: "var(--color-black)",
         }}
       >
+        {/* ✅ 3. 버튼에 onClick 핸들러와 disabled 속성 추가 */}
         <button
+          onClick={handleFinalizeReservation}
+          disabled={isSubmitting}
           style={{
             width: "100%",
             height: "56px",
@@ -382,10 +416,11 @@ const ReservationCheck = () => {
             color: "white",
             fontSize: "16px",
             fontWeight: "600",
-            cursor: "pointer"
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: isSubmitting ? 0.7 : 1,
           }}
         >
-          {amountToPayNow.toLocaleString()}원 입금하기
+          {isSubmitting ? "처리 중..." : `${amountToPayNow.toLocaleString()}원 입금하기`}
         </button>
       </div>
     </div>
