@@ -81,12 +81,8 @@ const AppointmentBookingPage = () => {
 
       const response = await api.post(
         `/reservations/${shopId}/process`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+        formData
+        // FormData 사용 시 Content-Type 헤더를 명시하지 않음 (브라우저가 자동 설정)
       );
 
       if (response.data.success) {
