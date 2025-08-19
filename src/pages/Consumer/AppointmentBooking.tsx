@@ -144,7 +144,7 @@ const AppointmentBookingPage = () => {
 
       if (result) {
         // 성공 시 다음 단계로 이동 (예: 날짜/시간 선택 페이지)
-        // navigate(`/booking/${shopId}/select-datetime`);
+        navigate(`/user/store/treatment-booking/${shopId}`);
         alert("요청사항이 임시 저장되었습니다. 다음 단계로 이동합니다.");
       }
     } catch (error) {
@@ -152,36 +152,6 @@ const AppointmentBookingPage = () => {
       console.error("1단계 처리 실패");
     }
   };
-  
-  /*
-   * ✅ (예시) 2단계: 날짜, 시간, 디자이너 선택 후 최종 예약
-   * 이 함수는 날짜/시간 선택 페이지에서 호출될 수 있습니다.
-   */
-  // const handleFinalizeReservation = async (date: string, time: string, designerId: number) => {
-  //   const step2Data: ReservationStepData = {
-  //     deleteTempReservation: false,
-  //     tempSaveData: null, // 이전 단계 정보는 서버에 저장되어 있으므로 null
-  //     dateTimeDesignerData: {
-  //       date,
-  //       time,
-  //       designerId,
-  //     },
-  //     requestNotesStyleData: null, // 이전 단계 정보는 서버에 저장되어 있으므로 null
-  //     saveFinalReservation: true, // 최종 예약을 위해 true로 설정
-  //   };
-  //
-  //   try {
-  //     const result = await postStep(step2Data); // 이 단계에서는 이미지 파일이 필요 없을 수 있음
-  //
-  //     if (result) {
-  //       // 최종 예약 성공 후 결제 페이지나 예약 완료 페이지로 이동
-  //       navigate(`/booking/complete`);
-  //     }
-  //   } catch (error) {
-  //     console.error("최종 예약 처리 실패");
-  //   }
-  // };
-
 
   const getButtonText = () => {
     if (submitStatus === "processing") return "처리 중...";
