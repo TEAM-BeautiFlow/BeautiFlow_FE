@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface GroupSettingModalProps {
@@ -13,7 +14,7 @@ export default function GroupSettingModal({
   visible,
   onClose,
   onConfirm,
-  initialGroups = ["전체", "VIP", "자주 오는 고객"], // 기본값
+  initialGroups = ["전체", "VIP"], // 기본값
   initialSelectedGroups = [], // 기본값
 }: GroupSettingModalProps) {
   const [groups, setGroups] = useState<string[]>(["전체", "VIP"]);
@@ -55,14 +56,30 @@ export default function GroupSettingModal({
     });
   };
 
-  const handleSaveGroup = () => {
+  const handleSaveGroup = async () => {
     const trimmed = newGroupName.trim();
     if (trimmed && !groups.includes(trimmed)) {
       setGroups(prev => [...prev, trimmed]);
       setSelectedGroups(prev => [...prev, trimmed]); // 선택도 반영
     }
-    setNewGroupName("");
-    setIsAddingGroup(false);
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/customer-groups`,
+        { code: trimmed }, // ★ input 값 그대로 POST
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // 로컬 state 반영
+      setGroups(prev => [...prev, trimmed]);
+      setSelectedGroups([trimmed]); // 새로 추가된 그룹을 선택 상태로
+    } catch (e) {
+      console.error("그룹 추가 실패", e);
+      alert("그룹 추가에 실패했습니다.");
+    } finally {
+      setNewGroupName("");
+      setIsAddingGroup(false);
+    }
   };
 
   return (
