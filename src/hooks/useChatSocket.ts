@@ -64,6 +64,12 @@ export default function useChatSocket(
     };
   }, [roomId]);
 
+  function mapSenderType(loginProvider: string | null): "STAFF" | "CUSTOMER" {
+    if (!loginProvider) return "CUSTOMER"; // 기본값은 CUSTOMER로
+    if (loginProvider.includes("staff")) return "STAFF";
+    return "CUSTOMER";
+  }
+
   // 메시지 전송용 함수 반환
   const sendMessage = (content: string) => {
     const client = clientRef.current;
@@ -73,7 +79,8 @@ export default function useChatSocket(
     }
     const token = localStorage.getItem("accessToken");
     const senderId = userIdRef.current;
-    const senderType = localStorage.getItem("loginProvider");
+    const rawProvider = localStorage.getItem("loginProvider");
+    const senderType = mapSenderType(rawProvider);
 
     client.publish({
       destination: `/publish/${roomId}`,
