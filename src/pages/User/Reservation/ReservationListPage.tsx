@@ -22,6 +22,12 @@ export default function ReservationListPage() {
     return false;
   });
 
+  const normalizeList = (r: any) => {
+    if (Array.isArray(r?.data)) return r.data;
+    if (Array.isArray(r?.data?.data)) return r.data.data;
+    return [];
+  };
+
   // + 탭 변경 시 백엔드에서 status별로 조회( CSV 미지원 가정: 다중 상태는 개별 호출 후 병합 )
   useEffect(() => {
     const controller = new AbortController();
@@ -47,14 +53,13 @@ export default function ReservationListPage() {
           .filter(
             (r): r is PromiseFulfilledResult<any> => r.status === "fulfilled",
           )
-          .map(r => r.value)
-          .map(r => (Array.isArray(r.data?.data) ? r.data.data : []));
-        const merged = parts.flat();
+          .flatMap(r => normalizeList(r.value));
 
         // 중복 제거 (reservationId 기준)
         const uniq = Array.from(
-          new Map(merged.map(r => [r.reservationId, r])).values(),
+          new Map(parts.map(r => [r.reservationId, r])).values(),
         );
+
         uniq.sort((a, b) =>
           `${a.reservationDate ?? ""} ${a.startTime ?? ""}`.localeCompare(
             `${b.reservationDate ?? ""} ${b.startTime ?? ""}`,
