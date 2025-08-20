@@ -67,17 +67,15 @@ const ReservationCheck = () => {
     document.body.appendChild(textArea);
     textArea.select();
     try {
-      document.execCommand('copy');
+      document.execCommand("copy");
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch (err)
-    {
-      console.error('Failed to copy text: ', err);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
     }
     document.body.removeChild(textArea);
   };
-  
-  // ✅ API 명세에 맞게 FormData를 사용하도록 수정한 함수
+
   const handleFinalizeReservation = async () => {
     if (!shopId) {
       alert("매장 ID가 없어 요청을 보낼 수 없습니다.");
@@ -87,24 +85,15 @@ const ReservationCheck = () => {
     setError(null);
 
     try {
-      // 1. FormData 객체를 생성합니다.
       const formData = new FormData();
 
-      // 2. 서버에서 요구하는 JSON 데이터를 객체로 만듭니다.
       const requestData = {
         deleteTempReservation: true,
         saveFinalReservation: true,
       };
 
-      // 3. JSON 객체를 문자열로 변환하여 'request' 키에 추가합니다.
-      // Swagger 문서에 따라 'request' 필드에 JSON 문자열을 담아야 합니다.
-      formData.append('request', JSON.stringify(requestData));
-      
-      // 참고: 만약 referenceImages 파일들을 함께 보내야 한다면 아래처럼 추가할 수 있습니다.
-      // files.forEach(file => formData.append('referenceImages', file));
+      formData.append("request", JSON.stringify(requestData));
 
-      // 4. Axios POST 요청 시 body에 FormData 객체를 전달합니다.
-      // 이렇게 하면 Content-Type이 자동으로 'multipart/form-data'로 설정됩니다.
       const response = await api.post(
         `/reservations/${shopId}/process`,
         formData,
@@ -112,15 +101,16 @@ const ReservationCheck = () => {
 
       if (response.data.success) {
         alert("예약이 확정되었습니다!");
-        navigate(`/reservation-complete`); // 성공 페이지 경로
+        navigate(`/reservation-complete`);
       } else {
         setError(response.data.message || "예약 확정에 실패했습니다.");
         alert(`오류: ${response.data.message || "예약 확정에 실패했습니다."}`);
       }
     } catch (err) {
-        const errorMessage = "예약 확정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-        setError(errorMessage);
-        alert(errorMessage);
+      const errorMessage =
+        "예약 확정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -157,17 +147,13 @@ const ReservationCheck = () => {
   } = bookingInfo;
 
   const payInfoItems = Object.entries(payInfo || {});
-  const mainTreatment =
-    payInfoItems.length > 0
-      ? { label: payInfoItems[0][0], price: payInfoItems[0][1] }
-      : { label: "기본 시술", price: 0 };
-  const optionTreatments = payInfoItems
-    .slice(1)
-    .map(([label, price]) => ({ label, price }));
-
   const totalAmount = payInfoItems.reduce((sum, [, price]) => sum + price, 0);
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
+
+  // 마지막 항목에서 [new] 추출
+  const lastLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "";
+  const reservationLabel = lastLabel.includes("[new]") ? "[new]" : "예약 내역";
 
   return (
     <div
@@ -187,12 +173,18 @@ const ReservationCheck = () => {
           paddingTop: "30px",
         }}
       >
-        <button onClick={() => navigate(-1)} className="p-0 bg-transparent border-none cursor-pointer">
-            <ChevronLeft size={24} />
+        <button
+          onClick={() => navigate(-1)}
+          className="p-0 bg-transparent border-none cursor-pointer"
+        >
+          <ChevronLeft size={24} />
         </button>
         <h1 className="title1">시술 예약하기</h1>
-        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
-            <X size={24} />
+        <button
+          onClick={() => navigate("/")}
+          className="p-0 bg-transparent border-none cursor-pointer"
+        >
+          <X size={24} />
         </button>
       </div>
 
@@ -204,7 +196,7 @@ const ReservationCheck = () => {
           paddingBottom: "20px",
         }}
       >
-        {/* ... (기존 JSX는 변경사항 없음) ... */}
+        {/* 결제 금액 */}
         <div style={{ marginBottom: "32px" }}>
           <h2 className="label1" style={{ marginBottom: "16px" }}>
             결제 금액
@@ -212,7 +204,7 @@ const ReservationCheck = () => {
 
           <div style={{ marginBottom: "16px" }}>
             <p className="label1" style={{ marginBottom: "4px" }}>
-              {mainTreatment.label}
+              {reservationLabel}
             </p>
             <p className="caption2" style={{ color: "var(--color-grey-450)" }}>
               {formatDateTimeDuration(
@@ -229,24 +221,9 @@ const ReservationCheck = () => {
               borderRadius: "8px",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px",
-                borderBottom: "1px solid var(--color-grey-750)",
-              }}
-            >
-              <div className="body2" style={{ color: "var(--color-grey-450)" }}>
-                기본시술
-              </div>
-              <div className="body2">
-                {mainTreatment.price.toLocaleString()}원
-              </div>
-            </div>
-            {optionTreatments.map(item => (
+            {payInfoItems.slice().reverse().map(([label, price]) => (
               <div
-                key={item.label}
+                key={label}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -258,11 +235,12 @@ const ReservationCheck = () => {
                   className="body2"
                   style={{ color: "var(--color-grey-450)" }}
                 >
-                  {item.label}
+                  {label}
                 </div>
-                <div className="body2">{item.price.toLocaleString()}원</div>
+                <div className="body2">{price.toLocaleString()}원</div>
               </div>
             ))}
+
             <div
               style={{
                 display: "flex",
@@ -286,6 +264,7 @@ const ReservationCheck = () => {
           </div>
         </div>
 
+        {/* 매장에서 결제할 금액 */}
         <div style={{ marginBottom: "16px" }}>
           <div
             style={{
@@ -308,6 +287,7 @@ const ReservationCheck = () => {
           </p>
         </div>
 
+        {/* 지금 결제할 금액 */}
         <div style={{ marginBottom: "32px" }}>
           <div
             style={{
@@ -323,6 +303,7 @@ const ReservationCheck = () => {
           </div>
         </div>
 
+        {/* 결제 정보 */}
         <div style={{ marginBottom: "32px" }}>
           <h2 className="label1" style={{ marginBottom: "8px" }}>
             결제 정보
@@ -359,18 +340,21 @@ const ReservationCheck = () => {
             {shopAccountInfo ? (
               <>
                 <div>
-                    <p className="caption2" style={{ color: "var(--color-grey-450)", marginBottom: "4px" }}>
-                        입금 계좌
-                    </p>
-                    <p className="body2" style={{ lineHeight: "1.5" }}>
-                        {shopAccountInfo.bank} {shopAccountInfo.accountNumber}
-                        <br />
-                        예금주 : {shopAccountInfo.accountHolder}
-                    </p>
+                  <p
+                    className="caption2"
+                    style={{ color: "var(--color-grey-450)", marginBottom: "4px" }}
+                  >
+                    입금 계좌
+                  </p>
+                  <p className="body2" style={{ lineHeight: "1.5" }}>
+                    {shopAccountInfo.bank} {shopAccountInfo.accountNumber}
+                    <br />
+                    예금주 : {shopAccountInfo.accountHolder}
+                  </p>
                 </div>
                 <button
-                onClick={handleCopy}
-                style={{
+                  onClick={handleCopy}
+                  style={{
                     backgroundColor: "var(--color-purple)",
                     borderRadius: "9999px",
                     padding: "8px 12px",
@@ -379,17 +363,17 @@ const ReservationCheck = () => {
                     gap: "8px",
                     border: "none",
                     color: "white",
-                    cursor: "pointer"
-                }}
+                    cursor: "pointer",
+                  }}
                 >
-                <Copy size={18} />
-                <span className="label2">계좌 복사</span>
+                  <Copy size={18} />
+                  <span className="label2">계좌 복사</span>
                 </button>
               </>
             ) : (
-                <p className="body2" style={{ color: "var(--color-grey-450)" }}>
-                    매장 계좌 정보가 등록되지 않았습니다.
-                </p>
+              <p className="body2" style={{ color: "var(--color-grey-450)" }}>
+                매장 계좌 정보가 등록되지 않았습니다.
+              </p>
             )}
           </div>
           {copied && (
@@ -432,7 +416,9 @@ const ReservationCheck = () => {
             opacity: isSubmitting ? 0.7 : 1,
           }}
         >
-          {isSubmitting ? "처리 중..." : `${amountToPayNow.toLocaleString()}원 입금하기`}
+          {isSubmitting
+            ? "처리 중..."
+            : `${amountToPayNow.toLocaleString()}원 입금하기`}
         </button>
       </div>
     </div>
