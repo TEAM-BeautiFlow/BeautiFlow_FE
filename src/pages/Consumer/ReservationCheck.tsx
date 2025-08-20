@@ -85,26 +85,42 @@ const ReservationCheck = () => {
     setError(null);
 
     try {
-      const formData = new FormData();
-
-      const requestData = {
-        deleteTempReservation: true,
+      // 1단계: 최종 예약 저장
+      const saveFormData = new FormData();
+      const saveRequestData = {
         saveFinalReservation: true,
       };
+      saveFormData.append("request", JSON.stringify(saveRequestData));
 
-      formData.append("request", JSON.stringify(requestData));
-
-      const response = await api.post(
+      const saveResponse = await api.post(
         `/reservations/${shopId}/process`,
-        formData,
+        saveFormData,
       );
 
-      if (response.data.success) {
+      if (!saveResponse.data.success) {
+        setError(saveResponse.data.message || "예약 확정에 실패했습니다.");
+        alert(`오류: ${saveResponse.data.message || "예약 확정에 실패했습니다."}`);
+        return;
+      }
+
+      // 2단계: 임시 예약 삭제
+      const deleteFormData = new FormData();
+      const deleteRequestData = {
+        deleteTempReservation: true,
+      };
+      deleteFormData.append("request", JSON.stringify(deleteRequestData));
+
+      const deleteResponse = await api.post(
+        `/reservations/${shopId}/process`,
+        deleteFormData,
+      );
+
+      if (deleteResponse.data.success) {
         alert("예약이 확정되었습니다!");
         navigate(`/reservation-complete`);
       } else {
-        setError(response.data.message || "예약 확정에 실패했습니다.");
-        alert(`오류: ${response.data.message || "예약 확정에 실패했습니다."}`);
+        setError(deleteResponse.data.message || "임시 예약 삭제에 실패했습니다.");
+        alert(`오류: ${deleteResponse.data.message || "임시 예약 삭제에 실패했습니다."}`);
       }
     } catch (err) {
       const errorMessage =
@@ -151,9 +167,8 @@ const ReservationCheck = () => {
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
-  // 마지막 항목에서 [new] 추출
-  const lastLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "";
-  const reservationLabel = lastLabel.includes("[new]") ? "[new]" : "예약 내역";
+  // 수정: 마지막 항목의 라벨을 그대로 출력
+  const reservationLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "예약 내역";
 
   return (
     <div
