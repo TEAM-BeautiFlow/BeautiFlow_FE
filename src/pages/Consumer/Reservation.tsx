@@ -168,7 +168,7 @@ const Reservation = () => {
 
   if (isLoading && !shopData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center text-white">
         <p>매장 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -176,7 +176,7 @@ const Reservation = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-red-500">
+      <div className="flex min-h-screen items-center justify-center text-red-500">
         <p>데이터 로딩에 실패했습니다: {error}</p>
       </div>
     );
@@ -187,7 +187,7 @@ const Reservation = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-grey-1000)]">
+    <div className="flex min-h-screen items-center justify-center bg-white">
       <div
         className="transition-filter w-full max-w-sm bg-[var(--color-grey-1000)] text-[var(--color-grey-150)]"
         style={{ filter: isModalOpen ? "blur(4px)" : "none" }}
@@ -212,7 +212,7 @@ const Reservation = () => {
           )}
         </div>
 
-        <section className="bg-black px-5 py-4">
+        <section className="bg-[var(--color-grey-1000)]] px-5 py-4">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="h0 text-[var(--color-grey-150)]">{shopData.name}</h2>
             <button className="flex items-center gap-1">
@@ -279,10 +279,10 @@ const Reservation = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-black px-5 py-4 pb-32">
+        <div className="bg-[var(--color-grey-1000)]] flex-1 overflow-y-auto px-5 py-4 pb-32">
           {activeTab === "TREATMENTS" ? (
             <>
-              <div className="mb-6 flex gap-2 bg-black">
+              <div className="bg-[var(--color-grey-1000)]] mb-6 flex gap-2">
                 {(["HAND", "FEET", "ETC"] as const).map(cat => (
                   <button
                     key={cat}
