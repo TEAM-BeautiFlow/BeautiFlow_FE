@@ -86,12 +86,9 @@ const ReservationCheck = () => {
 
     try {
       const formData = new FormData();
-
       const requestData = {
-        deleteTempReservation: true,
         saveFinalReservation: true,
       };
-
       formData.append("request", JSON.stringify(requestData));
 
       const response = await api.post(
@@ -151,9 +148,8 @@ const ReservationCheck = () => {
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
-  // 마지막 항목에서 [new] 추출
-  const lastLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "";
-  const reservationLabel = lastLabel.includes("[new]") ? "[new]" : "예약 내역";
+  // 수정: 마지막 항목의 라벨을 그대로 출력
+  const reservationLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "예약 내역";
 
   return (
     <div

@@ -104,7 +104,7 @@ const Calendar = ({
                     isSelected
                       ? "bg-[var(--color-grey-850)] text-[var(--color-grey-250)]"
                       : isToday
-                        ? "rounded-full border border-[1.5px] border-[var(--color-grey-850)]"
+                        ? "rounded-full border-[1.5px] border-[var(--color-grey-850)]"
                         : isPast
                           ? "text-[var(--color-grey-750)]"
                           : "text-[var(--color-grey-250)]"
