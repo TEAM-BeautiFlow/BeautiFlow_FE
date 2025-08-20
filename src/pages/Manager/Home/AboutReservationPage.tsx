@@ -165,7 +165,7 @@ export default function AboutReservationPage({
   };
   return (
     <>
-      <div className="mx-auto min-h-screen w-[375px] bg-[#1a1a1a] text-white">
+      <div className="mx-auto min-h-screen w-[375px] bg-[#1a1a1a] pb-[87px] text-white">
         {/* Header */}
         <div className="relative flex h-[60px] items-center justify-between px-5 py-4">
           <button onClick={handleBack} className="h-6 w-6">
