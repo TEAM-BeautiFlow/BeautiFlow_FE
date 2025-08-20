@@ -8,41 +8,6 @@ import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { getUserInfo } from "@/apis/mypage/mypage";
 
-// const dummyReservations: Reservations[] = [
-//   {
-//     reservationId: 1,
-//     status: "CONFIRMED",
-//     shopName: "매장명",
-//     designerName: "시술자명",
-//     treatmentName: "이달의 아트",
-//     optionNames: ["옵션6", "옵션1"],
-//     date: "2025-07-06",
-//     time: "12:00:00",
-//     imageUrl: "https://img.example.com/style.jpg",
-//   },
-//   {
-//     reservationId: 2,
-//     status: "PENDING",
-//     shopName: "매장명",
-//     designerName: "시술자명",
-//     treatmentName: "이달의 아트",
-//     optionNames: ["옵션6", "옵션1"],
-//     date: "2025-07-06",
-//     time: "12:00:00",
-//     imageUrl: "https://img.example.com/style.jpg",
-//   },
-// ];
-
-// const dummyCustomers: CustomerDetail[] = [
-//   {
-//     customerId: 5,
-//     name: "이하늘",
-//     contact: "019-534-6247",
-//     email: "beautiflow@gmail.com",
-//     groupCodes: ["VIP"],
-//   },
-
-// ];
 type LocationState = CustomerDetail & { allGroups?: string[] };
 
 export default function ClientPage() {
