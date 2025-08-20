@@ -10,6 +10,7 @@ import "../../styles/type-system.css";
 // operatingHours가 businessHours 배열로 변경되었다고 가정합니다.
 import type { ApiResponse, SShopData, Treatment } from "../../types/api";
 import { useAuthStore } from "@/stores/auth";
+import Header from "@/layout/Header";
 
 const Reservation = () => {
   const navigate = useNavigate();
@@ -186,15 +187,13 @@ const Reservation = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-grey-1000)]">
       <div
-        className="transition-filter w-full max-w-sm bg-black text-white"
+        className="transition-filter w-full max-w-sm bg-[var(--color-grey-1000)] text-[var(--color-grey-150)]"
         style={{ filter: isModalOpen ? "blur(4px)" : "none" }}
       >
-        <header className="flex items-center justify-between bg-black px-5 py-4">
-          <span className="h1 text-[color:var(--color-purple)]">
-            BEAUTIFLOW
-          </span>
+        <header className="flex items-center justify-between bg-[var(--color-grey-1000)] px-5 py-4">
+          <Header />
         </header>
 
         <div className="relative h-64 w-full overflow-hidden bg-[color:var(--color-grey-350)]">
@@ -215,7 +214,7 @@ const Reservation = () => {
 
         <section className="bg-black px-5 py-4">
           <div className="mb-1 flex items-center justify-between">
-            <h2 className="title1 text-white">{shopData.name}</h2>
+            <h2 className="h0 text-[var(--color-grey-150)]">{shopData.name}</h2>
             <button className="flex items-center gap-1">
               <MessageSquare
                 size={20}
@@ -226,7 +225,7 @@ const Reservation = () => {
               </span>
             </button>
           </div>
-          <p className="body2 truncate text-[color:var(--color-grey-450)]">
+          <p className="body1 truncate text-[color:var(--color-grey-450)]">
             {shopData.introText}
           </p>
 
@@ -237,11 +236,11 @@ const Reservation = () => {
                 className="w-40 flex-shrink-0 cursor-pointer rounded-md bg-[color:var(--color-grey-950)] p-3"
                 onClick={() => handleAnnouncementClick(notice)}
               >
-                <h4 className="caption1 mb-1 truncate text-white">
+                <h4 className="body1 mb-1 truncate text-[var(--color-grey-350)]">
                   {notice.title}
                 </h4>
                 <p
-                  className="caption2 text-[color:var(--color-grey-450)]"
+                  className="caption2 text-[color:var(--color-grey-550)]"
                   style={{
                     lineHeight: "1.5",
                     overflow: "hidden",
@@ -257,23 +256,23 @@ const Reservation = () => {
           </div>
         </section>
 
-        <div className="flex border-b border-[color:var(--color-grey-850)] bg-black px-5">
+        <div className="flex border-b border-[color:var(--color-grey-850)] bg-[var(--color-grey-1000)] px-5">
           <button
             onClick={() => setActiveTab("TREATMENTS")}
-            className={`label1 px-2 py-3 ${
+            className={`h1 px-2 py-3 ${
               activeTab === "TREATMENTS"
-                ? "border-b-2 border-white font-semibold text-white"
-                : "font-medium text-[color:var(--color-grey-450)]"
+                ? "border-b-2 border-[var(--color-grey-150)] text-[var(--color-grey-150)]"
+                : "text-[color:var(--color-grey-750)]"
             }`}
           >
             시술
           </button>
           <button
             onClick={() => setActiveTab("INFO")}
-            className={`label1 px-2 py-3 ${
+            className={`h1 px-2 py-3 ${
               activeTab === "INFO"
-                ? "border-b-2 border-white font-semibold text-white"
-                : "font-medium text-[color:var(--color-grey-450)]"
+                ? "border-b-2 border-[var(--color-grey-150)] text-[var(--color-grey-150)]"
+                : "text-[color:var(--color-grey-750)]"
             }`}
           >
             정보
@@ -309,7 +308,7 @@ const Reservation = () => {
                 ))}
               </div>
 
-              <section className="flex-1 overflow-y-auto bg-black">
+              <section className="flex-1 overflow-y-auto bg-[var(--color-grey-1000)]">
                 {isLoading ? (
                   <p className="body2 text-center text-[color:var(--color-grey-450)]">
                     시술 목록을 불러오는 중...
@@ -335,39 +334,30 @@ const Reservation = () => {
                         </div>
                         <div className="flex-1">
                           <div className="mb-1 flex items-start justify-between">
-                            <span className="label1 text-white">
+                            <span className="label1 text-[var(--color-grey-50)]">
                               {treatment.name}
                             </span>
-                            <div className="flex flex-shrink-0 items-center gap-1">
+                            <div className="flex flex-shrink-0 items-center gap-1 rounded-[3px] bg-[var(--color-grey-950)] px-2 py-1">
                               <Clock
                                 size={16}
-                                className="text-[color:var(--color-grey-450)]"
+                                className="text-[color:var(--color-grey-550)]"
                               />
-                              <span className="caption2 whitespace-nowrap text-[color:var(--color-grey-450)]">
+                              <span className="caption1 whitespace-nowrap text-[color:var(--color-grey-550)]">
                                 {treatment.durationMinutes}분
                               </span>
                             </div>
                           </div>
-                          <div className="label1 mb-2 text-white">
+                          <div className="label1 mb-2 text-[var(--color-grey-350)]">
                             {treatment.price?.toLocaleString()}원
                           </div>
                           <p
-                            className="body2 line-clamp-2 text-[color:var(--color-grey-450)]"
+                            className="body2 line-clamp-2 text-[color:var(--color-grey-550)]"
                             style={{ lineHeight: "1.5" }}
                           >
                             {treatment.description}
                           </p>
                         </div>
                       </div>
-                      <div className="label1 mb-2 text-white">
-                        {treatment.price?.toLocaleString()}원
-                      </div>
-                      <p
-                        className="body2 line-clamp-2 text-[color:var(--color-grey-450)]"
-                        style={{ lineHeight: "1.5" }}
-                      >
-                        {treatment.description}
-                      </p>
                     </div>
                   ))
                 ) : (
@@ -386,7 +376,7 @@ const Reservation = () => {
                   className="flex-shrink-0 text-[color:var(--color-grey-450)]"
                 />
                 {/* `operatingHoursText`를 사용하여 가공된 영업시간을 표시합니다. */}
-                <span className="body2 whitespace-pre-line text-white">
+                <span className="body2 whitespace-pre-line text-[var(--color-grey-150)]">
                   {operatingHoursText}
                 </span>
               </div>
@@ -397,12 +387,14 @@ const Reservation = () => {
                     className="flex-shrink-0 text-[color:var(--color-grey-450)]"
                   />
                   {/* `phoneNumber`를 `contact`로 변경합니다. */}
-                  <span className="body2 text-white">{shopData.contact}</span>
+                  <span className="body2 text-[var(--color-grey-150)]">
+                    {shopData.contact}
+                  </span>
                 </div>
                 {/* `phoneNumber`를 `contact`로 변경합니다. */}
                 <button
                   onClick={() => handleCopy(shopData.contact)}
-                  className="label2 text-[color:var(--color-purple)]"
+                  className="body2 text-[color:var(--color-purple)]"
                 >
                   복사
                 </button>
@@ -413,11 +405,13 @@ const Reservation = () => {
                     size={20}
                     className="flex-shrink-0 text-[color:var(--color-grey-450)]"
                   />
-                  <span className="body2 text-white">{shopData.address}</span>
+                  <span className="body2 text-[var(--color-grey-150)]">
+                    {shopData.address}
+                  </span>
                 </div>
                 <button
                   onClick={() => handleCopy(shopData.address)}
-                  className="label2 text-[color:var(--color-purple)]"
+                  className="body2 text-[color:var(--color-purple)]"
                 >
                   복사
                 </button>
@@ -439,11 +433,11 @@ const Reservation = () => {
             onClick={e => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="title1 text-white">
+              <h2 className="title1 text-[var(--color-grey-150)]">
                 {selectedAnnouncement.title}
               </h2>
               <button onClick={handleModalClose}>
-                <X size={24} className="text-white" />
+                <X size={24} className="text-[var(--color-grey-150)]" />
               </button>
             </div>
             <p
