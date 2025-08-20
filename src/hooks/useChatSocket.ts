@@ -8,7 +8,12 @@ export default function useChatSocket(
   onMessage: (msg: IMessage) => void,
 ) {
   const clientRef = useRef<Client | null>(null);
+  const onMessageRef = useRef(onMessage);
   const userIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +46,7 @@ export default function useChatSocket(
       reconnectDelay: 5000,
       onConnect: () => {
         const topic = `/topic/${roomId}`;
-        client.subscribe(topic, onMessage, {
+        client.subscribe(topic, frame => onMessageRef.current(frame), {
           Authorization: `Bearer ${token}`,
         });
       },
@@ -57,7 +62,7 @@ export default function useChatSocket(
       client.deactivate();
       clientRef.current = null;
     };
-  }, [roomId, onMessage]);
+  }, [roomId]);
 
   // 메시지 전송용 함수 반환
   const sendMessage = (content: string) => {
