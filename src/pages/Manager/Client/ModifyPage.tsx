@@ -111,27 +111,13 @@ export default function ModifyPage() {
       return;
     }
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/customer-groups`,
-        {
-          code: payload, // ← 변경된 그룹 목록
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+    // 로컬 상태는 "부분 갱신"만 (memo 유지)
+    setForm(prev => ({ ...prev, groupCodes: payload }));
 
-      // 로컬 상태는 "부분 갱신"만 (memo 유지)
-      setForm(prev => ({ ...prev, groupCodes: payload }));
+    // 전체 그룹 리스트에도 병합(중복 제거)
+    setAllGroups(prev => Array.from(new Set([...prev, ...payload])));
 
-      // 전체 그룹 리스트에도 병합(중복 제거)
-      setAllGroups(prev => Array.from(new Set([...prev, ...payload])));
-    } catch (e) {
-      console.error("그룹 저장 실패", e);
-      alert("그룹 저장에 실패했습니다.");
-    } finally {
-      setIsGroupModalOpen(false);
-    }
+    setIsGroupModalOpen(false);
   };
   return (
     <div className="mx-auto flex h-screen w-[375px] flex-col bg-[var(--color-grey-1000)] py-2">
