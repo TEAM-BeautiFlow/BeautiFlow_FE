@@ -141,8 +141,11 @@ const router = createBrowserRouter([
       { path: "manager/onboard/shop", element: <OnboardShopRegister /> },
       { path: "manager/onboard/shop/fin", element: <OnboardShopFin /> },
       {
-        path: "manager/reservations/:reservationId",
-        element: <ReservationDetailPage />,
+        path: "manager/reservations",
+        element: <ReservationWrapper />,
+        children: [
+          { path: ":reservationId", element: <ReservationDetailPage /> },
+        ],
       },
       {
         path: "owner/verification/:shopId",
