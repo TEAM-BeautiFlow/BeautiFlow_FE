@@ -55,6 +55,7 @@ import OwnerEditTreatmentPage from "./pages/Manager/OwnerEditTreatmentPage";
 import OwnerEditAnnouncementPage from "./pages/Manager/OwnerEditAnnouncementPage";
 import OwnerCreateAnnouncementPage from "./pages/Manager/OwnerCreateAnnouncementPage";
 import OwnerCreateTreatmentPage from "./pages/Manager/OwnerCreateTreatmentPage";
+import ReservationCompletePage from "./pages/Consumer/ReservationCompletePage";
 
 const router = createBrowserRouter([
   // 레이아웃 바깥 경로 (로그인, 회원가입 등)
@@ -100,6 +101,8 @@ const router = createBrowserRouter([
         path: "user/store/reservation-check/:shopId",
         element: <ReservationCheck />,
       },
+      // 8단계: 예약 완료 화면
+      { path: "/reservation-complete", element: <ReservationCompletePage /> },
 
       // --- 유저(소비자) 기능 라우트 ---
       {
@@ -153,11 +156,23 @@ const router = createBrowserRouter([
       { path: "owner/store-intro/:shopId", element: <OwnerStoreIntroPage /> },
       { path: "owner/sales/:shopId", element: <OwnerSalesPage /> },
       { path: "owner/hours/:shopId", element: <OwnerBusinessHoursPage /> },
-      { path: "owner/treatments/edit/:shopId/:treatmentId", element: <OwnerEditTreatmentPage />},
-      { path: "owner/treatments/create/:shopId", element: <OwnerCreateTreatmentPage />},
-      { path: "owner/announcements/edit/:shopId/:noticeId", element: <OwnerEditAnnouncementPage />},
-      { path: "owner/announcements/create/:shopId", element: <OwnerCreateAnnouncementPage />},
-      
+      {
+        path: "owner/treatments/edit/:shopId/:treatmentId",
+        element: <OwnerEditTreatmentPage />,
+      },
+      {
+        path: "owner/treatments/create/:shopId",
+        element: <OwnerCreateTreatmentPage />,
+      },
+      {
+        path: "owner/announcements/edit/:shopId/:noticeId",
+        element: <OwnerEditAnnouncementPage />,
+      },
+      {
+        path: "owner/announcements/create/:shopId",
+        element: <OwnerCreateAnnouncementPage />,
+      },
+
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
     ],
