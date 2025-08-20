@@ -1,12 +1,13 @@
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useReservationContext } from "../../../context/ReservationContext";
 import UserNavbar from "../../../layout/UserNavbar";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import type { Reservation } from "../../../types/reservations";
 import noImage from "../../../assets/no_image.png";
 import { getUserInfo } from "@/apis/mypage/mypage";
+import { api } from "@/apis/axiosInstance";
 
 function formatOptionGroups(groups: Reservation["optionGroups"]) {
   if (!groups || groups.length === 0) return "-";
@@ -20,13 +21,64 @@ function formatOptionGroups(groups: Reservation["optionGroups"]) {
     .join(", ");
 }
 
+const normalizeList = (res: any) =>
+  Array.isArray(res?.data)
+    ? res.data
+    : Array.isArray(res?.data?.data)
+      ? res.data.data
+      : [];
+
+const ALL_STATUSES = [
+  "CONFIRMED",
+  "PENDING",
+  "COMPLETED",
+  "CANCELLED",
+  "NO_SHOW",
+] as const;
+
 export default function ReservationDetailPage() {
   const { reservationId } = useParams();
-  const { reservations } = useReservationContext();
-  const [, setReservations] = useState<Reservation[]>([]);
-  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const id = Number(reservationId);
-  const reservation = reservations.find(r => r.reservationId === id);
+  const location = useLocation(); // ★
+
+  const { reservations: ctx } = useReservationContext();
+  const fromState = (location.state as { reservation?: Reservation })
+    ?.reservation;
+  const fromContext = useMemo(
+    () => ctx.find(r => r.reservationId === id),
+    [ctx, id],
+  );
+  const [reservation, setReservation] = useState<Reservation | undefined>(
+    fromState ?? fromContext,
+  );
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (reservation) return; // 이미 있으면 스킵
+    let aborted = false;
+
+    (async () => {
+      const results = await Promise.allSettled(
+        ALL_STATUSES.map(s =>
+          api.get(`/reservations/my-reservation`, { params: { status: s } }),
+        ),
+      );
+      const merged: Reservation[] = results
+        .filter(
+          (r): r is PromiseFulfilledResult<any> => r.status === "fulfilled",
+        )
+        .flatMap(r => normalizeList(r.value));
+      const found = merged.find(r => r.reservationId === id);
+      if (!aborted) setReservation(found);
+    })().catch(err => {
+      console.error("detail fallback fetch failed", err);
+    });
+
+    return () => {
+      aborted = true;
+    };
+  }, [id, reservation]);
+
   // status 설정
   const statusLabels: Record<string, string> = {
     CONFIRMED: "예약 확정",
@@ -121,11 +173,7 @@ export default function ReservationDetailPage() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      setReservations(prev =>
-        prev.map(r =>
-          r.reservationId === reservationId ? { ...r, status: "CANCELLED" } : r,
-        ),
-      );
+      setReservation(prev => (prev ? { ...prev, status: "CANCELLED" } : prev));
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("예약 취소 실패", {
@@ -141,6 +189,10 @@ export default function ReservationDetailPage() {
       setCancellingId(null);
     }
   };
+
+  if (!fromState && !fromContext && !reservation) {
+    return <div className="p-4 text-white">예약 정보를 불러오는 중…</div>;
+  }
 
   if (!reservation) {
     return <div className="p-4 text-white">예약 정보를 찾을 수 없습니다.</div>;
@@ -288,11 +340,11 @@ export default function ReservationDetailPage() {
             },
             {
               label: "소요시간",
-              value: reservation.totalDurationMinutes + "분",
+              value: (reservation.totalDurationMinutes ?? 0) + "분",
             },
             {
               label: "시술가격",
-              value: reservation.totalPrice + "원",
+              value: (reservation.totalPrice ?? 0) + "원",
             },
             { label: "매장이름", value: reservation.shopName },
             { label: "시술자명", value: reservation.designerName },
@@ -320,7 +372,7 @@ export default function ReservationDetailPage() {
         </div>
 
         {/* 시술 리스트 */}
-        {reservation.treatments.map((item, idx) => (
+        {(reservation.treatments ?? []).map((item, idx) => (
           <div key={idx} className="mb-4 flex h-[77px] items-start gap-4 px-5">
             {/* 썸네일 */}
             <div className="h-[77px] w-[77px] rounded-[4px] bg-white">
@@ -353,11 +405,11 @@ export default function ReservationDetailPage() {
                           stroke-linejoin="round"
                         />
                       </svg>
-                      {item.treatmentDurationMinutes}분
+                      {item.treatmentDurationMinutes ?? 0}분
                     </div>
                   </div>
                   <div className="body1 text-[var(--color-grey-250)]">
-                    {item.treatmentPrice}원
+                    {item.treatmentPrice ?? 0}원
                   </div>
                 </div>
               </div>
