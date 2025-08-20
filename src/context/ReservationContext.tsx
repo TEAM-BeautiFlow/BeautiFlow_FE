@@ -11,8 +11,6 @@ export const ReservationContext = createContext<ReservationContextType | null>(
 
 export const useReservationContext = () => {
   const context = useContext(ReservationContext);
-  if (!context) {
-    throw new Error("ReservationContext is not provided");
-  }
-  return context;
+  // 컨텍스트 미제공 시에도 페이지가 죽지 않도록 폴백 반환
+  return context ?? { reservations: [] };
 };

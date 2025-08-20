@@ -99,6 +99,14 @@ const OwnerEditTreatmentPage = () => {
   const handleSave = async () => {
     if (!shopId) return;
 
+    const treatmentIdNum = treatmentId
+      ? parseInt(String(treatmentId), 10)
+      : NaN;
+    if (isEditMode && (Number.isNaN(treatmentIdNum) || treatmentIdNum <= 0)) {
+      alert("유효하지 않은 시술 ID입니다.");
+      return;
+    }
+
     // 필수값 검증
     if (!treatmentName.trim()) {
       alert("시술명을 입력해주세요.");
@@ -142,7 +150,7 @@ const OwnerEditTreatmentPage = () => {
         // 텍스트/옵션 upsert
         const upsertDtos = [
           {
-            id: Number(treatmentId),
+            id: treatmentIdNum,
             category,
             name: treatmentName,
             price: parseInt(price, 10) || 0,
@@ -151,6 +159,7 @@ const OwnerEditTreatmentPage = () => {
             optionGroups,
           },
         ];
+        console.log("[OwnerEdit] Upsert payload", upsertDtos);
         await api.put(`/shops/manage/${shopId}/treatments`, upsertDtos);
 
         // 삭제 예정 이미지 개별 삭제
