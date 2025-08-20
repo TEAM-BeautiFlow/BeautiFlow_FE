@@ -248,8 +248,10 @@ const OwnerVerificationPage = () => {
     const fetchServices = async () => {
       setIsServiceLoading(true);
       try {
+        const toApiCategory = (cat: ServiceCategory) =>
+          cat === "ETC" ? "cf" : cat.toLowerCase();
         const response = await api.get(`/shops/${shopId}/treatments`, {
-          params: { category: activeServiceCategory },
+          params: { category: toApiCategory(activeServiceCategory) },
         });
         if (response.data && response.data.data) {
           const mappedServices = response.data.data.map((item: any) => ({
