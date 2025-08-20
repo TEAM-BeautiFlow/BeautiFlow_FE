@@ -114,10 +114,12 @@ const Reservation = () => {
     const fetchTreatments = async () => {
       try {
         setIsLoading(true);
+        const toApiCategory = (cat: "HAND" | "FEET" | "ETC") =>
+          cat === "ETC" ? "cf" : cat.toLowerCase();
         const response = await api.get<ApiResponse<Treatment[]>>(
           `/shops/${SHOP_ID}/treatments`,
           {
-            params: { category: selectedCategory },
+            params: { category: toApiCategory(selectedCategory) },
           },
         );
         if (response.data.success && response.data.data) {
