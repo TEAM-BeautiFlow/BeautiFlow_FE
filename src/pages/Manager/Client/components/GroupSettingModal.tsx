@@ -14,10 +14,10 @@ export default function GroupSettingModal({
   visible,
   onClose,
   onConfirm,
-  initialGroups = ["전체", "VIP"], // 기본값
+  initialGroups = ["전체"], // 기본값
   initialSelectedGroups = [], // 기본값
 }: GroupSettingModalProps) {
-  const [groups, setGroups] = useState<string[]>(["전체", "VIP"]);
+  const [groups, setGroups] = useState<string[]>(["전체"]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");

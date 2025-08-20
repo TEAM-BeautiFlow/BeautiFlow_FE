@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -12,6 +12,8 @@ type FormState = {
   memo: string;
 };
 
+type Group = { id: number; code: string; isSystem: boolean };
+
 export default function ModifyPage() {
   const navigate = useNavigate();
   const { customerId } = useParams<{ customerId: string }>();
@@ -23,6 +25,7 @@ export default function ModifyPage() {
     groupCodes: state?.groupCodes ?? [],
     memo: state?.memo ?? "",
   });
+  const [groups, setGroups] = useState<Group[]>([]);
 
   const [allGroups, setAllGroups] = useState<string[]>([
     "전체",
@@ -66,6 +69,35 @@ export default function ModifyPage() {
     }
   }, [state, id]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/groups`,
+          { headers },
+        );
+        const list: Group[] = Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+        setGroups(list);
+
+        // 모달에 뿌릴 전체 그룹 코드 목록(allGroups) 갱신
+        const codes = list.map(g => g.code);
+        setAllGroups(prev => Array.from(new Set([...(prev ?? []), ...codes])));
+      } catch (e) {
+        console.error("그룹 목록 불러오기 실패", e);
+      }
+    })();
+  }, []);
+
+  const codeToId = useMemo(
+    () => new Map(groups.map(g => [g.code, g.id] as const)),
+    [groups],
+  );
+
   if (!Number.isFinite(id)) {
     return <div className="p-5 text-red-400">잘못된 고객 ID입니다.</div>;
   }
@@ -74,10 +106,18 @@ export default function ModifyPage() {
     try {
       setSaving(true);
       const token = localStorage.getItem("accessToken");
+      const groupIds = form.groupCodes
+        .map(code => codeToId.get(code))
+        .filter((v): v is number => Number.isFinite(v));
+      const unknown = form.groupCodes.filter(code => !codeToId.has(code));
+      if (unknown.length) {
+        alert(`그룹 목록에 없는 코드가 있어 제외됩니다: ${unknown.join(", ")}`);
+      }
+
       await axios.patch(
         `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/${id}`,
         {
-          groupCodes: form.groupCodes, // 서버 스펙에 맞게 key 조정
+          groupIds,
           memo: form.memo,
         },
         { headers: { Authorization: `Bearer ${token}` } },
@@ -126,7 +166,7 @@ export default function ModifyPage() {
         title={`${state?.name ?? ""} 고객님`}
         rightContent={
           <span className="label2 text-[var(--color-purple)]">
-            {saving ? "저장중…" : "수정"}
+            {saving ? "저장중…" : "저장"}
           </span>
         }
         onRightClick={() => !saving && handleSave()}
@@ -248,7 +288,7 @@ export default function ModifyPage() {
       <GroupSettingModal
         visible={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
-        initialGroups={allGroups}
+        initialGroups={["전체", ...Array.from(new Set(allGroups))]}
         initialSelectedGroups={form.groupCodes}
         onAddGroup={(name: string) =>
           setAllGroups(prev => (prev.includes(name) ? prev : [...prev, name]))
