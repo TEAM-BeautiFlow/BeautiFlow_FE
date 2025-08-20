@@ -113,11 +113,10 @@ export default function ModifyPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      await axios.patch(
-        `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/targetgroup`,
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/customer-groups`,
         {
-          customerId: id, // ← params에서 받은 고객 id 사용
-          groupCodes: payload, // ← 변경된 그룹 목록
+          code: payload, // ← 변경된 그룹 목록
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
