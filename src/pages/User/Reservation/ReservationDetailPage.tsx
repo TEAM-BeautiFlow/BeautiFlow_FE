@@ -156,7 +156,7 @@ export default function ReservationDetailPage() {
       );
 
       const roomId = response.data.data.roomId;
-      navigate(`/chat/rooms/${roomId}`, {
+      navigate(`/user/chat/rooms/${roomId}`, {
         state: {
           designerId,
           designerName: reservation.designerName,
