@@ -113,7 +113,9 @@ export default function ReservationCard({ reservation }: ReservationProps) {
         {/* 카드*/}
         <div
           onClick={(): void | Promise<void> =>
-            navigate(`/reservations/${reservation.reservationId}`)
+            navigate(`/reservations/${reservation.reservationId}`, {
+              state: { reservation: reservation },
+            })
           }
           className="flex cursor-pointer gap-4"
         >
