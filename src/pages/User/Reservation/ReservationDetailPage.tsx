@@ -9,16 +9,48 @@ import noImage from "../../../assets/no_image.png";
 import { getUserInfo } from "@/apis/mypage/mypage";
 import { api } from "@/apis/axiosInstance";
 
-function formatOptionGroups(groups: Reservation["optionGroups"]) {
+function formatOptionGroups(groupsInput: Reservation["optionGroups"]) {
+  const groups = asArray(groupsInput);
   if (!groups || groups.length === 0) return "-";
+  if (!groups.length) return "-";
   return groups
     .map(g => {
-      const items = (g.optionItems ?? [])
-        .map(i => i.itemName?.trim())
+      const items = asArray(g?.optionItems)
+        .map(i => i?.itemName?.trim())
         .filter(Boolean) as string[];
-      return items.length ? `${g.groupName}(${items.join(", ")})` : g.groupName;
+      return items.length
+        ? `${g?.groupName ?? ""}(${items.join(", ")})`
+        : (g?.groupName ?? "");
     })
+    .filter(Boolean)
     .join(", ");
+}
+
+function asArray<T = any>(v: unknown): T[] {
+  if (Array.isArray(v)) return v as T[];
+  if (v == null) return [];
+  if (typeof v === "string") {
+    const s = v.trim();
+    // JSON 문자열 형태면 파싱 시도
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(s);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    // 쉼표 구분 문자열이면 split
+    if (s.includes(","))
+      return s
+        .split(",")
+        .map(x => x.trim())
+        .filter(Boolean) as T[];
+    // 단일 문자열 1개만 온 경우
+    return s ? [s as T] : [];
+  }
+  // 그 외 타입(객체/숫자)은 단일 원소 배열로 감싸기
+  return [v as T];
 }
 
 const normalizeList = (res: any) =>
@@ -372,54 +404,64 @@ export default function ReservationDetailPage() {
         </div>
 
         {/* 시술 리스트 */}
-        {(reservation.treatments ?? []).map((item, idx) => (
-          <div key={idx} className="mb-4 flex h-[77px] items-start gap-4 px-5">
-            {/* 썸네일 */}
-            <div className="h-[77px] w-[77px] rounded-[4px] bg-white">
-              <img
-                src={item.treatmentImageUrls[0] || noImage}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {/* 오른쪽 내용 */}
-            <div className="flex h-[77px] w-[243px] flex-col justify-between">
-              <div className="">
-                {/* 시술명 + 가격 */}
-                <div className="flex h-[49px] flex-col">
-                  <div className="label1 flex justify-between gap-1 text-[var(--color-grey-450)]">
-                    {item.treatmentName}
-                    {/* 소요시간 */}
-                    <div className="caption1 inline-flex h-[26px] items-center gap-1 self-end rounded-[6px] bg-[var(--color-grey-850)] px-1.5 py-1 text-[var(--color-grey-450)]">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15.1333 7.66667L13.8004 9L12.4666 7.66667M13.9634 8.66667C13.9876 8.44778 14 8.22534 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14C9.88484 14 11.5667 13.1309 12.6667 11.7716M8 4.66667V8L10 9.33333"
-                          stroke="#BDBEBD"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                      {item.treatmentDurationMinutes ?? 0}분
+        {(asArray<string>(reservation.treatments).length
+          ? asArray<any>(reservation.treatments)
+          : []
+        ).map(
+          (
+            item,
+            idx, // ★ treatments 가드
+          ) => (
+            <div
+              key={idx}
+              className="mb-4 flex h-[77px] items-start gap-4 px-5"
+            >
+              <div className="h-[77px] w-[77px] rounded-[4px] bg-white">
+                <img
+                  src={asArray<string>(item?.treatmentImageUrls)[0] || noImage} // ★ 여기
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              {/* 오른쪽 내용 */}
+              <div className="flex h-[77px] w-[243px] flex-col justify-between">
+                <div className="">
+                  {/* 시술명 + 가격 */}
+                  <div className="flex h-[49px] flex-col">
+                    <div className="label1 flex justify-between gap-1 text-[var(--color-grey-450)]">
+                      {item.treatmentName}
+                      {/* 소요시간 */}
+                      <div className="caption1 inline-flex h-[26px] items-center gap-1 self-end rounded-[6px] bg-[var(--color-grey-850)] px-1.5 py-1 text-[var(--color-grey-450)]">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.1333 7.66667L13.8004 9L12.4666 7.66667M13.9634 8.66667C13.9876 8.44778 14 8.22534 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14C9.88484 14 11.5667 13.1309 12.6667 11.7716M8 4.66667V8L10 9.33333"
+                            stroke="#BDBEBD"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        {item.treatmentDurationMinutes ?? 0}분
+                      </div>
+                    </div>
+                    <div className="body1 text-[var(--color-grey-250)]">
+                      {item.treatmentPrice ?? 0}원
                     </div>
                   </div>
-                  <div className="body1 text-[var(--color-grey-250)]">
-                    {item.treatmentPrice ?? 0}원
-                  </div>
+                </div>
+                {/* 옵션 */}
+                <div className="caption1 mb-[6px] line-clamp-2 text-[var(--color-grey-650)]">
+                  {formatOptionGroups(reservation.optionGroups)}
                 </div>
               </div>
-              {/* 옵션 */}
-              <div className="caption1 mb-[6px] line-clamp-2 text-[var(--color-grey-650)]">
-                {formatOptionGroups(reservation.optionGroups)}
-              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
       {/* 요청사항 */}
@@ -428,18 +470,23 @@ export default function ReservationDetailPage() {
         <div className="label1 py-3 text-[var(--color-grey-150)]">요청사항</div>
         {/* 이미지 목록 */}
         <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
-          {reservation.styleImageUrls.map((url, index) => (
-            <div
-              key={index}
-              className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
-            >
-              <img
-                src={url}
-                alt={`style-${index}`}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ))}
+          {asArray<string>(reservation.styleImageUrls).map(
+            (
+              url,
+              index, // ★ 여기
+            ) => (
+              <div
+                key={index}
+                className="h-20 w-20 min-w-[80px] overflow-hidden rounded-[4px] bg-white"
+              >
+                <img
+                  src={url}
+                  alt={`style-${index}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ),
+          )}
         </div>
 
         {/* 요청사항 텍스트 박스 */}
