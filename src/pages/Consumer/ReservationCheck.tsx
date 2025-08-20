@@ -85,42 +85,23 @@ const ReservationCheck = () => {
     setError(null);
 
     try {
-      // 1단계: 임시 예약 삭제
-      const deleteFormData = new FormData();
-      const deleteRequestData = {
-        deleteTempReservation: true,
-      };
-      deleteFormData.append("request", JSON.stringify(deleteRequestData));
-
-      const deleteResponse = await api.post(
-        `/reservations/${shopId}/process`,
-        deleteFormData,
-      );
-
-      if (!deleteResponse.data.success) {
-        setError(deleteResponse.data.message || "임시 예약 삭제에 실패했습니다.");
-        alert(`오류: ${deleteResponse.data.message || "임시 예약 삭제에 실패했습니다."}`);
-        return;
-      }
-
-      // 2단계: 최종 예약 저장
-      const saveFormData = new FormData();
-      const saveRequestData = {
+      const formData = new FormData();
+      const requestData = {
         saveFinalReservation: true,
       };
-      saveFormData.append("request", JSON.stringify(saveRequestData));
+      formData.append("request", JSON.stringify(requestData));
 
-      const saveResponse = await api.post(
+      const response = await api.post(
         `/reservations/${shopId}/process`,
-        saveFormData,
+        formData,
       );
 
-      if (saveResponse.data.success) {
+      if (response.data.success) {
         alert("예약이 확정되었습니다!");
         navigate(`/reservation-complete`);
       } else {
-        setError(saveResponse.data.message || "예약 확정에 실패했습니다.");
-        alert(`오류: ${saveResponse.data.message || "예약 확정에 실패했습니다."}`);
+        setError(response.data.message || "예약 확정에 실패했습니다.");
+        alert(`오류: ${response.data.message || "예약 확정에 실패했습니다."}`);
       }
     } catch (err) {
       const errorMessage =
