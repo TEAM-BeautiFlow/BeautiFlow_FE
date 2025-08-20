@@ -58,27 +58,33 @@ const OwnerEditTreatmentPage = () => {
         return;
       }
       try {
-        const response = await api.get(
-          `/shops/${shopId}/treatments/${treatmentId}`,
-        );
-        if (response.data && response.data.data) {
-          const data = response.data.data;
-          setTreatmentName(data.name || "");
-          setCategory(data.category || "hand");
-          setPrice(data.price ? String(data.price) : "");
-          setDuration(data.durationMinutes || 0);
-          setDescription(data.description || "");
-          setExistingImages(data.images || []);
+        const [detailRes, optionsRes] = await Promise.all([
+          api.get(`/shops/${shopId}/treatments/${treatmentId}`),
+          api.get(`/shops/${shopId}/treatments/${treatmentId}/options`),
+        ]);
 
-          const formattedOptions =
-            data.options?.map((opt: any) => ({
-              id: opt.optionId,
-              name: opt.name,
-              duration: opt.duration,
-              price: opt.price,
-            })) || [];
-          setOptions(formattedOptions);
+        const detailData = detailRes?.data?.data;
+        if (detailData) {
+          setTreatmentName(detailData.name || "");
+          setCategory(detailData.category || "hand");
+          setPrice(detailData.price ? String(detailData.price) : "");
+          setDuration(detailData.durationMinutes || 0);
+          setDescription(detailData.description || "");
+          setExistingImages(detailData.images || []);
         }
+
+        const optionGroups = optionsRes?.data?.data?.optionGroups || [];
+        const flattenedItems = optionGroups.flatMap((g: any) =>
+          Array.isArray(g.items) ? g.items : [],
+        );
+        const mappedOptions = flattenedItems.map((item: any) => ({
+          id: typeof item.id === "number" ? item.id : null,
+          name: item.name || "",
+          duration:
+            typeof item.extraMinutes === "number" ? item.extraMinutes : 0,
+          price: typeof item.price === "number" ? item.price : 0,
+        }));
+        setOptions(mappedOptions);
       } catch (err) {
         console.error("시술 정보 로딩 실패:", err);
         setError("시술 정보를 불러오는 데 실패했습니다.");
