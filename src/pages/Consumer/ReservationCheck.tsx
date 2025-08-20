@@ -85,29 +85,9 @@ const ReservationCheck = () => {
     setError(null);
 
     try {
-      // 1단계: 임시 예약 삭제
-      const deleteFormData = new FormData();
-      const deleteRequestData = {
-        deleteTempReservation: true,
-        saveFinalReservation: false,
-      };
-      deleteFormData.append("request", JSON.stringify(deleteRequestData));
-
-      const deleteResponse = await api.post(
-        `/reservations/${shopId}/process`,
-        deleteFormData,
-      );
-
-      if (!deleteResponse.data.success) {
-        setError(deleteResponse.data.message || "임시 예약 삭제에 실패했습니다.");
-        alert(`오류: ${deleteResponse.data.message || "임시 예약 삭제에 실패했습니다."}`);
-        return;
-      }
-
-      // 2단계: 최종 예약 저장
+      // 1단계: 최종 예약 저장
       const saveFormData = new FormData();
       const saveRequestData = {
-        deleteTempReservation: false,
         saveFinalReservation: true,
       };
       saveFormData.append("request", JSON.stringify(saveRequestData));
@@ -117,12 +97,30 @@ const ReservationCheck = () => {
         saveFormData,
       );
 
-      if (saveResponse.data.success) {
+      if (!saveResponse.data.success) {
+        setError(saveResponse.data.message || "예약 확정에 실패했습니다.");
+        alert(`오류: ${saveResponse.data.message || "예약 확정에 실패했습니다."}`);
+        return;
+      }
+
+      // 2단계: 임시 예약 삭제
+      const deleteFormData = new FormData();
+      const deleteRequestData = {
+        deleteTempReservation: true,
+      };
+      deleteFormData.append("request", JSON.stringify(deleteRequestData));
+
+      const deleteResponse = await api.post(
+        `/reservations/${shopId}/process`,
+        deleteFormData,
+      );
+
+      if (deleteResponse.data.success) {
         alert("예약이 확정되었습니다!");
         navigate(`/reservation-complete`);
       } else {
-        setError(saveResponse.data.message || "예약 확정에 실패했습니다.");
-        alert(`오류: ${saveResponse.data.message || "예약 확정에 실패했습니다."}`);
+        setError(deleteResponse.data.message || "임시 예약 삭제에 실패했습니다.");
+        alert(`오류: ${deleteResponse.data.message || "임시 예약 삭제에 실패했습니다."}`);
       }
     } catch (err) {
       const errorMessage =
