@@ -192,7 +192,7 @@ const Reservation = () => {
         className="transition-filter w-full max-w-sm bg-[var(--color-grey-1000)] text-[var(--color-grey-150)]"
         style={{ filter: isModalOpen ? "blur(4px)" : "none" }}
       >
-        <header className="flex items-center justify-between bg-[var(--color-grey-1000)] px-5 py-4">
+        <header>
           <Header />
         </header>
 
