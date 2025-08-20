@@ -6,8 +6,7 @@ export default function Layout() {
   const location = useLocation();
   const path = location.pathname;
 
-  const showUserNavbar =
-    path.startsWith("/reservations") || path.startsWith("/client/mypage");
+  const showUserNavbar = path.startsWith("/client/mypage");
 
   const showManagerNavbar =
     ((path.startsWith("/manager") && !path.startsWith("/manager/onboard")) ||

@@ -4,12 +4,13 @@ import type { Reservation } from "../types/reservations";
 import { useEffect, useState } from "react";
 // 기존 axios 대신 공통 인스턴스 사용 권장 (토큰/헤더 일관)
 import { api } from "@/apis/axiosInstance";
-
+const PREFETCH_ENABLED = false;
 export default function ReservationWrapper() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const location = useLocation();
 
   useEffect(() => {
+    if (!PREFETCH_ENABLED) return;
     const controller = new AbortController();
 
     async function fetchAll() {
