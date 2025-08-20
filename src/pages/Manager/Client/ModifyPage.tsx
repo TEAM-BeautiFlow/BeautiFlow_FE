@@ -27,10 +27,7 @@ export default function ModifyPage() {
   });
   const [groups, setGroups] = useState<Group[]>([]);
 
-  const [allGroups, setAllGroups] = useState<string[]>([
-    "전체",
-    ...(state?.allGroups ?? ["VIP", "BLACKLIST"]),
-  ]);
+  const [allGroups, setAllGroups] = useState<string[]>([]);
   const MAX_VISIBLE_CHIPS = 2;
 
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -288,7 +285,7 @@ export default function ModifyPage() {
       <GroupSettingModal
         visible={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
-        initialGroups={["전체", ...Array.from(new Set(allGroups))]}
+        initialGroups={allGroups}
         initialSelectedGroups={form.groupCodes}
         onAddGroup={(name: string) =>
           setAllGroups(prev => (prev.includes(name) ? prev : [...prev, name]))
