@@ -105,7 +105,6 @@ export default function ManagerChatPage() {
       console.warn("User ID not loaded");
       return;
     }
-    setMessages(prev => [...prev, { sender: "me", text }]);
 
     sendMessage(text);
   };

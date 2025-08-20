@@ -69,13 +69,20 @@ export default function GroupChat() {
     }
   };
 
+  function mapSenderType(loginProvider: string | null): "STAFF" | "CUSTOMER" {
+    if (!loginProvider) return "CUSTOMER"; // 기본값은 CUSTOMER로
+    if (loginProvider.includes("staff")) return "STAFF";
+    return "CUSTOMER";
+  }
+
   // ② 일회성 WebSocket 전송: 연결 → publish → 즉시 disconnect
   const sendOnceViaWS = (roomId: number, content: string) =>
     new Promise<void>((resolve, reject) => {
       const token = localStorage.getItem("accessToken");
       if (!token) return reject(new Error("token 누락"));
       const senderId = userIdRef.current;
-      const senderType = localStorage.getItem("loginProvider") ?? "STAFF";
+      const rawProvider = localStorage.getItem("loginProvider");
+      const senderType = mapSenderType(rawProvider);
       const WS_ENDPOINT = `${import.meta.env.VITE_API_BASE_URL}/connect`; // 훅과 동일
       const DESTINATION = `/publish/${roomId}`; // 훅과 동일
 
@@ -127,20 +134,6 @@ export default function GroupChat() {
 
       client.activate();
     });
-
-  const postMessage = async (roomId: number, content: string) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) throw new Error("token 누락");
-
-    const senderType = localStorage.getItem("senderType") ?? "STAFF";
-    const senderId = userIdRef.current;
-
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
-      { roomId, senderId, senderType, content, imageUrl: null },
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-  };
 
   const handleSend = async () => {
     if (!customerIds.length || !text.trim() || sending) return;

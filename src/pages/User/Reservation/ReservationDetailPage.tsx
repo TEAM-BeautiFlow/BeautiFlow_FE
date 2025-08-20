@@ -156,7 +156,13 @@ export default function ReservationDetailPage() {
       );
 
       const roomId = response.data.data.roomId;
-      navigate(`/chat/rooms/${roomId}`);
+      navigate(`/chat/rooms/${roomId}`, {
+        state: {
+          designerId,
+          designerName: reservation.designerName,
+          shopName: reservation.shopName,
+        },
+      });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("채팅방 생성 실패", {
