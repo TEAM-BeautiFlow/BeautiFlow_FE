@@ -151,6 +151,10 @@ const ReservationCheck = () => {
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
+  // 마지막 항목에서 [new] 추출
+  const lastLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "";
+  const reservationLabel = lastLabel.includes("[new]") ? "[new]" : "예약 내역";
+
   return (
     <div
       className="mx-auto min-h-screen max-w-sm"
@@ -200,7 +204,7 @@ const ReservationCheck = () => {
 
           <div style={{ marginBottom: "16px" }}>
             <p className="label1" style={{ marginBottom: "4px" }}>
-              예약 내역
+              {reservationLabel}
             </p>
             <p className="caption2" style={{ color: "var(--color-grey-450)" }}>
               {formatDateTimeDuration(
@@ -217,7 +221,7 @@ const ReservationCheck = () => {
               borderRadius: "8px",
             }}
           >
-            {payInfoItems.map(([label, price]) => (
+            {payInfoItems.slice().reverse().map(([label, price]) => (
               <div
                 key={label}
                 style={{
