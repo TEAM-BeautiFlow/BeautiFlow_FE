@@ -100,36 +100,12 @@ export default function ManagerChatPage() {
 
   // 메시지 전송
   const handleSend = async (text: string) => {
-    const token = localStorage.getItem("accessToken");
-    const senderType = localStorage.getItem("loginProvider");
     const senderId = userIdRef.current;
-    if (!userIdRef.current) {
+    if (!senderId) {
       console.warn("User ID not loaded");
       return;
     }
-
     sendMessage(text);
-
-    // 저장 API 호출
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
-        {
-          roomId,
-          senderId,
-          senderType,
-          content: text,
-          imageUrl: null,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-    } catch (error) {
-      console.error("메시지 저장 실패", error);
-    }
   };
 
   // 이미지 보내기
