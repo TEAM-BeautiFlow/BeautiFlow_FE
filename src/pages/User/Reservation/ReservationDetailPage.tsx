@@ -490,11 +490,9 @@ export default function ReservationDetailPage() {
         </div>
 
         {/* 요청사항 텍스트 박스 */}
-        <textarea
-          className="body2 mt-4 mr-5 mb-20 w-[330px] resize-none rounded-[8px] bg-[var(--color-grey-950)] p-4 text-[var(--color-grey-150)]"
-          rows={4}
-          placeholder="최대한 빠른 시술 부탁드립니다."
-        />
+        <div className="body2 mt-4 mr-5 mb-20 h-[116px] w-[330px] rounded-[8px] bg-[var(--color-grey-950)] p-4 text-[var(--color-grey-150)]">
+          {reservation.requestNotes}
+        </div>
       </div>
       <UserNavbar />
     </div>
