@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"; // useMemo 추가
 import { useNavigate, useParams } from "react-router-dom";
-import { MessageSquare, Clock, X, Phone, MapPin } from "lucide-react";
+import { Clock, X, Phone, MapPin } from "lucide-react";
 import api from "@/apis/axiosInstance";
 import UserNavbar from "@/layout/UserNavbar";
 import "../../styles/color-system.css";
@@ -217,15 +217,6 @@ const Reservation = () => {
         <section className="bg-[var(--color-grey-1000)]] px-5 py-4">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="h0 text-[var(--color-grey-150)]">{shopData.name}</h2>
-            <button className="flex items-center gap-1">
-              <MessageSquare
-                size={20}
-                className="text-[color:var(--color-grey-450)]"
-              />
-              <span className="caption1 text-[color:var(--color-grey-450)]">
-                채팅
-              </span>
-            </button>
           </div>
           <p className="body1 truncate text-[color:var(--color-grey-450)]">
             {shopData.introText}
