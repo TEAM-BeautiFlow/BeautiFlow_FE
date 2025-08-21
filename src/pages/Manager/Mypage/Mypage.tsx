@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUserInfo, logout } from "@/apis/mypage/mypage";
+import { getUserInfo, logout, deleteUser } from "@/apis/mypage/mypage";
 import { useAuthStore } from "@/stores/auth";
 import HeartIcon from "../../../assets/line-md_heart.svg";
 import InquiryIcon from "../../../assets/message-text-02.svg";
@@ -12,6 +12,7 @@ export default function Mypage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore(state => state.clear);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const { data: user, isLoading } = useQuery({
     queryKey: ["userInfo"],
     queryFn: getUserInfo,
@@ -25,6 +26,21 @@ export default function Mypage() {
       navigate("/");
     },
   });
+  const { mutate: doDeleteUser, isPending: isDeleting } = useMutation({
+    mutationFn: () => deleteUser(),
+    onSuccess: res => {
+      clearAuth();
+      queryClient.removeQueries({ queryKey: ["userInfo"], exact: true });
+      alert(res?.message ?? "탈퇴가 완료되었습니다.");
+      navigate("/");
+    },
+    onError: () => {
+      alert("탈퇴에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    },
+  });
+  useEffect(() => {
+    setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
+  }, []);
   return (
     <div className="mx-auto flex min-h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
       <Header />
@@ -127,6 +143,18 @@ export default function Mypage() {
           개인정보처리방침
         </MenuItem>
         <SectionTitle>탈퇴하기</SectionTitle>
+        <MenuItem
+          disabled={!isLoggedIn}
+          onClick={() => {
+            if (isDeleting) return;
+            const confirmed = window.confirm(
+              "정말로 탈퇴하시겠어요? 모든 정보가 삭제됩니다.",
+            );
+            if (confirmed) doDeleteUser();
+          }}
+        >
+          {isDeleting ? "탈퇴 처리 중..." : "탈퇴하기"}
+        </MenuItem>
       </div>
     </div>
   );
@@ -142,11 +170,29 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 function MenuItem({
   children,
+  disabled = false,
   onClick,
 }: {
   children: ReactNode;
+  disabled?: boolean;
   onClick?: () => void;
 }) {
+  if (disabled || !onClick) {
+    return (
+      <div
+        className={
+          "body1 w-full bg-transparent px-0 py-3 text-left " +
+          (disabled
+            ? "pointer-events-none text-[var(--color-grey-550)]"
+            : "text-[var(--color-white)]")
+        }
+        aria-disabled={disabled}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"

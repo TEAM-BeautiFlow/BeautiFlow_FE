@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUserInfo, logout } from "@/apis/mypage/mypage";
+import { getUserInfo, logout, deleteUser } from "@/apis/mypage/mypage";
 import { useAuthStore } from "@/stores/auth";
 import { getKakaoAuthUrl } from "@/apis/login";
 import HeartIcon from "../../../assets/line-md_heart.svg";
@@ -27,6 +27,19 @@ export default function Mypage() {
       setIsLoggedIn(false);
       queryClient.removeQueries({ queryKey: ["userInfo"], exact: true });
       alert("로그아웃되었습니다.");
+    },
+  });
+  const { mutate: doDeleteUser, isPending: isDeleting } = useMutation({
+    mutationFn: () => deleteUser(),
+    onSuccess: res => {
+      clearAuth();
+      setIsLoggedIn(false);
+      queryClient.removeQueries({ queryKey: ["userInfo"], exact: true });
+      alert(res?.message ?? "탈퇴가 완료되었습니다.");
+      navigate("/");
+    },
+    onError: () => {
+      alert("탈퇴에 실패했습니다. 잠시 후 다시 시도해주세요.");
     },
   });
 
@@ -110,7 +123,18 @@ export default function Mypage() {
         <MenuItem disabled={!isLoggedIn} onClick={() => doLogout()}>
           {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
         </MenuItem>
-        <MenuItem disabled={!isLoggedIn}>탈퇴하기</MenuItem>
+        <MenuItem
+          disabled={!isLoggedIn}
+          onClick={() => {
+            if (isDeleting) return;
+            const confirmed = window.confirm(
+              "정말로 탈퇴하시겠어요? 모든 정보가 삭제됩니다.",
+            );
+            if (confirmed) doDeleteUser();
+          }}
+        >
+          {isDeleting ? "탈퇴 처리 중..." : "탈퇴하기"}
+        </MenuItem>
         {/* 고객센터 */}
         <SectionTitle>고객센터</SectionTitle>
         <MenuItem
