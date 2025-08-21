@@ -377,7 +377,7 @@ const ReservationCheck = () => {
               className="caption2 mt-2 text-center"
               style={{ color: "var(--color-light-purple)" }}
             >
-              예금주명이 복사되었습니다!
+              계좌번호가 복사되었습니다!
             </p>
           )}
         </div>
