@@ -520,7 +520,7 @@ const BookingPage = () => {
         <h1 className="title1" style={{ color: "var(--color-white)" }}>
           시술 예약하기
         </h1>
-        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
+        <button onClick={() => navigate(`/user/store/${shopId}`)} className="p-0 bg-transparent border-none cursor-pointer">
             <X className="h-6 w-6" style={{ color: "var(--color-white)" }} />
         </button>
       </div>
