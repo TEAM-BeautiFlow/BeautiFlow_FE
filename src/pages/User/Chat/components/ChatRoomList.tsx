@@ -53,7 +53,7 @@ export default function ChatRoomList({
       <div
         className={`caption1 flex h-6 w-6 items-center justify-center gap-2.5 rounded-full ${
           chat.unreadCount === 0
-            ? "bg-[var(--color-grey-1000"
+            ? "bg-[var(--color-grey-1000 text-[var(--color-grey-1000)]"
             : "bg-[var(--color-purple)] text-[var(--color-grey-1000)]"
         } `}
       >
