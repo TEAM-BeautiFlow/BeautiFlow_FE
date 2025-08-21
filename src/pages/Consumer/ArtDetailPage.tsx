@@ -68,19 +68,21 @@ const ArtDetailPage = () => {
     }
 
     try {
-      // 1. 전송할 데이터를 객체로 정의
+      // Swagger를 참고하여 전체 데이터 구조 생성
       const reservationPayload = {
+        deleteTempReservation: false,
         tempSaveData: {
           treatmentId: Number(treatmentId),
           selectedOptions: [],
         },
+        dateTimeDesignerData: null,
+        requestNotesStyleData: null,
+        saveFinalReservation: false,
       };
 
-      // 2. FormData 객체 생성
       const formData = new FormData();
-
-      // 3. FormData에 데이터 추가
-      // ⚠️ 중요: 서버에서 받을 때 사용할 'key' 값('tempSaveRequest')을 백엔드 개발자에게 꼭 확인하세요.
+      
+      // ⚠️ 중요: 백엔드 개발자와 약속된 'key' 이름을 사용해야 합니다. (현재 예시는 'tempSaveRequest')
       formData.append(
         "tempSaveRequest",
         new Blob([JSON.stringify(reservationPayload)], {
@@ -88,10 +90,10 @@ const ArtDetailPage = () => {
         }),
       );
 
-      // ✅ POST 요청 시 FormData 객체를 전송
+      // FormData를 서버로 전송
       await api.post(`/reservations/${shopId}/process`, formData);
 
-      // 예약 프로세스 시작 성공 후, 옵션 페이지 또는 예약 페이지로 분기
+      // 성공 시 다음 페이지로 이동
       try {
         const res = await api.get<ApiResponse<any>>(
           `/shops/${shopId}/treatments/${treatmentId}/options`,
