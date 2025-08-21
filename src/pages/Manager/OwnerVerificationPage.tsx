@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Home,
@@ -63,6 +63,14 @@ interface Notice {
   content: string;
 }
 
+// --- 우클릭 컨텍스트 메뉴 상태 ---
+interface ServiceContextMenuState {
+  visible: boolean;
+  x: number;
+  y: number;
+  serviceId: number | null;
+}
+
 // --- 데이터 형식 변환 맵 ---
 const cycleUiMap: Record<string, string> = {
   WEEKLY: "매주",
@@ -112,6 +120,63 @@ const OwnerVerificationPage = () => {
     cycle: "",
     daysOfWeek: [] as string[],
   });
+
+  // 컨테이너 기준 좌표 계산을 위한 ref
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // 서비스 컨텍스트 메뉴 상태
+  const [serviceMenu, setServiceMenu] = useState<ServiceContextMenuState>({
+    visible: false,
+    x: 0,
+    y: 0,
+    serviceId: null,
+  });
+
+  // 컨텍스트 메뉴 닫기 핸들러
+  const closeServiceMenu = () =>
+    setServiceMenu(prev => ({ ...prev, visible: false, serviceId: null }));
+
+  // 외부 클릭 시 메뉴 닫기
+  useEffect(() => {
+    const handleGlobalClick = () => closeServiceMenu();
+    window.addEventListener("click", handleGlobalClick);
+    window.addEventListener("scroll", handleGlobalClick, true);
+    return () => {
+      window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener("scroll", handleGlobalClick, true);
+    };
+  }, []);
+
+  // 서비스 항목 우클릭 메뉴 열기
+  const handleServiceContextMenu = (e: React.MouseEvent, serviceId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const x = rect ? e.clientX - rect.left : e.clientX;
+    const y = rect ? e.clientY - rect.top : e.clientY;
+    setServiceMenu({ visible: true, x, y, serviceId });
+  };
+
+  // 서비스 삭제
+  const handleDeleteService = async (serviceId: number) => {
+    if (!shopId) return;
+    if (!window.confirm("이 시술을 삭제하시겠습니까?")) return;
+    try {
+      const res = await api.delete(
+        `/shops/manage/${shopId}/treatments/${serviceId}`,
+      );
+      if (res?.data?.success) {
+        setServices(prev => prev.filter(s => s.id !== serviceId));
+        closeServiceMenu();
+        alert("시술이 성공적으로 삭제되었습니다.");
+      } else {
+        throw new Error("삭제 실패");
+      }
+    } catch (err) {
+      console.error("시술 삭제 실패:", err);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   // 공지사항 삭제 함수
   const handleDeleteNotice = async (noticeId: number, e: React.MouseEvent) => {
@@ -378,7 +443,10 @@ const OwnerVerificationPage = () => {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div
+          ref={containerRef}
+          className="relative flex-1 overflow-y-auto px-5 py-4"
+        >
           {activeTab === "basic" && (
             <div className="space-y-6">
               {/* 매장 정보, 소개, 매출 관리, 영업 시간 카드들 */}
@@ -559,6 +627,9 @@ const OwnerVerificationPage = () => {
                         onClick={navigateTo(
                           `/owner/treatments/edit/${shopId}/${service.id}`,
                         )}
+                        onContextMenu={e =>
+                          handleServiceContextMenu(e, service.id)
+                        }
                       >
                         <div className="h-20 w-20 flex-shrink-0 rounded-md bg-[var(--color-grey-850)]">
                           {service.imageUrl && (
@@ -630,6 +701,23 @@ const OwnerVerificationPage = () => {
                   </div>
                 ))
               )}
+            </div>
+          )}
+          {/* 서비스 우클릭 컨텍스트 메뉴 */}
+          {serviceMenu.visible && serviceMenu.serviceId !== null && (
+            <div
+              className="absolute z-50 w-36 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
+              style={{ left: serviceMenu.x, top: serviceMenu.y }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                className="w-full px-3 py-2 text-left text-red-400 hover:bg-[var(--color-grey-800)]"
+                onClick={() =>
+                  handleDeleteService(serviceMenu.serviceId as number)
+                }
+              >
+                삭제하기
+              </button>
             </div>
           )}
         </div>
