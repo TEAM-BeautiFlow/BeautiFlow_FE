@@ -120,9 +120,9 @@ export default function TodaysFilteredReservationsPage() {
   const fmt = (t?: string) => (t ?? "").slice(0, 5);
 
   return (
-    <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-12 text-[var(--color-grey-150)]">
+    <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
       <Header />
-      <main className="flex flex-col gap-8 px-4 pt-6">
+      <main className="flex flex-col gap-4 px-4 pt-6">
         <section className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="-ml-1 p-1">
             <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
