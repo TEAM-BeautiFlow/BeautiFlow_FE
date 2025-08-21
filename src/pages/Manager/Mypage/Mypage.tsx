@@ -142,7 +142,7 @@ export default function Mypage() {
         <MenuItem onClick={() => navigate("/privacy")}>
           개인정보처리방침
         </MenuItem>
-        <SectionTitle>탈퇴하기</SectionTitle>
+
         <MenuItem
           disabled={!isLoggedIn}
           onClick={() => {
