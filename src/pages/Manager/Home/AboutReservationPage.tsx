@@ -282,7 +282,6 @@ export default function AboutReservationPage({
                 <span className="label1 text-[#f3f3f3]">
                   {detail?.customerName ?? "-"}
                 </span>
-                <p className="text-sm text-[#8e8e8e]">&nbsp;</p>
               </div>
             </div>
           </div>
