@@ -49,6 +49,7 @@ export default function ManagerChatPage() {
         const fetchedMessages = response.data.data.map((msg: any) => ({
           sender: msg.senderType === "STAFF" ? "me" : "you", // STAFF이면 'me', CUSTOMER이면 'you'
           text: msg.content,
+          imageUrl: msg.imageUrl ?? undefined,
         }));
 
         setMessages(fetchedMessages); // 상태 업데이트
@@ -110,32 +111,84 @@ export default function ManagerChatPage() {
   };
 
   // 이미지 보내기
-  // const handleSendImage = async (file: File) => {
-  //   const token = localStorage.getItem("accessToken")!;
-  //   const senderType = localStorage.getItem("senderType")!;
-  //   const senderId = localStorage.getItem("senderId")!;
+  const handleSendImage = async (file: File) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("No access token found");
+      return;
+    }
 
-  //   try {
-  //     const fd = new FormData();
-  //     fd.append("file", file);
-  //     fd.append("roomId", String(roomId));
-  //     fd.append("senderId", senderId);
-  //     fd.append("senderType", senderType);
-  //     fd.append("content", ""); // 이미지 단독이면 빈 문자열
+    const previewUrl = URL.createObjectURL(file);
+    setMessages(prev => [
+      ...prev,
+      { sender: "me", text: "", imageUrl: previewUrl },
+    ]);
 
-  //     await axios.post(
-  //       `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
-  //       fd,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-  //   } catch (e) {
-  //     console.error("이미지 메시지 전송 실패", e);
-  //   }
-  // };
+    try {
+      // 2) 업로드 요청 (multipart/form-data, field name = "file")
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/${roomId}/images`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+          timeout: 15000,
+        },
+      );
+
+      // 응답 형태 방어적으로 처리 (data 또는 data.data)
+      const serverUrl: string = data?.data?.imageUrl ?? data?.imageUrl ?? "";
+
+      if (!serverUrl) {
+        throw new Error("imageUrl not found in response");
+      }
+
+      // 3) 성공 시: 마지막 blob 프리뷰 메시지를 서버 URL로 교체
+      setMessages(prev => {
+        const copy = [...prev];
+        // 최근 것부터 찾아서 blob: 프리뷰인 항목을 치환
+        for (let i = copy.length - 1; i >= 0; i--) {
+          const m = copy[i];
+          if (
+            m.sender === "me" &&
+            m.imageUrl &&
+            m.imageUrl.startsWith("blob:")
+          ) {
+            copy[i] = { ...m, imageUrl: serverUrl };
+            break;
+          }
+        }
+        return copy;
+      });
+    } catch (e) {
+      console.error("이미지 메시지 전송 실패", e);
+      // 실패 시: 마지막 blob 프리뷰 제거
+      setMessages(prev => {
+        const copy = [...prev];
+        for (let i = copy.length - 1; i >= 0; i--) {
+          const m = copy[i];
+          if (
+            m.sender === "me" &&
+            m.imageUrl &&
+            m.imageUrl.startsWith("blob:")
+          ) {
+            copy.splice(i, 1);
+            break;
+          }
+        }
+        return copy;
+      });
+    } finally {
+      // 프리뷰 URL 해제
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
 
   // 프로필 이동
   const goToProfile = () => {
@@ -181,24 +234,33 @@ export default function ManagerChatPage() {
           const isLastOfSender =
             index === messages.length - 1 ||
             messages[index + 1].sender !== message.sender;
+          const isMe = message.sender === "me";
 
           return (
             <div
               key={index}
-              className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)] ${
-                  message.sender === "me"
+                className={[
+                  "body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)]",
+                  isMe
                     ? "bg-[var(--color-purple)]"
-                    : "bg-[var(--color-grey-850)]"
-                } ${message.sender === "me" && isLastOfSender ? "rounded-br-[2px]" : ""} ${
-                  message.sender === "you" && isLastOfSender
-                    ? "rounded-bl-[2px]"
-                    : ""
-                }`}
+                    : "bg-[var(--color-grey-850)]",
+                  isMe && isLastOfSender ? "rounded-br-[2px]" : "",
+                  !isMe && isLastOfSender ? "rounded-bl-[2px]" : "",
+                  message.imageUrl ? "p-2" : "", // 이미지면 패딩 살짝 조정
+                ].join(" ")}
               >
-                {message.text}
+                {message.imageUrl ? (
+                  <img
+                    src={message.imageUrl}
+                    alt="uploaded"
+                    className="max-h-72 w-auto rounded-[12px] object-cover"
+                  />
+                ) : (
+                  message.text
+                )}
               </div>
             </div>
           );
@@ -212,8 +274,8 @@ export default function ManagerChatPage() {
       />
 
       {/* 모달 */}
-      {/* {isOptionOpen && <ChatRoomModal onPickImage={handleSendImage} />} */}
-      {isOptionOpen && <ChatRoomModal />}
+      {isOptionOpen && <ChatRoomModal onPickImage={handleSendImage} />}
+      {/* {isOptionOpen && <ChatRoomModal />} */}
     </div>
   );
 }
