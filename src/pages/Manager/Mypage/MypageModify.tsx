@@ -1,9 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getShopMemberInfo,
+  patchShopMemberInfo,
+  type PatchShopMemberInfoReq,
+  type ShopMemberInfoRes,
+  getUserInfo,
+  type UserInfo,
+} from "@/apis/mypage/mypage";
 import ChevronLeft from "../../../assets/icon_left-chevron.svg";
 
 export default function ManagerMypageModify() {
   const navigate = useNavigate();
+  const { data: userInfo } = useQuery<UserInfo>({
+    queryKey: ["userInfo"],
+    queryFn: getUserInfo,
+    staleTime: 60_000,
+  });
+  const resolvedShopId = userInfo?.shopId?.[0] ?? null;
 
   const [introText, setIntroText] = useState<string>("");
   const maxIntroLength = 100;
@@ -11,6 +26,22 @@ export default function ManagerMypageModify() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [didPatchImage, setDidPatchImage] = useState<boolean>(false);
+
+  const { data: memberInfo } = useQuery<ShopMemberInfoRes>({
+    queryKey: ["shopMemberInfo", resolvedShopId],
+    queryFn: () => getShopMemberInfo(resolvedShopId as number),
+    enabled: resolvedShopId != null,
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!memberInfo) return;
+    setIntroText(memberInfo.intro ?? "");
+    setImagePreviewUrl(memberInfo.imageUrl ?? null);
+    setDidPatchImage(false);
+    setImageFile(null);
+  }, [memberInfo]);
 
   useEffect(() => {
     if (!imageFile) {
@@ -29,27 +60,57 @@ export default function ManagerMypageModify() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
-    if (file) setImageFile(file);
+    if (file) {
+      setImageFile(file);
+      setDidPatchImage(true);
+    }
     // 같은 파일 재선택 허용
     e.currentTarget.value = "";
   };
 
   const handleRemoveImage = () => {
     setImageFile(null);
+    setImagePreviewUrl(null);
+    setDidPatchImage(true);
   };
+
+  const { mutate: doSave, isPending } = useMutation({
+    mutationFn: async (params: {
+      shopId: number;
+      request: PatchShopMemberInfoReq;
+      image?: File;
+    }) => patchShopMemberInfo(params.shopId, params.request, params.image),
+    onSuccess: () => {
+      alert("저장되었습니다.");
+      navigate(-1);
+    },
+    onError: () => {
+      alert("저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    },
+  });
 
   const handleSave = () => {
     if (!introText.trim()) {
       alert("한 줄 소개를 입력해주세요.");
       return;
     }
-    if (!imageFile) {
+    if (resolvedShopId == null) {
+      alert("가게 식별자 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+    // 이미지 유효성: 기존 프리뷰도 없고 새 파일도 없고 삭제도 아닌 경우 막기
+    const hasAnyImage = Boolean(imagePreviewUrl) || Boolean(imageFile);
+    if (!hasAnyImage && !didPatchImage) {
       alert("프로필 사진을 업로드해주세요.");
       return;
     }
-    // TODO: API 연동
-    console.log("save", { introText, imageFile });
-    alert("저장되었습니다.");
+
+    const request: PatchShopMemberInfoReq = {
+      intro: introText.trim(),
+      patchImage: didPatchImage,
+    };
+
+    doSave({ shopId: resolvedShopId, request, image: imageFile ?? undefined });
   };
 
   return (
@@ -68,9 +129,10 @@ export default function ManagerMypageModify() {
           <button
             type="button"
             onClick={handleSave}
-            className="text-sm font-semibold text-violet-400"
+            disabled={isPending}
+            className="text-sm font-semibold text-violet-400 disabled:opacity-60"
           >
-            저장
+            {isPending ? "저장 중..." : "저장"}
           </button>
         </header>
 

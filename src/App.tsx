@@ -57,6 +57,7 @@ import OwnerCreateAnnouncementPage from "./pages/Manager/OwnerCreateAnnouncement
 import OwnerCreateTreatmentPage from "./pages/Manager/OwnerCreateTreatmentPage";
 import ReservationCompletePage from "./pages/Consumer/ReservationCompletePage";
 import AboutReservationPage from "./pages/Manager/Home/AboutReservationPage";
+import TodaysFilteredReservationsPage from "./pages/Manager/Home/TodaysFilteredReservationsPage";
 
 const router = createBrowserRouter([
   // 레이아웃 바깥 경로 (로그인, 회원가입 등)
@@ -123,6 +124,10 @@ const router = createBrowserRouter([
 
       // --- 사장님(Manager) 기능 라우트 ---
       { path: "manager/home", element: <HomePage /> },
+      {
+        path: "manager/home/today",
+        element: <TodaysFilteredReservationsPage />,
+      },
       { path: "chat/rooms", element: <ManagerChatListPage /> },
       { path: "chat/rooms/groupset", element: <GroupSet /> },
       { path: "chat/rooms/:roomId", element: <ManagerChatPage /> },

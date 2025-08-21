@@ -61,11 +61,13 @@ export default function MypageEdit() {
     saveUserInfo({ name: name.trim(), email: email.trim(), contact: phone });
   };
 
+  /*
   const sendPhoneVerification = () => {
     if (!isPhoneValid) return;
     // TODO: 인증번호 발송 API 연동
     alert("인증번호를 발송했습니다.");
   };
+  */
 
   return (
     <div className="mx-auto flex min-h-screen w-[375px] flex-col bg-[var(--color-grey-1000)]">
@@ -142,6 +144,7 @@ export default function MypageEdit() {
                 placeholder="01012345678"
                 className="h-12 flex-1 rounded-md border border-[#232323] bg-[var(--color-grey-900)] px-3 text-sm outline-none placeholder:text-[#7A7A7A] focus:ring-2 focus:ring-violet-500"
               />
+              {/*
               <button
                 type="button"
                 onClick={sendPhoneVerification}
@@ -154,6 +157,7 @@ export default function MypageEdit() {
               >
                 번호 인증
               </button>
+              */}
             </div>
           </section>
         </main>

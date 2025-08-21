@@ -61,9 +61,9 @@ const ReservationCheck = () => {
 
   const handleCopy = () => {
     if (!bookingInfo?.shopAccountInfo) return;
-    const accountInfo = `${bookingInfo.shopAccountInfo.bank} ${bookingInfo.shopAccountInfo.accountNumber}`;
+    const accountHolder = bookingInfo.shopAccountInfo.accountHolder;
     const textArea = document.createElement("textarea");
-    textArea.value = accountInfo;
+    textArea.value = accountHolder;
     document.body.appendChild(textArea);
     textArea.select();
     try {
@@ -148,8 +148,7 @@ const ReservationCheck = () => {
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
-  // 수정: 마지막 항목의 라벨을 그대로 출력
-  const reservationLabel = payInfoItems.length > 0 ? payInfoItems[payInfoItems.length - 1][0] : "예약 내역";
+  const reservationLabel = payInfoItems.length > 0 ? payInfoItems[0][0] : "예약 내역";
 
   return (
     <div
@@ -177,7 +176,7 @@ const ReservationCheck = () => {
         </button>
         <h1 className="title1">시술 예약하기</h1>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(`/user/store/${shopId}`)}
           className="p-0 bg-transparent border-none cursor-pointer"
         >
           <X size={24} />
@@ -217,7 +216,7 @@ const ReservationCheck = () => {
               borderRadius: "8px",
             }}
           >
-            {payInfoItems.slice().reverse().map(([label, price]) => (
+            {payInfoItems.map(([label, price]) => (
               <div
                 key={label}
                 style={{

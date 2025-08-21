@@ -38,6 +38,11 @@ const OwnerEditTreatmentPage = () => {
   const [options, setOptions] = useState<TreatmentOption[]>([]);
   const [nextOptionId, setNextOptionId] = useState(1);
 
+  // 옵션 그룹 메타데이터 (수정 시 기존 그룹 보존)
+  const [optionGroupId, setOptionGroupId] = useState<number | null>(null);
+  const [optionGroupName, setOptionGroupName] = useState("기본");
+  const [optionGroupEnabled, setOptionGroupEnabled] = useState(true);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +79,21 @@ const OwnerEditTreatmentPage = () => {
         }
 
         const optionGroups = optionsRes?.data?.data?.optionGroups || [];
+        // 옵션 그룹 메타데이터 보존
+        const firstGroup =
+          Array.isArray(optionGroups) && optionGroups.length > 0
+            ? optionGroups[0]
+            : null;
+        setOptionGroupId(
+          firstGroup && typeof firstGroup.id === "number"
+            ? firstGroup.id
+            : null,
+        );
+        setOptionGroupName(firstGroup?.name || "기본");
+        setOptionGroupEnabled(
+          typeof firstGroup?.enabled === "boolean" ? firstGroup.enabled : true,
+        );
+
         const flattenedItems = optionGroups.flatMap((g: any) =>
           Array.isArray(g.items) ? g.items : [],
         );
@@ -82,7 +102,7 @@ const OwnerEditTreatmentPage = () => {
           name: item.name || "",
           duration:
             typeof item.extraMinutes === "number" ? item.extraMinutes : 0,
-          price: typeof item.price === "number" ? item.price : 0,
+          price: typeof item.extraPrice === "number" ? item.extraPrice : 0,
         }));
         setOptions(mappedOptions);
       } catch (err) {
@@ -125,8 +145,12 @@ const OwnerEditTreatmentPage = () => {
       validOptions.length > 0
         ? [
             {
-              id: null,
-              name: "기본",
+              id:
+                typeof optionGroupId === "number" && optionGroupId > 0
+                  ? optionGroupId
+                  : null,
+              name: optionGroupName || "기본",
+              enabled: optionGroupEnabled,
               items: validOptions.map(opt => ({
                 id: typeof opt.id === "number" && opt.id > 0 ? opt.id : null,
                 name: opt.name,

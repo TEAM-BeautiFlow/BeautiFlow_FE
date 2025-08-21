@@ -98,11 +98,6 @@ export default function OnboardJoin() {
                 샵 검색
               </button>
             </div>
-            {shopId && (
-              <div className="caption1 text-[var(--color-grey-400)]">
-                검색된 샵 ID: {shopId}
-              </div>
-            )}
           </div>
         </div>
         {/* 하단 버튼 */}
