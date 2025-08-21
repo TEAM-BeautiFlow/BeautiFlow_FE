@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/layout/Header";
 import ManagerNavbar from "@/layout/ManagerNavbar";
 import RightChevronIcon from "@/assets/icon_right-chevron.svg";
+import LeftChevronIcon from "@/assets/icon_left-chevron.svg";
 import {
   getMonthlyReservations,
   getTodayReservationCounts,
@@ -103,7 +104,6 @@ function ReservationRow({
 export default function TodaysFilteredReservationsPage() {
   const navigate = useNavigate();
   const { filter } = useParams<{ filter: FilterKey }>();
-  const location = useLocation();
 
   const today = new Date();
   const monthParam = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
@@ -138,6 +138,11 @@ export default function TodaysFilteredReservationsPage() {
     <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
       <Header />
       <main className="flex flex-col gap-6 px-4 pt-6">
+        <section>
+          <button onClick={() => navigate(-1)} className="-ml-1 p-1">
+            <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
+          </button>
+        </section>
         <section>
           <h2 className="title1 mb-2">{filterLabel[activeFilter]}</h2>
           <p className="body2 text-[var(--color-grey-450)]">
