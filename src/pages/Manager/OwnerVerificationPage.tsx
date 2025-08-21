@@ -643,7 +643,7 @@ const OwnerVerificationPage = () => {
               ? navigateTo(`/owner/treatments/create/${shopId}`)
               : navigateTo(`/owner/announcements/create/${shopId}`)
           }
-          className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full bg-[#8B5CF6] shadow-lg transition-colors"
+          className="absolute right-5 bottom-[100px] flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-purple)] shadow-lg transition-colors"
         >
           <Plus size={28} className="text-[var(--color-grey-150)]" />
         </button>
