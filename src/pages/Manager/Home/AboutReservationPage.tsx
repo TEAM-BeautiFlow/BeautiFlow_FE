@@ -41,7 +41,7 @@ function StatusModal({
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-end justify-center duration-200">
       {/* Overlay */}
       <div
-        className="absolute inset-0 w-[375px] justify-center bg-[#0c0d1199] transition-opacity duration-200"
+        className="absolute inset-0 mx-auto w-[375px] justify-center bg-[#0c0d1199] transition-opacity duration-200"
         onClick={onClose}
       />
 
