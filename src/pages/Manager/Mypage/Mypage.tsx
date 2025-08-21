@@ -88,7 +88,7 @@ export default function Mypage() {
         <SectionTitle>내계정</SectionTitle>
         <MenuItem
           onClick={() =>
-            navigate("/manager/mypage/modify", {
+            navigate("/manager/mypage/edit", {
               state: {
                 name: user?.name ?? "",
                 email: user?.email ?? "",
