@@ -15,17 +15,22 @@ import { getUserInfo } from "@/apis/mypage/mypage";
 const TodaysReservationCard = ({
   title,
   count,
+  onClick,
 }: {
   title: string;
   count: number;
+  onClick?: () => void;
 }) => (
-  <div className="flex flex-col justify-between rounded-lg bg-[var(--color-grey-950)] p-4">
+  <button
+    onClick={onClick}
+    className="flex flex-col justify-between rounded-lg bg-[var(--color-grey-950)] p-4 text-left"
+  >
     <div className="flex items-center justify-between text-[var(--color-grey-450)]">
       <span className="caption1">{title}</span>
       <img src={RightChevronIcon} alt=">" className="h-4 w-4" />
     </div>
     <span className="title1 mt-2 text-[var(--color-grey-150)]">{count}</span>
-  </div>
+  </button>
 );
 
 const Calendar = ({
@@ -290,14 +295,17 @@ const HomePage = () => {
             <TodaysReservationCard
               title="확정 대기"
               count={todayCounts?.pending ?? 0}
+              onClick={() => navigate("/manager/home/today/pending")}
             />
             <TodaysReservationCard
               title="당일 완료"
               count={todayCounts?.completed ?? 0}
+              onClick={() => navigate("/manager/home/today/completed")}
             />
             <TodaysReservationCard
               title="당일 취소"
               count={todayCounts?.cancelled ?? 0}
+              onClick={() => navigate("/manager/home/today/cancelled")}
             />
           </div>
         </section>
