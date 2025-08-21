@@ -12,7 +12,7 @@ import {
   Clock,
   Plus,
   X,
-  MoreHorizontal,
+  MoreVertical,
   Share2,
 } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합니다.
@@ -672,10 +672,19 @@ const OwnerVerificationPage = () => {
                             <h4 className="title1 text-[var(--color-grey-50)]">
                               {service.name}
                             </h4>
-                            <span className="caption1 flex items-center gap-1 rounded-full bg-[var(--color-grey-950)] px-2 py-1 text-[var(--color-grey-150)]">
-                              <Clock size={12} />
-                              {service.duration}분
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="caption1 flex items-center gap-1 rounded-full bg-[var(--color-grey-950)] px-2 py-1 text-[var(--color-grey-150)]">
+                                <Clock size={12} />
+                                {service.duration}분
+                              </span>
+                              <button
+                                className="p-2 text-[var(--color-grey-650)] hover:text-[var(--color-grey-350)]"
+                                onClick={e => toggleServiceMenu(e, service.id)}
+                                aria-label="시술 메뉴 열기"
+                              >
+                                <MoreVertical size={18} />
+                              </button>
+                            </div>
                           </div>
                           <p className="body1 mb-1 text-[var(--color-light-purple)]">
                             {service.price.toLocaleString()}원
@@ -685,14 +694,7 @@ const OwnerVerificationPage = () => {
                           </p>
                         </div>
 
-                        {/* 더보기 버튼 */}
-                        <button
-                          className="absolute top-0 right-0 p-2 text-[var(--color-grey-650)] hover:text-[var(--color-grey-350)]"
-                          onClick={e => toggleServiceMenu(e, service.id)}
-                          aria-label="시술 메뉴 열기"
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
+                        {/* 더보기 버튼을 상단 행 우측으로 이동 (위로 이동됨) */}
 
                         {/* 카드 고정 드롭다운 메뉴 */}
                         {serviceMenu.visible &&
