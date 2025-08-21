@@ -7,6 +7,21 @@ import "../../styles/type-system.css";
 import type { ApiResponse, Treatment } from "../../types/api";
 import { getKakaoAuthUrl } from "@/apis/login";
 
+// API 호출 로직을 별도의 함수로 분리
+const postStep = async (shopId: string, payload: any) => {
+  const formData = new FormData();
+  
+  // ⚠️ 중요: 백엔드 개발자와 약속된 'key' 이름을 사용해야 합니다. (현재 예시는 'tempSaveRequest')
+  formData.append(
+    "tempSaveRequest",
+    new Blob([JSON.stringify(payload)], {
+      type: "application/json",
+    }),
+  );
+
+  await api.post(`/reservations/${shopId}/process`, formData);
+};
+
 const ArtDetailPage = () => {
   const navigate = useNavigate();
   const { shopId, treatmentId } = useParams<{
@@ -20,21 +35,19 @@ const ArtDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    // ... (이전과 동일)
     const fetchTreatmentDetail = async () => {
       if (!shopId || !treatmentId) {
         setError("유효하지 않은 URL입니다.");
         setIsLoading(false);
         return;
       }
-
       try {
         setIsLoading(true);
         setError(null);
-
         const response = await api.get<ApiResponse<Treatment>>(
           `/shops/${shopId}/treatments/${treatmentId}`,
         );
-
         if (response.data.success && response.data.data) {
           setTreatmentData(response.data.data);
         } else {
@@ -51,7 +64,6 @@ const ArtDetailPage = () => {
         setIsLoading(false);
       }
     };
-
     fetchTreatmentDetail();
   }, [shopId, treatmentId]);
 
@@ -68,7 +80,7 @@ const ArtDetailPage = () => {
     }
 
     try {
-      // Swagger를 참고하여 전체 데이터 구조 생성
+      // API 요청에 필요한 payload 정의
       const reservationPayload = {
         deleteTempReservation: false,
         tempSaveData: {
@@ -80,20 +92,10 @@ const ArtDetailPage = () => {
         saveFinalReservation: false,
       };
 
-      const formData = new FormData();
-      
-      // ⚠️ 중요: 백엔드 개발자와 약속된 'key' 이름을 사용해야 합니다. (현재 예시는 'tempSaveRequest')
-      formData.append(
-        "tempSaveRequest",
-        new Blob([JSON.stringify(reservationPayload)], {
-          type: "application/json",
-        }),
-      );
+      // ✅ 분리된 postStep 함수 호출
+      await postStep(shopId, reservationPayload);
 
-      // FormData를 서버로 전송
-      await api.post(`/reservations/${shopId}/process`, formData);
-
-      // 성공 시 다음 페이지로 이동
+      // 성공 시 다음 페이지로 이동하는 로직은 그대로 유지
       try {
         const res = await api.get<ApiResponse<any>>(
           `/shops/${shopId}/treatments/${treatmentId}/options`,
@@ -129,7 +131,8 @@ const ArtDetailPage = () => {
     const url = getKakaoAuthUrl("customer");
     window.location.href = url;
   };
-
+  
+  // ... (이하 렌더링 부분은 이전과 동일)
   if (isLoading) {
     return (
       <div
