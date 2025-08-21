@@ -69,37 +69,14 @@ export default function ManagerChatPage() {
   // 메시지 처리
   const handleIncomingMessage = (msg: any) => {
     const parsed = JSON.parse(msg.body);
-
-    setMessages(prev => {
-      const isMine = parsed.senderType === "STAFF";
-      const incomingImage = parsed.imageUrl ?? undefined;
-      const incomingText = parsed.content ?? "";
-
-      if (isMine && incomingImage) {
-        const alreadyHasSameImageFromMe = prev
-          .slice(Math.max(0, prev.length - 10))
-          .some(m => m.sender === "me" && m.imageUrl === incomingImage);
-
-        if (alreadyHasSameImageFromMe) {
-          return prev;
-        }
-      }
-
-      if (isMine && !incomingImage && incomingText) {
-        const last = prev[prev.length - 1];
-        if (last && last.sender === "me" && last.text === incomingText) {
-          return prev;
-        }
-      }
-      return [
-        ...prev,
-        {
-          sender: isMine ? "me" : "you",
-          text: incomingText,
-          imageUrl: incomingImage,
-        },
-      ];
-    });
+    setMessages(prev => [
+      ...prev,
+      {
+        sender: parsed.senderType === "STAFF" ? "me" : "you",
+        text: parsed.content,
+        imageUrl: parsed.imageUrl ?? undefined,
+      },
+    ]);
   };
 
   // userInfo.id 가져오기
@@ -140,19 +117,11 @@ export default function ManagerChatPage() {
       console.error("No access token found");
       return;
     }
-
-    const previewUrl = URL.createObjectURL(file);
-    setMessages(prev => [
-      ...prev,
-      { sender: "me", text: "", imageUrl: previewUrl },
-    ]);
-
     try {
-      // 2) 업로드 요청 (multipart/form-data, field name = "file")
       const formData = new FormData();
       formData.append("file", file);
 
-      const { data } = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/chat/${roomId}/images`,
         formData,
         {
@@ -164,52 +133,9 @@ export default function ManagerChatPage() {
           timeout: 15000,
         },
       );
-
-      // 응답 형태 방어적으로 처리 (data 또는 data.data)
-      const serverUrl: string = data?.data?.imageUrl ?? data?.imageUrl ?? "";
-
-      if (!serverUrl) {
-        throw new Error("imageUrl not found in response");
-      }
-
-      // 3) 성공 시: 마지막 blob 프리뷰 메시지를 서버 URL로 교체
-      setMessages(prev => {
-        const copy = [...prev];
-        // 최근 것부터 찾아서 blob: 프리뷰인 항목을 치환
-        for (let i = copy.length - 1; i >= 0; i--) {
-          const m = copy[i];
-          if (
-            m.sender === "me" &&
-            m.imageUrl &&
-            m.imageUrl.startsWith("blob:")
-          ) {
-            copy[i] = { ...m, imageUrl: serverUrl };
-            break;
-          }
-        }
-        return copy;
-      });
     } catch (e) {
       console.error("이미지 메시지 전송 실패", e);
-      // 실패 시: 마지막 blob 프리뷰 제거
-      setMessages(prev => {
-        const copy = [...prev];
-        for (let i = copy.length - 1; i >= 0; i--) {
-          const m = copy[i];
-          if (
-            m.sender === "me" &&
-            m.imageUrl &&
-            m.imageUrl.startsWith("blob:")
-          ) {
-            copy.splice(i, 1);
-            break;
-          }
-        }
-        return copy;
-      });
-    } finally {
-      // 프리뷰 URL 해제
-      URL.revokeObjectURL(previewUrl);
+      alert("이미지 업로드에 실패했습니다.");
     }
   };
 
