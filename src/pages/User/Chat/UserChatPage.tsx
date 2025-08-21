@@ -10,6 +10,7 @@ import { getUserInfo } from "@/apis/mypage/mypage";
 interface Message {
   sender: "me" | "you";
   text: string;
+  imageUrl?: string;
 }
 
 type LocationState = {
@@ -97,43 +98,92 @@ export default function UserChatPage() {
 
   // 메시지 전송
   const handleSend = async (text: string) => {
-    const token = localStorage.getItem("accessToken");
-    const senderType = localStorage.getItem("loginProvider");
     const senderId = userIdRef.current;
-    if (!userIdRef.current) {
+    if (!senderId) {
       console.warn("User ID not loaded");
       return;
     }
     sendMessage(text);
-
-    console.log("전송된 메시지:", text);
-
-    // 저장 API 호출
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms/${roomId}/messages`,
-        {
-          roomId,
-          senderId,
-          senderType,
-          content: text,
-          imageUrl: null,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-    } catch (error) {
-      console.error("메시지 저장 실패", error);
-    }
   };
 
   // 이미지 보내기
-  const handleImageSend = (file: File) => {
-    console.log("선택한 이미지 파일:", file);
-    // 여기에 업로드 로직 추가 가능
+  const handleImageSend = async (file: File) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("No access token found");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setMessages(prev => [
+      ...prev,
+      { sender: "me", text: "", imageUrl: previewUrl },
+    ]);
+
+    try {
+      // 2) 업로드 요청 (multipart/form-data, field name = "file")
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/${roomId}/images`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+          timeout: 15000,
+        },
+      );
+
+      // 응답 형태 방어적으로 처리 (data 또는 data.data)
+      const serverUrl: string = data?.data?.imageUrl ?? data?.imageUrl ?? "";
+
+      if (!serverUrl) {
+        throw new Error("imageUrl not found in response");
+      }
+
+      // 3) 성공 시: 마지막 blob 프리뷰 메시지를 서버 URL로 교체
+      setMessages(prev => {
+        const copy = [...prev];
+        // 최근 것부터 찾아서 blob: 프리뷰인 항목을 치환
+        for (let i = copy.length - 1; i >= 0; i--) {
+          const m = copy[i];
+          if (
+            m.sender === "me" &&
+            m.imageUrl &&
+            m.imageUrl.startsWith("blob:")
+          ) {
+            copy[i] = { ...m, imageUrl: serverUrl };
+            break;
+          }
+        }
+        return copy;
+      });
+    } catch (e) {
+      console.error("이미지 메시지 전송 실패", e);
+      // 실패 시: 마지막 blob 프리뷰 제거
+      setMessages(prev => {
+        const copy = [...prev];
+        for (let i = copy.length - 1; i >= 0; i--) {
+          const m = copy[i];
+          if (
+            m.sender === "me" &&
+            m.imageUrl &&
+            m.imageUrl.startsWith("blob:")
+          ) {
+            copy.splice(i, 1);
+            break;
+          }
+        }
+        return copy;
+      });
+    } finally {
+      // 프리뷰 URL 해제
+      URL.revokeObjectURL(previewUrl);
+    }
   };
 
   // 프로필 이동
