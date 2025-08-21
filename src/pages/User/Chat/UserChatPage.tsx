@@ -48,6 +48,7 @@ export default function UserChatPage() {
         const fetchedMessages = response.data.data.map((msg: any) => ({
           sender: msg.senderType === "CUSTOMER" ? "me" : "you", // STAFF이면 'you', CUSTOMER이면 'me'
           text: msg.content,
+          imageUrl: msg.imageUrl ?? undefined,
         }));
 
         setMessages(fetchedMessages); // 상태 업데이트
