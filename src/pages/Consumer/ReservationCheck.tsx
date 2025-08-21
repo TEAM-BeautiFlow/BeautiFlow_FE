@@ -349,7 +349,7 @@ const ReservationCheck = () => {
                       style={{
                         backgroundColor: "var(--color-purple)",
                         borderRadius: "50px",
-                        padding: "8px 4px",
+                        padding: "4px 8px",
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
