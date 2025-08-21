@@ -13,6 +13,7 @@ import {
   Plus,
   X,
   MoreHorizontal,
+  Share2,
 } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합니다.
 import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
@@ -381,6 +382,26 @@ const OwnerVerificationPage = () => {
 
   const navigateTo = (path: string) => () => navigate(path);
 
+  const handleCopyLink = async () => {
+    if (!shopId) return;
+    const url = `https://www.beautiflow.co.kr/user/shop/${shopId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("링크가 클립보드에 복사되었습니다.");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        alert("링크가 클립보드에 복사되었습니다.");
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  };
+
   return (
     <div className="relative mx-auto min-h-screen max-w-sm bg-[#1A1A1A] text-[var(--color-grey-150)]">
       {/* 🔽 pb-20 -> pb-28 로 수정하여 네비게이션 바 공간 확보 */}
@@ -405,6 +426,14 @@ const OwnerVerificationPage = () => {
               {shopData.introduction || "매장 소개가 없습니다."}
             </p>
           </div>
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-grey-900)] text-[var(--color-grey-150)] hover:bg-[var(--color-grey-800)]"
+            aria-label="매장 링크 공유"
+          >
+            <Share2 size={18} />
+          </button>
         </div>
 
         {shopData.verificationStatus !== "VERIFIED" && (
