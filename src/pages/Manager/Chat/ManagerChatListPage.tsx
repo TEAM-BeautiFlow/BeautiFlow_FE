@@ -60,9 +60,7 @@ export default function ManagerChatListPage() {
 
         // 안전하게 배열만 set
         if (Array.isArray(response.data?.data)) {
-          const activeChats = response.data.data.filter(
-            (chat: ChatList) => !chat.isExited,
-          );
+          const activeChats = response.data.data;
           activeChats.sort(sortByLastMessageDesc);
 
           setChats(activeChats);
@@ -169,18 +167,16 @@ export default function ManagerChatListPage() {
             채팅 목록 불러오는 중...
           </p>
         ) : chats.length > 0 ? (
-          chats
-            .filter(chat => !chat.isExited)
-            .map(chat => (
-              <ChatRoomList
-                key={chat.roomId}
-                chat={chat}
-                onRightClick={openBottomSheet}
-                onClick={roomId =>
-                  handleChatClick(roomId, chat.opponentId, chat.opponentName)
-                }
-              />
-            ))
+          chats.map(chat => (
+            <ChatRoomList
+              key={chat.roomId}
+              chat={chat}
+              onRightClick={openBottomSheet}
+              onClick={roomId =>
+                handleChatClick(roomId, chat.opponentId, chat.opponentName)
+              }
+            />
+          ))
         ) : (
           <p className="body2 mt-10 text-center text-[var(--color-grey-450)]">
             아직 채팅이 없습니다.
