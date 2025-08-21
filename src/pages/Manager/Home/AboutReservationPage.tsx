@@ -154,6 +154,13 @@ export default function AboutReservationPage({
       await queryClient.invalidateQueries({
         queryKey: ["reservationDetail", reservationId],
       });
+      // 홈 화면 관련 데이터도 함께 무효화하여 돌아갔을 때 즉시 최신화되도록 처리
+      await queryClient.invalidateQueries({
+        queryKey: ["todayReservationCounts"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["monthlyReservations"],
+      });
       setIsStatusModalOpen(false);
     } catch (e) {
       console.error(e);

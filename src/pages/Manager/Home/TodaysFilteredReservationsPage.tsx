@@ -33,7 +33,7 @@ function ReservationRow({
   onChat?: () => void;
 }) {
   return (
-    <div className="border-t border-gray-800 pt-4" onClick={onClick}>
+    <div className="pt-4" onClick={onClick}>
       <div className="flex items-start justify-between">
         <div>
           <p className="body1 text-[#A465FD]">{status}</p>
