@@ -700,7 +700,7 @@ const OwnerVerificationPage = () => {
                         {serviceMenu.visible &&
                           serviceMenu.serviceId === service.id && (
                             <div
-                              className="absolute top-8 right-0 z-50 w-18 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
+                              className="absolute top-8 right-0 z-50 w-20 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
                               onClick={e => e.stopPropagation()}
                             >
                               <button
