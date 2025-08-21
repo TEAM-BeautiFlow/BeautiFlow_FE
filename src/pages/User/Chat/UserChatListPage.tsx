@@ -19,6 +19,21 @@ export default function UserChatListPage() {
 
   const navigate = useNavigate();
 
+  const toMs = (t: string) => {
+    // 빈 문자열, 잘못된 포맷 방어
+    if (!t) return 0;
+    const n = Date.parse(t); // "2025-08-21T02:12:34Z" 같은 ISO 문자열 가정
+    return Number.isNaN(n) ? 0 : n;
+  };
+
+  const sortByLastMessageDesc = (a: ChatList, b: ChatList) => {
+    const ta = toMs(a.lastMessageTime);
+    const tb = toMs(b.lastMessageTime);
+    if (tb !== ta) return tb - ta; // 최신이 먼저
+    // 동시간인 경우 roomId로 안정 정렬
+    return b.roomId - a.roomId;
+  };
+
   // 채팅 리스트 불러오기
   useEffect(() => {
     const fetchChatList = async () => {
@@ -46,6 +61,8 @@ export default function UserChatListPage() {
           const activeChats = response.data.data.filter(
             (chat: ChatList) => !chat.isExited,
           );
+          activeChats.sort(sortByLastMessageDesc);
+
           setChats(activeChats);
         } else {
           console.warn("채팅 리스트 응답이 배열이 아닙니다:", response.data);
