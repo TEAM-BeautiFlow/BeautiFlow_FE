@@ -12,6 +12,7 @@ import {
   Clock,
   Plus,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합니다.
 import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
@@ -147,14 +148,14 @@ const OwnerVerificationPage = () => {
     };
   }, []);
 
-  // 서비스 항목 우클릭 메뉴 열기
-  const handleServiceContextMenu = (e: React.MouseEvent, serviceId: number) => {
-    e.preventDefault();
+  // 서비스 항목 메뉴 토글 (카드 우측 상단 고정)
+  const toggleServiceMenu = (e: React.MouseEvent, serviceId: number) => {
     e.stopPropagation();
-    const rect = containerRef.current?.getBoundingClientRect();
-    const x = rect ? e.clientX - rect.left : e.clientX;
-    const y = rect ? e.clientY - rect.top : e.clientY;
-    setServiceMenu({ visible: true, x, y, serviceId });
+    setServiceMenu(prev =>
+      prev.visible && prev.serviceId === serviceId
+        ? { ...prev, visible: false, serviceId: null }
+        : { visible: true, x: 0, y: 0, serviceId },
+    );
   };
 
   // 서비스 삭제
@@ -623,13 +624,10 @@ const OwnerVerificationPage = () => {
                     services.map(service => (
                       <div
                         key={service.id}
-                        className="flex cursor-pointer gap-4"
+                        className="relative flex cursor-pointer gap-4"
                         onClick={navigateTo(
                           `/owner/treatments/edit/${shopId}/${service.id}`,
                         )}
-                        onContextMenu={e =>
-                          handleServiceContextMenu(e, service.id)
-                        }
                       >
                         <div className="h-20 w-20 flex-shrink-0 rounded-md bg-[var(--color-grey-850)]">
                           {service.imageUrl && (
@@ -657,6 +655,31 @@ const OwnerVerificationPage = () => {
                             {service.description}
                           </p>
                         </div>
+
+                        {/* 더보기 버튼 */}
+                        <button
+                          className="absolute top-0 right-0 p-2 text-[var(--color-grey-650)] hover:text-[var(--color-grey-350)]"
+                          onClick={e => toggleServiceMenu(e, service.id)}
+                          aria-label="시술 메뉴 열기"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+
+                        {/* 카드 고정 드롭다운 메뉴 */}
+                        {serviceMenu.visible &&
+                          serviceMenu.serviceId === service.id && (
+                            <div
+                              className="absolute top-8 right-0 z-50 w-36 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <button
+                                className="w-full px-3 py-2 text-left text-red-400 hover:bg-[var(--color-grey-800)]"
+                                onClick={() => handleDeleteService(service.id)}
+                              >
+                                삭제하기
+                              </button>
+                            </div>
+                          )}
                       </div>
                     ))
                   )}
@@ -703,23 +726,7 @@ const OwnerVerificationPage = () => {
               )}
             </div>
           )}
-          {/* 서비스 우클릭 컨텍스트 메뉴 */}
-          {serviceMenu.visible && serviceMenu.serviceId !== null && (
-            <div
-              className="absolute z-50 w-36 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
-              style={{ left: serviceMenu.x, top: serviceMenu.y }}
-              onClick={e => e.stopPropagation()}
-            >
-              <button
-                className="w-full px-3 py-2 text-left text-red-400 hover:bg-[var(--color-grey-800)]"
-                onClick={() =>
-                  handleDeleteService(serviceMenu.serviceId as number)
-                }
-              >
-                삭제하기
-              </button>
-            </div>
-          )}
+          {/* 전역 우클릭 메뉴 제거: 각 카드 내부에서 렌더링 */}
         </div>
       </div>
 
