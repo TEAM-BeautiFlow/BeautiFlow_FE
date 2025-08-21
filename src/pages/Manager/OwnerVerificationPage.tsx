@@ -672,13 +672,13 @@ const OwnerVerificationPage = () => {
                             <h4 className="title1 text-[var(--color-grey-50)]">
                               {service.name}
                             </h4>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center">
                               <span className="caption1 flex items-center gap-1 rounded-full bg-[var(--color-grey-950)] px-2 py-1 text-[var(--color-grey-150)]">
                                 <Clock size={12} />
                                 {service.duration}분
                               </span>
                               <button
-                                className="p-2 text-[var(--color-grey-650)] hover:text-[var(--color-grey-350)]"
+                                className="text-[var(--color-grey-650)] hover:text-[var(--color-grey-350)]"
                                 onClick={e => toggleServiceMenu(e, service.id)}
                                 aria-label="시술 메뉴 열기"
                               >
@@ -700,7 +700,7 @@ const OwnerVerificationPage = () => {
                         {serviceMenu.visible &&
                           serviceMenu.serviceId === service.id && (
                             <div
-                              className="absolute top-8 right-0 z-50 w-36 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
+                              className="absolute top-8 right-0 z-50 w-18 rounded-md border border-[var(--color-grey-750)] bg-[var(--color-grey-900)] shadow-lg"
                               onClick={e => e.stopPropagation()}
                             >
                               <button
