@@ -23,6 +23,7 @@ export const getTodayReservationCounts =
 
 export interface MonthlyReservationItemDto {
   reservationId: number;
+  customerId: number;
   customerName: string;
   startTime: string;
   endTime: string;
