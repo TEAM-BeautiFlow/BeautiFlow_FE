@@ -5,16 +5,6 @@ import MainBg from "../assets/main_bg.png";
 import { getKakaoAuthUrl } from "@/apis/login";
 
 export default function MainPage() {
-  // no router hooks used here to avoid runtime errors if route context is missing
-
-  function handleKakaoLogin() {
-    try {
-      localStorage.setItem("loginProvider", "kakao-customer");
-    } catch {}
-    const url = getKakaoAuthUrl("customer");
-    window.location.href = url;
-  }
-
   function handleStaffLogin() {
     try {
       localStorage.setItem("loginProvider", "kakao-staff");
@@ -52,7 +42,7 @@ export default function MainPage() {
           {/* 액션 영역 */}
           <div className="px-6 pb-10">
             <button
-              onClick={handleKakaoLogin}
+              onClick={handleStaffLogin}
               className="relative flex h-14 w-full items-center justify-center rounded-xl bg-[#FEE500] text-center text-base font-semibold text-neutral-900"
             >
               <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
@@ -61,14 +51,6 @@ export default function MainPage() {
                 </span>
               </span>
               카카오 로그인
-            </button>
-
-            <button
-              type="button"
-              onClick={handleStaffLogin}
-              className="mt-8 w-full text-center text-sm text-neutral-300 underline underline-offset-4"
-            >
-              관리자 계정으로 로그인
             </button>
           </div>
         </div>
