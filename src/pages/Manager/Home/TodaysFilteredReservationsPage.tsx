@@ -185,17 +185,16 @@ export default function TodaysFilteredReservationsPage() {
   return (
     <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
       <Header />
-      <main className="flex flex-col gap-8 px-4 pt-6">
-        <section className="flex items-center justify-between">
+      <main className="flex flex-col gap-4 px-4 pt-6">
+        <section className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="-ml-1 p-1">
             <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
           </button>
-          <div className="w-6" />
+          <h2 className="title1">오늘의 예약</h2>
         </section>
 
         <section>
-          <h2 className="title1">오늘의 예약</h2>
-          <div className="mt-2 flex border-b border-[var(--color-grey-750)]">
+          <div className="flex border-b border-[var(--color-grey-750)]">
             {[
               { key: "pending", label: "확정 대기" },
               { key: "completed", label: "당일 완료" },
@@ -204,7 +203,7 @@ export default function TodaysFilteredReservationsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key as FilterKey)}
-                className={`h1 border-b-2 px-2 py-3 transition-colors ${
+                className={`title1 border-b-2 px-2 py-3 transition-colors ${
                   activeFilter === (tab.key as FilterKey)
                     ? "border-b-2 border-[var(--color-grey-150)] text-[var(--color-grey-150)]"
                     : "border-transparent text-[var(--color-grey-750)]"
