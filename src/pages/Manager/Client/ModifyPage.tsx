@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -32,6 +32,7 @@ export default function ModifyPage() {
 
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (!state && Number.isFinite(id)) {
       (async () => {
@@ -66,29 +67,29 @@ export default function ModifyPage() {
     }
   }, [state, id]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  const fetchGroups = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-    (async () => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/groups`,
-          { headers },
-        );
-        const list: Group[] = Array.isArray(res.data?.data)
-          ? res.data.data
-          : [];
-        setGroups(list);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/mangedCustomer/groups`,
+        { headers },
+      );
+      const list: Group[] = Array.isArray(res.data?.data) ? res.data.data : [];
+      setGroups(list);
 
-        // 모달에 뿌릴 전체 그룹 코드 목록(allGroups) 갱신
-        const codes = list.map(g => g.code);
-        setAllGroups(prev => Array.from(new Set([...(prev ?? []), ...codes])));
-      } catch (e) {
-        console.error("그룹 목록 불러오기 실패", e);
-      }
-    })();
+      // 전체 그룹 코드(allGroups) 병합
+      const codes = list.map(g => g.code);
+      setAllGroups(prev => Array.from(new Set([...(prev ?? []), ...codes])));
+    } catch (e) {
+      console.error("그룹 목록 불러오기 실패", e);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
 
   const codeToId = useMemo(
     () => new Map(groups.map(g => [g.code, g.id] as const)),
@@ -106,6 +107,7 @@ export default function ModifyPage() {
       const groupIds = form.groupCodes
         .map(code => codeToId.get(code))
         .filter((v): v is number => Number.isFinite(v));
+
       const unknown = form.groupCodes.filter(code => !codeToId.has(code));
       if (unknown.length) {
         alert(`그룹 목록에 없는 코드가 있어 제외됩니다: ${unknown.join(", ")}`);
@@ -153,6 +155,7 @@ export default function ModifyPage() {
 
     // 전체 그룹 리스트에도 병합(중복 제거)
     setAllGroups(prev => Array.from(new Set([...prev, ...payload])));
+    await fetchGroups();
 
     setIsGroupModalOpen(false);
   };
