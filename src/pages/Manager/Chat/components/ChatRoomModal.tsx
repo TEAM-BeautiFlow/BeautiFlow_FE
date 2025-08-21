@@ -1,25 +1,27 @@
 import { useRef } from "react";
 
-// 이미지 보내기 기능 추가해야함
-export default function ChatRoomModal() {
-  //   onPickImage,
-  // }: {
-  //   onPickImage: (file: File) => void;
-  // }) {
+type ChatRoomModalProps = {
+  onPickImage?: (file: File) => void;
+};
+export default function ChatRoomModal({ onPickImage }: ChatRoomModalProps) {
   const fileRef = useRef<HTMLInputElement | null>(null);
-  // const openPicker = () => fileRef.current?.click();
+  const openPicker = () => fileRef.current?.click();
 
-  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const f = e.target.files?.[0];
-  //   if (f) onPickImage(f);
-  //   e.target.value = ""; // 같은 파일 연속 선택시 onChange 보장
-  // };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f && onPickImage) onPickImage(f);
+    e.target.value = ""; // 같은 파일 연속 선택시 onChange 보장
+  };
   return (
     <div className="flex h-[291px] border-t border-[var(--color-grey-950)] px-5 py-4">
       <div className="flex gap-5">
         {/* 각각 누르면 이미지, 템플릿 보내지게 작업 */}
         {/* 이미지 */}
-        <div className="flex h-[84px] flex-col items-center justify-between px-3 py-2">
+        <button
+          type="button"
+          onClick={openPicker}
+          className="flex h-[84px] cursor-pointer flex-col items-center justify-between px-3 py-2"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3A3A3A]">
             <svg
               width="25"
@@ -35,13 +37,13 @@ export default function ChatRoomModal() {
             </svg>
           </div>
           <span className="caption1 text-white">이미지</span>
-        </div>
+        </button>
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
-          // onChange={handleChange}
+          onChange={handleChange}
         />
 
         {/* 템플릿 메시지 */}
