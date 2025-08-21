@@ -158,3 +158,14 @@ export async function getUserStyle(): Promise<UserStyleResponse | null> {
     throw error;
   }
 }
+
+export async function deleteUser() {
+  return (
+    await api.delete<{
+      success: boolean;
+      code: string;
+      message: string;
+      data: string;
+    }>("/users/delete")
+  ).data;
+}
