@@ -5,10 +5,7 @@ import Header from "@/layout/Header";
 import ManagerNavbar from "@/layout/ManagerNavbar";
 import RightChevronIcon from "@/assets/icon_right-chevron.svg";
 import LeftChevronIcon from "@/assets/icon_left-chevron.svg";
-import {
-  getMonthlyReservations,
-  getTodayReservationCounts,
-} from "@/apis/manager_home/home";
+import { getMonthlyReservations } from "@/apis/manager_home/home";
 
 type FilterKey = "pending" | "completed" | "cancelled";
 
@@ -95,27 +92,6 @@ function ReservationRow({
   );
 }
 
-const TodaysReservationCard = ({
-  title,
-  count,
-  onClick,
-}: {
-  title: string;
-  count: number;
-  onClick?: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className="flex flex-col justify-between rounded-lg bg-[var(--color-grey-950)] p-4 text-left"
-  >
-    <div className="flex items-center justify-between text-[var(--color-grey-450)]">
-      <span className="caption1">{title}</span>
-      <img src={RightChevronIcon} alt=">" className="h-4 w-4" />
-    </div>
-    <span className="title1 mt-2 text-[var(--color-grey-150)]">{count}</span>
-  </button>
-);
-
 export default function TodaysFilteredReservationsPage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { filter?: FilterKey } };
@@ -126,12 +102,6 @@ export default function TodaysFilteredReservationsPage() {
   const today = new Date();
   const monthParam = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
 
-  const { data: counts } = useQuery({
-    queryKey: ["todayReservationCounts"],
-    queryFn: getTodayReservationCounts,
-    staleTime: 60 * 1000,
-  });
-
   const { data: monthlyReservations } = useQuery({
     queryKey: ["monthlyReservations", monthParam],
     queryFn: () => getMonthlyReservations(monthParam, 0, 200, "string"),
@@ -139,7 +109,6 @@ export default function TodaysFilteredReservationsPage() {
   });
 
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const headerCount = counts?.[activeFilter] ?? 0;
 
   const list = useMemo(() => {
     const statuses = statusGroups[activeFilter];
@@ -162,35 +131,25 @@ export default function TodaysFilteredReservationsPage() {
         </section>
 
         <section>
-          <h2 className="title1 mb-4">오늘의 예약</h2>
-          <div className="grid grid-cols-3 gap-3">
-            <TodaysReservationCard
-              title="확정 대기"
-              count={
-                headerCount && activeFilter === "pending"
-                  ? headerCount
-                  : (counts?.pending ?? 0)
-              }
-              onClick={() => setActiveFilter("pending")}
-            />
-            <TodaysReservationCard
-              title="당일 완료"
-              count={
-                headerCount && activeFilter === "completed"
-                  ? headerCount
-                  : (counts?.completed ?? 0)
-              }
-              onClick={() => setActiveFilter("completed")}
-            />
-            <TodaysReservationCard
-              title="당일 취소"
-              count={
-                headerCount && activeFilter === "cancelled"
-                  ? headerCount
-                  : (counts?.cancelled ?? 0)
-              }
-              onClick={() => setActiveFilter("cancelled")}
-            />
+          <h2 className="title1">오늘의 예약</h2>
+          <div className="mt-2 flex border-b border-[var(--color-grey-750)]">
+            {[
+              { key: "pending", label: "확정 대기" },
+              { key: "completed", label: "당일 완료" },
+              { key: "cancelled", label: "당일 취소" },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveFilter(tab.key as FilterKey)}
+                className={`h1 border-b-2 px-2 py-3 transition-colors ${
+                  activeFilter === (tab.key as FilterKey)
+                    ? "border-b-2 border-[var(--color-grey-150)] text-[var(--color-grey-150)]"
+                    : "border-transparent text-[var(--color-grey-750)]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </section>
 
