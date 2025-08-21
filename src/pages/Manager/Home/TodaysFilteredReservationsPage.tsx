@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/layout/Header";
 import ManagerNavbar from "@/layout/ManagerNavbar";
@@ -11,12 +11,6 @@ import {
 } from "@/apis/manager_home/home";
 
 type FilterKey = "pending" | "completed" | "cancelled";
-
-const filterLabel: Record<FilterKey, string> = {
-  pending: "확정 대기",
-  completed: "당일 완료",
-  cancelled: "당일 취소",
-};
 
 const statusGroups: Record<FilterKey, string[]> = {
   pending: ["PENDING", "CONFIRMED"],
@@ -101,9 +95,33 @@ function ReservationRow({
   );
 }
 
+const TodaysReservationCard = ({
+  title,
+  count,
+  onClick,
+}: {
+  title: string;
+  count: number;
+  onClick?: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className="flex flex-col justify-between rounded-lg bg-[var(--color-grey-950)] p-4 text-left"
+  >
+    <div className="flex items-center justify-between text-[var(--color-grey-450)]">
+      <span className="caption1">{title}</span>
+      <img src={RightChevronIcon} alt=">" className="h-4 w-4" />
+    </div>
+    <span className="title1 mt-2 text-[var(--color-grey-150)]">{count}</span>
+  </button>
+);
+
 export default function TodaysFilteredReservationsPage() {
   const navigate = useNavigate();
-  const { filter } = useParams<{ filter: FilterKey }>();
+  const location = useLocation() as { state?: { filter?: FilterKey } };
+  const [activeFilter, setActiveFilter] = useState<FilterKey>(
+    location.state?.filter ?? "pending",
+  );
 
   const today = new Date();
   const monthParam = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
@@ -121,8 +139,6 @@ export default function TodaysFilteredReservationsPage() {
   });
 
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
-  const activeFilter: FilterKey = (filter as FilterKey) || "pending";
   const headerCount = counts?.[activeFilter] ?? 0;
 
   const list = useMemo(() => {
@@ -137,34 +153,46 @@ export default function TodaysFilteredReservationsPage() {
   return (
     <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
       <Header />
-      <main className="flex flex-col gap-6 px-4 pt-6">
-        <section>
+      <main className="flex flex-col gap-8 px-4 pt-6">
+        <section className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="-ml-1 p-1">
             <img src={LeftChevronIcon} alt="<" className="h-6 w-6" />
           </button>
-        </section>
-        <section>
-          <h2 className="title1 mb-2">{filterLabel[activeFilter]}</h2>
-          <p className="body2 text-[var(--color-grey-450)]">
-            오늘 · {headerCount}건
-          </p>
+          <div className="w-6" />
         </section>
 
-        <nav className="flex gap-2">
-          {(["pending", "completed", "cancelled"] as FilterKey[]).map(key => (
-            <button
-              key={key}
-              onClick={() => navigate(`/manager/home/today/${key}`)}
-              className={`caption1 rounded-full px-3 py-1 ${
-                key === activeFilter
-                  ? "bg-[var(--color-grey-850)] text-[var(--color-grey-150)]"
-                  : "bg-[var(--color-grey-900)] text-[var(--color-grey-500)]"
-              }`}
-            >
-              {filterLabel[key]}
-            </button>
-          ))}
-        </nav>
+        <section>
+          <h2 className="title1 mb-4">오늘의 예약</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <TodaysReservationCard
+              title="확정 대기"
+              count={
+                headerCount && activeFilter === "pending"
+                  ? headerCount
+                  : (counts?.pending ?? 0)
+              }
+              onClick={() => setActiveFilter("pending")}
+            />
+            <TodaysReservationCard
+              title="당일 완료"
+              count={
+                headerCount && activeFilter === "completed"
+                  ? headerCount
+                  : (counts?.completed ?? 0)
+              }
+              onClick={() => setActiveFilter("completed")}
+            />
+            <TodaysReservationCard
+              title="당일 취소"
+              count={
+                headerCount && activeFilter === "cancelled"
+                  ? headerCount
+                  : (counts?.cancelled ?? 0)
+              }
+              onClick={() => setActiveFilter("cancelled")}
+            />
+          </div>
+        </section>
 
         <section>
           <div className="space-y-4">

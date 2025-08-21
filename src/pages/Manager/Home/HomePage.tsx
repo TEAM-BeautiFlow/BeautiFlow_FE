@@ -295,17 +295,29 @@ const HomePage = () => {
             <TodaysReservationCard
               title="확정 대기"
               count={todayCounts?.pending ?? 0}
-              onClick={() => navigate("/manager/home/today/pending")}
+              onClick={() =>
+                navigate("/manager/home/today", {
+                  state: { filter: "pending" },
+                })
+              }
             />
             <TodaysReservationCard
               title="당일 완료"
               count={todayCounts?.completed ?? 0}
-              onClick={() => navigate("/manager/home/today/completed")}
+              onClick={() =>
+                navigate("/manager/home/today", {
+                  state: { filter: "completed" },
+                })
+              }
             />
             <TodaysReservationCard
               title="당일 취소"
               count={todayCounts?.cancelled ?? 0}
-              onClick={() => navigate("/manager/home/today/cancelled")}
+              onClick={() =>
+                navigate("/manager/home/today", {
+                  state: { filter: "cancelled" },
+                })
+              }
             />
           </div>
         </section>
