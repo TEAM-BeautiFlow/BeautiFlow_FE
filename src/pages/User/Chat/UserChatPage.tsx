@@ -231,6 +231,7 @@ export default function UserChatPage() {
           const isLastOfSender =
             index === messages.length - 1 ||
             messages[index + 1].sender !== message.sender;
+          const isMe = message.sender === "me";
 
           return (
             <div
@@ -238,13 +239,25 @@ export default function UserChatPage() {
               className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)] ${
-                  message.sender === "me"
+                className={[
+                  "body2 max-w-[80%] rounded-[20px] px-4 py-2 text-[var(--color-grey-50)]",
+                  isMe
                     ? "bg-[var(--color-purple)]"
-                    : "bg-[var(--color-grey-850)]"
-                } ${message.sender === "me" && isLastOfSender ? "rounded-br-[2px]" : ""} ${message.sender === "you" && isLastOfSender ? "rounded-bl-[2px]" : ""}`}
+                    : "bg-[var(--color-grey-850)]",
+                  isMe && isLastOfSender ? "rounded-br-[2px]" : "",
+                  !isMe && isLastOfSender ? "rounded-bl-[2px]" : "",
+                  message.imageUrl ? "p-2" : "", // 이미지면 패딩 살짝 조정
+                ].join(" ")}
               >
-                {message.text}
+                {message.imageUrl ? (
+                  <img
+                    src={message.imageUrl}
+                    alt="uploaded"
+                    className="max-h-72 w-auto rounded-[12px] object-cover"
+                  />
+                ) : (
+                  message.text
+                )}
               </div>
             </div>
           );
