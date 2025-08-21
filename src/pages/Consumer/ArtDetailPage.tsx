@@ -55,9 +55,7 @@ const ArtDetailPage = () => {
     fetchTreatmentDetail();
   }, [shopId, treatmentId]);
 
-  // --- 변경된 부분 시작 ---
   const handleModalOpen = async () => {
-    // 1. 로그인 상태 확인
     const hasToken = Boolean(localStorage.getItem("accessToken"));
     if (!hasToken) {
       setIsModalOpen(true);
@@ -70,21 +68,30 @@ const ArtDetailPage = () => {
     }
 
     try {
-      // 2. 예약 프로세스 시작 (treatmentId 전송)
-      const tempReservationPayload = {
+      // 1. 전송할 데이터를 객체로 정의
+      const reservationPayload = {
         tempSaveData: {
-          treatmentId: Number(treatmentId), // URL 파라미터는 문자열이므로 숫자로 변환
-          selectedOptions: [], // 이 단계에서는 옵션이 없으므로 빈 배열
+          treatmentId: Number(treatmentId),
+          selectedOptions: [],
         },
       };
 
-      // ✅ POST 요청으로 임시 예약 데이터 생성
-      await api.post(
-        `/reservations/${shopId}/process`,
-        tempReservationPayload,
+      // 2. FormData 객체 생성
+      const formData = new FormData();
+
+      // 3. FormData에 데이터 추가
+      // ⚠️ 중요: 서버에서 받을 때 사용할 'key' 값('tempSaveRequest')을 백엔드 개발자에게 꼭 확인하세요.
+      formData.append(
+        "tempSaveRequest",
+        new Blob([JSON.stringify(reservationPayload)], {
+          type: "application/json",
+        }),
       );
 
-      // 3. 예약 프로세스 시작 성공 후, 옵션 페이지 또는 예약 페이지로 분기
+      // ✅ POST 요청 시 FormData 객체를 전송
+      await api.post(`/reservations/${shopId}/process`, formData);
+
+      // 예약 프로세스 시작 성공 후, 옵션 페이지 또는 예약 페이지로 분기
       try {
         const res = await api.get<ApiResponse<any>>(
           `/shops/${shopId}/treatments/${treatmentId}/options`,
@@ -101,23 +108,16 @@ const ArtDetailPage = () => {
         }
       } catch (optionError) {
         console.error("옵션 정보 조회 실패:", optionError);
-        // 옵션 조회를 실패하더라도 일단 옵션 선택 페이지로 보내는 것이 안전할 수 있습니다.
         navigate(`/user/store/treatment-options/${shopId}/${treatmentId}`);
       }
     } catch (processError: any) {
       console.error("예약 프로세스 시작 실패:", processError);
-      setError(
-        processError.response?.data?.message ||
-          "예약을 시작하는 중 오류가 발생했습니다. 다시 시도해주세요.",
-      );
-      // 사용자에게 에러를 알릴 수 있습니다. (예: alert, toast)
       alert(
         processError.response?.data?.message ||
           "예약을 시작하는 중 오류가 발생했습니다.",
       );
     }
   };
-  // --- 변경된 부분 끝 ---
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -266,7 +266,7 @@ const ArtDetailPage = () => {
           <div
             className="w-full max-w-xs rounded-lg p-6 shadow-lg"
             style={{ backgroundColor: "var(--color-grey-850)" }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center text-center">
               <p
