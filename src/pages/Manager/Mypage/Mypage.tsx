@@ -30,7 +30,20 @@ export default function Mypage() {
       <Header />
       <div className="relative flex w-full flex-col items-center overflow-hidden px-5 pb-24">
         {/* 상단 네비게이션 */}
-        <div className="mb-2 flex w-full items-center">
+        <button
+          type="button"
+          aria-label="정보 수정으로 이동"
+          onClick={() =>
+            navigate("/manager/mypage/modify", {
+              state: {
+                name: user?.name ?? "",
+                email: user?.email ?? "",
+                contact: user?.contact ?? "",
+              },
+            })
+          }
+          className="mb-2 flex w-full items-center"
+        >
           <div className="flex items-center gap-2">
             <span className="h1 text-left text-[var(--color-white)]">
               {isLoading
@@ -41,7 +54,7 @@ export default function Mypage() {
             </span>
             <img src={ChevronRight} alt=">" className="h-5 w-5" />
           </div>
-        </div>
+        </button>
         {/* 부가 설명 */}
         <div className="caption1 mb-6 w-full text-[#A1A1A1]">
           {isLoading ? "" : (user?.email ?? "")}
@@ -75,7 +88,7 @@ export default function Mypage() {
         <SectionTitle>내계정</SectionTitle>
         <MenuItem
           onClick={() =>
-            navigate("/manager/mypage/edit", {
+            navigate("/manager/mypage/modify", {
               state: {
                 name: user?.name ?? "",
                 email: user?.email ?? "",
