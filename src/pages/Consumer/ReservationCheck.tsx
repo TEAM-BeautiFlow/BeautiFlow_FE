@@ -61,9 +61,9 @@ const ReservationCheck = () => {
 
   const handleCopy = () => {
     if (!bookingInfo?.shopAccountInfo) return;
-    const accountInfo = `${bookingInfo.shopAccountInfo.bank} ${bookingInfo.shopAccountInfo.accountNumber}`;
+    const accountHolder = bookingInfo.shopAccountInfo.accountHolder;
     const textArea = document.createElement("textarea");
-    textArea.value = accountInfo;
+    textArea.value = accountHolder;
     document.body.appendChild(textArea);
     textArea.select();
     try {
@@ -377,7 +377,7 @@ const ReservationCheck = () => {
               className="caption2 mt-2 text-center"
               style={{ color: "var(--color-light-purple)" }}
             >
-              계좌번호가 복사되었습니다!
+              예금주명이 복사되었습니다!
             </p>
           )}
         </div>

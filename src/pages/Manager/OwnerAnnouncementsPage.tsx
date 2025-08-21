@@ -5,7 +5,6 @@ import {
   Plus,
   ShieldAlert,
   Check,
-  X,
 } from "lucide-react";
 import api from "@/apis/axiosInstance";
 import ManagerNavbar from "@/layout/ManagerNavbar";
@@ -35,7 +34,6 @@ const OwnerAnnouncementsPage = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null); // 🔽 추가: 선택된 공지사항
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,14 +86,9 @@ const OwnerAnnouncementsPage = () => {
   
   const navigateTo = (path: string) => () => navigate(path);
 
-  // 🔽 추가: 공지사항 클릭 핸들러
-  const handleNoticeClick = (notice: Notice) => {
-    setSelectedNotice(notice);
-  };
-
-  // 🔽 추가: 모달 닫기 핸들러
-  const closeModal = () => {
-    setSelectedNotice(null);
+  // 공지사항 클릭 핸들러 - 수정 페이지로 바로 이동
+  const handleNoticeClick = (noticeId: number) => {
+    navigate(`/owner/announcements/edit/${shopId}/${noticeId}`);
   };
 
   if (isLoading) {
@@ -167,7 +160,7 @@ const OwnerAnnouncementsPage = () => {
           notices.map(notice => (
             <div
               key={notice.id}
-              onClick={() => handleNoticeClick(notice)} // 🔽 수정: 모달을 여는 함수로 변경
+              onClick={() => handleNoticeClick(notice.id)}
               className="cursor-pointer rounded-lg p-4 mb-4"
               style={{ backgroundColor: "var(--color-grey-1000)" }}
             >
@@ -194,59 +187,6 @@ const OwnerAnnouncementsPage = () => {
       >
         <Plus size={32} style={{ color: "var(--color-white)" }} />
       </button>
-
-      {/* 🔽 추가: 공지사항 상세 모달 */}
-      {selectedNotice && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
-          onClick={closeModal}
-        >
-          <div 
-            className="w-full max-w-md rounded-lg p-6 relative max-h-[80vh] overflow-y-auto"
-            style={{ backgroundColor: "var(--color-grey-900)" }}
-            onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 모달이 닫히지 않도록
-          >
-            <button
-              className="absolute top-4 right-4 p-1"
-              onClick={closeModal}
-              style={{ color: "var(--color-grey-450)" }}
-            >
-              <X size={24} />
-            </button>
-            
-            <h2 className="title2 mb-4 pr-8" style={{ color: "var(--color-white)" }}>
-              {selectedNotice.title}
-            </h2>
-            
-            <div className="body1" style={{ color: "var(--color-white)", lineHeight: "1.6" }}>
-              {selectedNotice.content.split('\n').map((line, index) => (
-                <p key={index} className="mb-2">{line}</p>
-              ))}
-            </div>
-            
-            <div className="flex justify-end mt-6 pt-4 gap-2" style={{ borderTop: "1px solid var(--color-grey-850)" }}>
-              <button
-                className="px-4 py-2 rounded-md label1"
-                style={{ backgroundColor: "var(--color-grey-800)", color: "var(--color-grey-450)" }}
-                onClick={closeModal}
-              >
-                닫기
-              </button>
-              <button
-                className="px-4 py-2 rounded-md label1"
-                style={{ backgroundColor: "var(--color-purple)", color: "var(--color-white)" }}
-                onClick={() => {
-                  closeModal();
-                  navigate(`/owner/announcements/edit/${shopId}/${selectedNotice.id}`);
-                }}
-              >
-                수정하기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <ManagerNavbar />
     </div>
