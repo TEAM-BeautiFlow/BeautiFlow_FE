@@ -11,9 +11,8 @@ import { getKakaoAuthUrl } from "@/apis/login";
 const postStep = async (shopId: string, payload: any) => {
   const formData = new FormData();
   
-  // ⚠️ 중요: 백엔드 개발자와 약속된 'key' 이름을 사용해야 합니다. (현재 예시는 'tempSaveRequest')
   formData.append(
-    "tempSaveRequest",
+    "request",
     new Blob([JSON.stringify(payload)], {
       type: "application/json",
     }),
