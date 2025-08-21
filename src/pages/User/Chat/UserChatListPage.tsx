@@ -58,7 +58,7 @@ export default function UserChatListPage() {
 
         // 안전하게 배열만 set
         if (Array.isArray(response.data?.data)) {
-          const activeChats = response.data.data.filter();
+          const activeChats = response.data.data;
           activeChats.sort(sortByLastMessageDesc);
 
           setChats(activeChats);
