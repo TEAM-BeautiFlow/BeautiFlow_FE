@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function OnboardPage() {
   const navigate = useNavigate();
+  const lastVisitedShopId = localStorage.getItem("lastVisitedShopId");
   return (
     <div className="flex min-h-[100dvh] min-w-[375px] flex-col items-center justify-center">
       <div
@@ -42,7 +43,16 @@ export default function OnboardPage() {
         >
           <div className="label1 text-white">예약 상세내역 보기</div>
         </button>
-        <button onClick={() => navigate("/")} className="z-10 py-5">
+        <button
+          onClick={() =>
+            navigate(
+              lastVisitedShopId
+                ? `/user/store/${lastVisitedShopId}`
+                : "/client/mypage",
+            )
+          }
+          className="z-10 py-5"
+        >
           <div className="label1 items-center text-[var(--color-grey-550)]">
             그냥 둘러볼게요
           </div>
