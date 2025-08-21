@@ -384,7 +384,7 @@ const OwnerVerificationPage = () => {
 
   const handleCopyLink = async () => {
     if (!shopId) return;
-    const url = `https://www.beautiflow.co.kr/user/shop/${shopId}`;
+    const url = `https://www.beautiflow.co.kr/user/store/${shopId}`;
     try {
       await navigator.clipboard.writeText(url);
       alert("링크가 클립보드에 복사되었습니다.");
