@@ -68,14 +68,36 @@ export default function UserChatPage() {
   // 메시지 처리
   const handleIncomingMessage = (msg: any) => {
     const parsed = JSON.parse(msg.body);
-    setMessages(prev => [
-      ...prev,
-      {
-        sender: parsed.senderType === "CUSTOMER" ? "me" : "you",
-        text: parsed.content,
-        imageUrl: parsed.imageUrl ?? undefined,
-      },
-    ]);
+    setMessages(prev => {
+      const isMine = parsed.senderType === "CUSTOMER";
+      const incomingImage = parsed.imageUrl ?? undefined;
+      const incomingText = parsed.content ?? "";
+
+      if (isMine && incomingImage) {
+        const alreadyHasSameImageFromMe = prev
+          .slice(Math.max(0, prev.length - 10))
+          .some(m => m.sender === "me" && m.imageUrl === incomingImage);
+
+        if (alreadyHasSameImageFromMe) {
+          return prev;
+        }
+      }
+
+      if (isMine && !incomingImage && incomingText) {
+        const last = prev[prev.length - 1];
+        if (last && last.sender === "me" && last.text === incomingText) {
+          return prev;
+        }
+      }
+      return [
+        ...prev,
+        {
+          sender: isMine ? "me" : "you",
+          text: incomingText,
+          imageUrl: incomingImage,
+        },
+      ];
+    });
   };
   // userInfo.id 가져오기
   const userIdRef = useRef<number | null>(null);
