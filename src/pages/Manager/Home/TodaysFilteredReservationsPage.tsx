@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/layout/Header";
@@ -6,6 +6,8 @@ import ManagerNavbar from "@/layout/ManagerNavbar";
 import RightChevronIcon from "@/assets/icon_right-chevron.svg";
 import LeftChevronIcon from "@/assets/icon_left-chevron.svg";
 import { getMonthlyReservations } from "@/apis/manager_home/home";
+import { getUserInfo } from "@/apis/mypage/mypage";
+import axios from "axios";
 
 type FilterKey = "pending" | "completed" | "cancelled";
 
@@ -119,6 +121,67 @@ export default function TodaysFilteredReservationsPage() {
 
   const fmt = (t?: string) => (t ?? "").slice(0, 5);
 
+  const userIdRef = useRef<number | null>(null);
+  const shopIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) {
+          userIdRef.current = userInfo.id;
+          shopIdRef.current = userInfo.shopMembers?.[0]?.shopId ?? null;
+          if (shopIdRef.current) {
+            localStorage.setItem("shopId", String(shopIdRef.current));
+          }
+        }
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 채팅방 입장
+  const handleCreateRoom = async (customerId: number, customerName: string) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const shopId = shopIdRef.current;
+      const designerId = userIdRef.current;
+
+      if (!token || !designerId || !shopId) {
+        console.error("정보가 부족합니다.");
+        return;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/chat/rooms`,
+        { shopId, customerId, designerId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const roomId = response.data.data.roomId;
+      navigate(`/chat/rooms/${roomId}`, {
+        state: {
+          customerId,
+          name: customerName,
+        },
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("채팅방 생성 실패", {
+          message: error.message,
+          response: error.response,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+      }
+    }
+  };
+
   return (
     <div className="mx-auto min-h-screen max-w-[375px] bg-[var(--color-grey-1000)] pb-24 text-[var(--color-grey-150)]">
       <Header />
@@ -163,6 +226,9 @@ export default function TodaysFilteredReservationsPage() {
                 service={item.treatmentName ?? "-"}
                 onClick={() =>
                   navigate(`/manager/reservations/${item.reservationId}`)
+                }
+                onChat={() =>
+                  handleCreateRoom(item.customerId, item.customerName)
                 }
               />
             ))}
