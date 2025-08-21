@@ -125,7 +125,7 @@ const router = createBrowserRouter([
       // --- 사장님(Manager) 기능 라우트 ---
       { path: "manager/home", element: <HomePage /> },
       {
-        path: "manager/home/today/:filter",
+        path: "manager/home/today",
         element: <TodaysFilteredReservationsPage />,
       },
       { path: "chat/rooms", element: <ManagerChatListPage /> },
