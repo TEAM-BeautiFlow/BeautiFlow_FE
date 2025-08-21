@@ -323,49 +323,26 @@ const ReservationCheck = () => {
             </span>
           </p>
 
-          <div
-            style={{
-              backgroundColor: "#3A3A3A",
-              borderRadius: "8px",
-              padding: "16px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+          <div className="flex flex-col rounded-[6px] bg-[#3A3A3A] p-4">
             {shopAccountInfo ? (
               <>
                 <div>
-                  <p
-                    className="label2 flex w-[300px] justify-between"
-                    style={{
-                      color: "var(--color-grey-550)",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    <span className="flex-1">입금 계좌</span>
+                  <div className="label2 flex items-center justify-between">
+                    <span className="mb-1 flex-1 text-[var(--color-grey-550)]">
+                      입금 계좌
+                    </span>
                     <button
                       onClick={handleCopy}
-                      style={{
-                        backgroundColor: "var(--color-purple)",
-                        borderRadius: "50px",
-                        padding: "4px 8px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        border: "none",
-                        color: "white",
-                        cursor: "pointer",
-                      }}
+                      className="flex cursor-pointer items-center gap-[6px] rounded-[50px] bg-[var(--color-purple)] px-2 py-1 text-white"
                     >
                       <Copy size={16} />
                       <span className="label2">계좌 복사</span>
                     </button>
-                  </p>
+                  </div>
 
-                  <p className="label2 text-[var(--color-grey-150)]">
+                  <div className="label2 text-[var(--color-grey-150)]">
                     {shopAccountInfo.accountHolder}
-                  </p>
+                  </div>
                 </div>
               </>
             ) : (
