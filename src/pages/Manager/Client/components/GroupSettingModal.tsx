@@ -58,21 +58,22 @@ export default function GroupSettingModal({
 
   const handleSaveGroup = async () => {
     const trimmed = newGroupName.trim();
-    if (trimmed && !groups.includes(trimmed)) {
-      setGroups(prev => [...prev, trimmed]);
-      setSelectedGroups(prev => [...prev, trimmed]); // 선택도 반영
+    if (!trimmed || trimmed === "전체" || groups.includes(trimmed)) {
+      setNewGroupName("");
+      setIsAddingGroup(false);
+      return;
     }
+
     try {
       const token = localStorage.getItem("accessToken");
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/customer-groups`,
-        { code: trimmed }, // ★ input 값 그대로 POST
+        { code: trimmed },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // 로컬 state 반영
-      setGroups(prev => [...prev, trimmed]);
-      setSelectedGroups([trimmed]); // 새로 추가된 그룹을 선택 상태로
+      setGroups(prev => Array.from(new Set([...prev, trimmed])));
+      setSelectedGroups(prev => Array.from(new Set([...prev, trimmed])));
     } catch (e) {
       console.error("그룹 추가 실패", e);
       alert("그룹 추가에 실패했습니다.");
@@ -115,7 +116,7 @@ export default function GroupSettingModal({
                         stroke={
                           isSelected
                             ? "var(--color-purple)"
-                            : "var(--color-grey-650"
+                            : "var(--color-grey-650)"
                         }
                         stroke-width="1.5"
                         stroke-linecap="round"
