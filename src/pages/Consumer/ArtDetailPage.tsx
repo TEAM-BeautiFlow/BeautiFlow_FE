@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock } from "lucide-react";
-import api from "@/apis/axiosInstance"; // api 인스턴스 사용
+import api from "@/apis/axiosInstance";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import type { ApiResponse, Treatment } from "../../types/api";
 import { getKakaoAuthUrl } from "@/apis/login";
+import useBookingStore from "../../stores/bookingStore"; // ✅ Zustand 스토어 import
 
-// API 호출 로직을 별도의 함수로 분리
+// API 호출 로직 (기존과 동일)
 const postStep = async (shopId: string, payload: any) => {
   const formData = new FormData();
   
@@ -28,13 +29,16 @@ const ArtDetailPage = () => {
     treatmentId: string;
   }>();
 
+  // ✅ 스토어에서 setTreatmentInfo 함수 가져오기
+  const setTreatmentInfo = useBookingStore(state => state.setTreatmentInfo);
+
   const [treatmentData, setTreatmentData] = useState<Treatment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // ... (이전과 동일)
+    // 페이지 진입 시 시술 정보를 불러와 지역 상태(treatmentData)에 저장
     const fetchTreatmentDetail = async () => {
       if (!shopId || !treatmentId) {
         setError("유효하지 않은 URL입니다.");
@@ -73,13 +77,12 @@ const ArtDetailPage = () => {
       return;
     }
 
-    if (!shopId || !treatmentId) {
+    if (!shopId || !treatmentId || !treatmentData) {
       alert("샵 또는 시술 정보가 올바르지 않습니다.");
       return;
     }
 
     try {
-      // API 요청에 필요한 payload 정의
       const reservationPayload = {
         deleteTempReservation: false,
         tempSaveData: {
@@ -91,10 +94,15 @@ const ArtDetailPage = () => {
         saveFinalReservation: false,
       };
 
-      // ✅ 분리된 postStep 함수 호출
+      // ✅ 핵심: 다음 페이지로 넘어가기 전, 전역 스토어에 시술 정보 저장
+      setTreatmentInfo({
+        name: treatmentData.name,
+        price: treatmentData.price,
+        imageUrl: treatmentData.images?.[0]?.imageUrl || "",
+      });
+      
       await postStep(shopId, reservationPayload);
 
-      // 성공 시 다음 페이지로 이동하는 로직은 그대로 유지
       try {
         const res = await api.get<ApiResponse<any>>(
           `/shops/${shopId}/treatments/${treatmentId}/options`,
@@ -105,12 +113,15 @@ const ArtDetailPage = () => {
         );
 
         if (hasEnabledItems) {
+          // 옵션이 있으면 TreatmentOptionsPage로 이동
           navigate(`/user/store/treatment-options/${shopId}/${treatmentId}`);
         } else {
+          // 옵션이 없으면 BookingPage로 바로 이동
           navigate(`/user/store/booking/${shopId}/${treatmentId}`);
         }
       } catch (optionError) {
         console.error("옵션 정보 조회 실패:", optionError);
+        // 옵션 조회 실패 시에도 다음 단계로 이동 시도
         navigate(`/user/store/treatment-options/${shopId}/${treatmentId}`);
       }
     } catch (processError: any) {
@@ -131,7 +142,6 @@ const ArtDetailPage = () => {
     window.location.href = url;
   };
   
-  // ... (이하 렌더링 부분은 이전과 동일)
   if (isLoading) {
     return (
       <div
