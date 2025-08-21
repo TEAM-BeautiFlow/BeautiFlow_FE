@@ -161,7 +161,7 @@ const TreatmentBookingPage = () => {
             <ChevronLeft size={24} />
         </button>
         <h1 className="title1">시술 예약하기</h1>
-        <button onClick={() => navigate("/")} className="p-0 bg-transparent border-none cursor-pointer">
+        <button onClick={() => navigate(`/user/store/${shopId}`)} className="p-0 bg-transparent border-none cursor-pointer">
             <X size={24} />
         </button>
       </div>
