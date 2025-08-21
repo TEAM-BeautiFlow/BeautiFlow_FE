@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 1. api 인스턴스를 import 합니다.
+import api from "@/apis/axiosInstance";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -12,7 +12,6 @@ import type {
   AvailableTimesResponse,
   Designer,
 } from "../../types/api";
-
 
 const BookingPage = () => {
   const { shopId, treatmentId } = useParams<{
@@ -44,10 +43,6 @@ const BookingPage = () => {
   const [isDesignersLoading, setIsDesignersLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // ❌ 2. 하드코딩된 API 관련 상수를 모두 제거합니다.
-  // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  // const ACCESS_TOKEN = "eyJhbGciOi...yzY";
-
   useEffect(() => {
     const fetchAvailableDates = async () => {
       if (!shopId) return;
@@ -56,7 +51,6 @@ const BookingPage = () => {
 
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
-        // 🔽 3. api 인스턴스를 사용하여 요청합니다.
         const response = await api.get<ApiResponse<AvailableDatesResponse>>(
           `/reservations/shops/${shopId}/available-dates`,
           {
@@ -79,9 +73,13 @@ const BookingPage = () => {
     fetchAvailableDates();
   }, [shopId, currentDate]);
 
+  // =================================================================
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 여기를 수정했습니다 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+  // =================================================================
   useEffect(() => {
     const fetchAvailableTimes = async () => {
-      if (!shopId || !selectedDate) {
+      // 1. treatmentId가 없는 경우 API를 호출하지 않도록 조건을 추가합니다.
+      if (!shopId || !selectedDate || !treatmentId) {
         setAvailableTimeSlots({});
         return;
       }
@@ -89,11 +87,11 @@ const BookingPage = () => {
         setIsTimeSlotsLoading(true);
         const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        // 🔽 4. api 인스턴스를 사용하여 요청합니다. (treatmentId 파라미터 제거)
+        // 2. API 요청 시 params에 treatmentId를 추가합니다.
         const response = await api.get<ApiResponse<AvailableTimesResponse>>(
           `/reservations/shops/${shopId}/available-times`,
           {
-            params: { date: dateString },
+            params: { date: dateString, treatmentId: treatmentId },
           },
         );
 
@@ -110,7 +108,11 @@ const BookingPage = () => {
       }
     };
     fetchAvailableTimes();
-  }, [selectedDate, shopId]);
+    // 3. 의존성 배열에 treatmentId를 추가합니다.
+  }, [selectedDate, shopId, treatmentId]);
+  // =================================================================
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+  // =================================================================
 
   useEffect(() => {
     const fetchAvailableDesigners = async () => {
@@ -122,7 +124,6 @@ const BookingPage = () => {
         setIsDesignersLoading(true);
         const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        // 🔽 5. api 인스턴스를 사용하여 요청합니다.
         const response = await api.get(
           `/reservations/shops/${shopId}/available-designers`,
           {
@@ -207,13 +208,11 @@ const BookingPage = () => {
       referenceImages: [],
     });
 
-    // 만약 이 단계에서도 /reservations/{shopId}/process API를 호출해야 한다면:
     try {
       setIsProcessing(true);
-      
+
       const formData = new FormData();
       
-      // 날짜/시간/디자이너 정보를 포함한 데이터
       const requestData = {
         dateTimeDesignerData: {
           date: dateString,
@@ -230,7 +229,6 @@ const BookingPage = () => {
       );
 
       if (processResponse.data.success) {
-        // 성공시 다음 페이지로 이동
         navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
       } else {
         alert("예약 처리 중 오류가 발생했습니다.");
@@ -241,9 +239,6 @@ const BookingPage = () => {
     } finally {
       setIsProcessing(false);
     }
-
-    // 또는 API 호출 없이 단순히 다음 페이지로 이동하는 경우:
-    // navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
   };
 
   const generateCalendar = () => {
