@@ -1,7 +1,7 @@
 import LeftChevronIcon from "../../../assets/icon_left-chevron.svg";
 import RightChevronIcon from "../../../assets/icon_right-chevron.svg";
 import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getMonthlyReservations,
   getTodayReservationCounts,
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ManagerNavbar from "../../../layout/ManagerNavbar";
 import Header from "@/layout/Header";
 import axios from "axios";
+import { getUserInfo } from "@/apis/mypage/mypage";
 
 const TodaysReservationCard = ({
   title,
@@ -216,8 +217,30 @@ const HomePage = () => {
     queryFn: () => getMonthlyReservations(currentMonthParam, 0, 20, "string"),
     staleTime: 1000 * 60,
   });
+
   const userIdRef = useRef<number | null>(null);
   const shopIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (!cancelled) {
+          userIdRef.current = userInfo.id;
+          shopIdRef.current = userInfo.shopMembers?.[0]?.shopId ?? null;
+          if (shopIdRef.current) {
+            localStorage.setItem("shopId", String(shopIdRef.current));
+          }
+        }
+      } catch (e) {
+        console.error("failed to load user info", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 채팅방 입장
   const handleCreateRoom = async (customerId: number, customerName: string) => {
