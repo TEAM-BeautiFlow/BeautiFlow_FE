@@ -337,13 +337,13 @@ const ReservationCheck = () => {
               <>
                 <div>
                   <p
-                    className="label2 flex justify-between"
+                    className="label2 flex w-full justify-between"
                     style={{
                       color: "var(--color-grey-550)",
                       marginBottom: "4px",
                     }}
                   >
-                    입금 계좌
+                    <span className="flex-1">입금 계좌</span>
                     <button
                       onClick={handleCopy}
                       style={{
