@@ -348,11 +348,11 @@ const ReservationCheck = () => {
                       onClick={handleCopy}
                       style={{
                         backgroundColor: "var(--color-purple)",
-                        borderRadius: "9999px",
-                        padding: "8px 12px",
+                        borderRadius: "50px",
+                        padding: "4px 8px",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
+                        gap: "6px",
                         border: "none",
                         color: "white",
                         cursor: "pointer",
