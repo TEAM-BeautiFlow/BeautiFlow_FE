@@ -148,7 +148,8 @@ const ReservationCheck = () => {
   const amountToPayNow = bookingInfo.deposit || 0;
   const amountToPayAtShop = totalAmount - amountToPayNow;
 
-  const reservationLabel = payInfoItems.length > 0 ? payInfoItems[0][0] : "예약 내역";
+  const reservationLabel =
+    payInfoItems.length > 0 ? payInfoItems[0][0] : "예약 내역";
 
   return (
     <div
@@ -170,14 +171,14 @@ const ReservationCheck = () => {
       >
         <button
           onClick={() => navigate(-1)}
-          className="p-0 bg-transparent border-none cursor-pointer"
+          className="cursor-pointer border-none bg-transparent p-0"
         >
           <ChevronLeft size={24} />
         </button>
         <h1 className="title1">시술 예약하기</h1>
         <button
           onClick={() => navigate(`/user/store/${shopId}`)}
-          className="p-0 bg-transparent border-none cursor-pointer"
+          className="cursor-pointer border-none bg-transparent p-0"
         >
           <X size={24} />
         </button>
@@ -324,7 +325,7 @@ const ReservationCheck = () => {
 
           <div
             style={{
-              backgroundColor: "#1A1A1A",
+              backgroundColor: "#3A3A3A",
               borderRadius: "8px",
               padding: "16px",
               display: "flex",
@@ -336,34 +337,36 @@ const ReservationCheck = () => {
               <>
                 <div>
                   <p
-                    className="caption2"
-                    style={{ color: "var(--color-grey-450)", marginBottom: "4px" }}
+                    className="label2 flex justify-between"
+                    style={{
+                      color: "var(--color-grey-550)",
+                      marginBottom: "4px",
+                    }}
                   >
                     입금 계좌
+                    <button
+                      onClick={handleCopy}
+                      style={{
+                        backgroundColor: "var(--color-purple)",
+                        borderRadius: "9999px",
+                        padding: "8px 12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        border: "none",
+                        color: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Copy size={16} />
+                      <span className="label2">계좌 복사</span>
+                    </button>
                   </p>
-                  <p className="body2" style={{ lineHeight: "1.5" }}>
-                    {shopAccountInfo.bank} {shopAccountInfo.accountNumber}
-                    <br />
-                    예금주 : {shopAccountInfo.accountHolder}
+
+                  <p className="label2 text-[var(--color-grey-150)]">
+                    {shopAccountInfo.accountHolder}
                   </p>
                 </div>
-                <button
-                  onClick={handleCopy}
-                  style={{
-                    backgroundColor: "var(--color-purple)",
-                    borderRadius: "9999px",
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    border: "none",
-                    color: "white",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Copy size={18} />
-                  <span className="label2">계좌 복사</span>
-                </button>
               </>
             ) : (
               <p className="body2" style={{ color: "var(--color-grey-450)" }}>
