@@ -337,7 +337,7 @@ const ReservationCheck = () => {
               <>
                 <div>
                   <p
-                    className="label2 flex w-[335px] justify-between"
+                    className="label2 flex w-[300px] justify-between"
                     style={{
                       color: "var(--color-grey-550)",
                       marginBottom: "4px",
