@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
 import api from "@/apis/axiosInstance";
@@ -22,6 +22,9 @@ const BookingPage = () => {
   const setDateTimeDesigner = useBookingStore(
     state => state.setDateTimeDesigner,
   );
+  
+  // ▼▼▼ 1. isProceeding ref 추가 ▼▼▼
+  const isProceeding = useRef(false);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -73,12 +76,8 @@ const BookingPage = () => {
     fetchAvailableDates();
   }, [shopId, currentDate]);
 
-  // =================================================================
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 여기를 수정했습니다 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-  // =================================================================
   useEffect(() => {
     const fetchAvailableTimes = async () => {
-      // 1. treatmentId가 없는 경우 API를 호출하지 않도록 조건을 추가합니다.
       if (!shopId || !selectedDate || !treatmentId) {
         setAvailableTimeSlots({});
         return;
@@ -87,7 +86,6 @@ const BookingPage = () => {
         setIsTimeSlotsLoading(true);
         const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
-        // 2. API 요청 시 params에 treatmentId를 추가합니다.
         const response = await api.get<ApiResponse<AvailableTimesResponse>>(
           `/reservations/shops/${shopId}/available-times`,
           {
@@ -108,11 +106,7 @@ const BookingPage = () => {
       }
     };
     fetchAvailableTimes();
-    // 3. 의존성 배열에 treatmentId를 추가합니다.
   }, [selectedDate, shopId, treatmentId]);
-  // =================================================================
-  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-  // =================================================================
 
   useEffect(() => {
     const fetchAvailableDesigners = async () => {
@@ -152,6 +146,31 @@ const BookingPage = () => {
     };
     fetchAvailableDesigners();
   }, [selectedDate, selectedTime, shopId]);
+  
+  // ▼▼▼ 2. 페이지 이탈 시 임시 예약 삭제를 위한 useEffect 추가 ▼▼▼
+  useEffect(() => {
+    const deleteTempReservation = () => {
+      if (!shopId || isProceeding.current) {
+        return;
+      }
+
+      console.log("Deleting temporary reservation...");
+
+      const formData = new FormData();
+      const requestData = { deleteTempReservation: true };
+      formData.append("request", JSON.stringify(requestData));
+
+      api.post(`/reservations/${shopId}/process`, formData)
+        .catch(err => console.error("Failed to delete temp reservation:", err));
+    };
+
+    window.addEventListener("beforeunload", deleteTempReservation);
+
+    return () => {
+      window.removeEventListener("beforeunload", deleteTempReservation);
+      deleteTempReservation();
+    };
+  }, [shopId]);
 
   const resetSelection = () => {
     setSelectedDate(null);
@@ -193,11 +212,14 @@ const BookingPage = () => {
     setSelectedDesignerId(null);
   };
 
+  // ▼▼▼ 3. handleNextStep 함수 수정 ▼▼▼
   const handleNextStep = async () => {
     if (!selectedDate || !selectedTime || !selectedDesignerId) {
       alert("날짜, 시간, 디자이너를 모두 선택해주세요.");
       return;
     }
+    
+    isProceeding.current = true; // 정상 진행으로 플래그 설정
 
     const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
@@ -232,16 +254,19 @@ const BookingPage = () => {
         navigate(`/user/store/appointment-booking/${shopId}/${treatmentId}`);
       } else {
         alert("예약 처리 중 오류가 발생했습니다.");
+        isProceeding.current = false; // 실패 시 플래그 리셋
       }
     } catch (error) {
       console.error("예약 처리 중 오류:", error);
       alert("예약 처리 중 오류가 발생했습니다.");
+      isProceeding.current = false; // 에러 시 플래그 리셋
     } finally {
       setIsProcessing(false);
     }
   };
 
   const generateCalendar = () => {
+    // ... (이하 코드는 변경 사항 없음)
     const days = [];
     const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
     const today = new Date();
