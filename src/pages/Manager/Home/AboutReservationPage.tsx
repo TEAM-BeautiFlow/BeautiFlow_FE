@@ -41,16 +41,14 @@ function StatusModal({
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-end justify-center duration-200">
       {/* Overlay */}
       <div
-        className="bg-opacity-60 absolute inset-0 bg-[#0c0d11] transition-opacity duration-200"
+        className="absolute bottom-0 flex h-full items-end justify-center bg-[#0C0D1199]"
         onClick={onClose}
       />
 
       {/* Bottom Sheet */}
       <div className="relative mx-auto w-full max-w-[375px] transform rounded-t-lg bg-[#3a3a3a] pb-6 shadow-2xl transition-transform duration-300 ease-out">
         <div className="px-5 py-6">
-          <h3 className="mb-6 text-lg font-semibold text-[#fafafa]">
-            활성화 상태
-          </h3>
+          <h3 className="title1 mb-6 text-[#fafafa]">활성화 상태</h3>
 
           <div className="space-y-4">
             {statusOptions.map(option => (
@@ -75,7 +73,7 @@ function StatusModal({
                     <div className="h-6 w-6 rounded-full border-2 border-[#6e6e6e]" />
                   )}
                 </div>
-                <span className="text-sm text-[#f3f3f3]">{option.label}</span>
+                <span className="body2 text-[#f3f3f3]">{option.label}</span>
               </button>
             ))}
           </div>
@@ -239,7 +237,7 @@ export default function AboutReservationPage({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="body2 text-[#8e8e8e]">옵션</span>
-                <span className="body1text-[#f3f3f3]">
+                <span className="body1 text-[#f3f3f3]">
                   {detail?.optionNames?.length
                     ? detail.optionNames.join(", ")
                     : "없음"}
@@ -290,7 +288,7 @@ export default function AboutReservationPage({
             </div>
             <button
               onClick={onChat}
-              className="flex items-center gap-1 space-x-2 rounded-lg bg-[#3a3a3a] py-[6px] pr-2 pl-3"
+              className="flex items-center space-x-2 rounded-lg bg-[#3a3a3a] py-[6px] pr-2 pl-3"
             >
               <span className="body1 text-[#bdbebd]">채팅</span>
               <svg
