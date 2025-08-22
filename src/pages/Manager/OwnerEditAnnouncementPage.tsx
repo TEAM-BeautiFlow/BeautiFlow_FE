@@ -6,6 +6,12 @@ import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
+interface Notice {
+  noticeId: number;
+  title: string;
+  content: string;
+}
+
 const OwnerEditAnnouncementPage = () => {
   const navigate = useNavigate();
   const { shopId, noticeId } = useParams();
@@ -29,11 +35,22 @@ const OwnerEditAnnouncementPage = () => {
       }
       
       try {
-        const response = await api.get(`/shops/${shopId}/notices/${noticeId}`);
-        if (response.data && response.data.data) {
-          const { title, content } = response.data.data;
-          setTitle(title || "");
-          setContent(content || "");
+        const response = await api.get(`/shops/${shopId}/notices`);
+
+        if (response.data && Array.isArray(response.data.data)) {
+          // --- 🔽 [수정된 부분] notice 파라미터에 위에서 정의한 Notice 타입을 지정해줍니다. ---
+          const noticeToEdit = response.data.data.find(
+            (notice: Notice) => notice.noticeId === Number(noticeId)
+          );
+
+          if (noticeToEdit) {
+            setTitle(noticeToEdit.title || "");
+            setContent(noticeToEdit.content || "");
+          } else {
+            throw new Error(`Notice with ID ${noticeId} not found.`);
+          }
+        } else {
+          throw new Error("Invalid data structure from API");
         }
       } catch (err) {
         console.error("공지사항 정보 로딩 실패:", err);
