@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  sendPhoneCode,
-  verifyPhoneCode,
-  postSignup,
-  login,
-} from "@/apis/login";
+import { postSignup, login } from "@/apis/login";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
 import LeftChevron from "../../assets/icon_left-chevron.svg";
@@ -113,25 +108,16 @@ export default function SignupPage() {
     checkExistingUser();
   }, [loginKey, setTokens, setUserInfo, navigate]);
 
-  async function handleSendCode() {
+  function handleSendCode() {
     if (!phone) return;
     setIsSent(true);
-    try {
-      await sendPhoneCode(phone);
-    } catch (e) {
-      // 요청 실패 시에도 isSent 상태는 유지하여 버튼이 다시 활성화되지 않도록 함
-    }
+    // Mock: API 호출 없이 즉시 코드 입력 단계로 이동
   }
 
-  async function handleVerify() {
+  function handleVerify() {
     if (!phone || !code) return;
-    try {
-      await verifyPhoneCode(phone, code);
-      setIsVerified(true);
-    } catch (e) {
-      // 인증 실패 시 상태 유지
-      console.error("인증번호 확인 실패:", e);
-    }
+    setIsVerified(true);
+    // Mock: API 호출 없이 임의 코드로 인증 처리
   }
 
   async function handleSubmit() {
