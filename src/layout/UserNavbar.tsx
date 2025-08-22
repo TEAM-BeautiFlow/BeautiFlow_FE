@@ -59,7 +59,7 @@ export default function UserNavbar() {
             }
           >
             <Icon className="h-7 w-7" />
-            <span className="caption1">{label}</span>
+            <span className="caption1 w-20 text-center">{label}</span>
           </NavLink>
         ))}
       </div>
