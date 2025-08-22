@@ -339,8 +339,19 @@ const OwnerVerificationPage = () => {
         </div>
 
         {/* -------------------- 수정된 부분 시작 -------------------- */}
-        {shopData.verificationStatus === "NONE" && (
-          <div className="my-2 px-5">
+        {/* verificationStatus가 "VERIFIED"이면 '인증 완료', 아니면 '인증 필요'를 표시합니다. */}
+        <div className="my-2 px-5">
+          {shopData.verificationStatus === "VERIFIED" ? (
+            // True: 인증 완료된 경우
+            <div className="flex w-full items-center justify-between rounded-lg bg-[var(--color-dark-purple)] p-4 text-[var(--color-light-purple)]">
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={20} />
+                <span className="body1">사업자 등록증 인증 완료</span>
+              </div>
+              <ChevronRight size={20} />
+            </div>
+          ) : (
+            // False: 인증이 필요하거나 확인 중인 경우
             <button
               onClick={navigateTo(`/owner/business-registration/${shopId}`)}
               className="w-full cursor-pointer"
@@ -353,36 +364,10 @@ const OwnerVerificationPage = () => {
                 <ChevronRight size={20} />
               </div>
             </button>
-          </div>
-        )}
-        {shopData.verificationStatus === "PENDING" && (
-          <div className="my-2 px-5">
-            <button
-              onClick={navigateTo(`/owner/business-registration/${shopId}`)}
-              className="w-full cursor-pointer"
-            >
-              <div className="flex w-full items-center justify-between rounded-lg bg-[var(--color-dark-purple)] p-4 text-[var(--color-light-purple)]">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert size={20} />
-                  <span className="body1">사업자등록증 확인 중</span>
-                </div>
-                <ChevronRight size={20} />
-              </div>
-            </button>
-          </div>
-        )}
-        {shopData.verificationStatus === "VERIFIED" && (
-          <div className="my-2 px-5">
-            <div className="flex w-full items-center justify-between rounded-lg bg-[var(--color-dark-purple)] p-4 text-[var(--color-light-purple)]">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={20} />
-                <span className="body1">사업자 등록증 인증 완료</span>
-              </div>
-              <ChevronRight size={20} />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
         {/* -------------------- 수정된 부분 끝 -------------------- */}
+
 
         <div className="mt-2 flex border-b border-[var(--color-grey-750)] px-5">
           {[
