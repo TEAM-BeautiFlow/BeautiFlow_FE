@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ChevronLeft,
-  Camera,
-  X,
-} from "lucide-react";
+import { ChevronLeft, Camera, X } from "lucide-react";
 import api from "@/apis/axiosInstance";
-import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
+import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 
@@ -32,11 +28,13 @@ const OwnerBusinessRegistrationPage = () => {
         return;
       }
       try {
-        const response = await api.get(`/shops/manage/${shopId}/business-license`);
+        // [수정] API 엔드포인트를 /license-image로 변경
+        const response = await api.get(`/shops/manage/${shopId}/license-image`);
         if (response.data && response.data.data) {
-          const { verificationStatus, businessLicenseImageUrl } = response.data.data;
+          // [수정] 응답 데이터 필드명을 licenseImageUrl로 변경
+          const { verificationStatus, licenseImageUrl } = response.data.data;
           setStatus(verificationStatus || "NONE");
-          setImageUrl(businessLicenseImageUrl || null);
+          setImageUrl(licenseImageUrl || null);
         }
       } catch (err) {
         if ((err as any).response?.status !== 404) {
@@ -56,13 +54,16 @@ const OwnerBusinessRegistrationPage = () => {
     if (!file || !shopId) return;
 
     const formData = new FormData();
-    formData.append("businessLicenseImage", file);
+    // [수정] Swagger에 명시된 파라미터 이름 'licenseImage'로 변경
+    formData.append("licenseImage", file);
 
     try {
-      const response = await api.post(`/shops/manage/${shopId}/business-license`, formData);
+      // [수정] API 엔드포인트를 /license-image로 변경
+      const response = await api.post(`/shops/manage/${shopId}/license-image`, formData);
       if (response.data && response.data.data) {
+        // [수정] 응답 데이터 필드명을 licenseImageUrl로 변경
         setStatus(response.data.data.verificationStatus || "PENDING");
-        setImageUrl(response.data.data.businessLicenseImageUrl || null);
+        setImageUrl(response.data.data.licenseImageUrl || null);
         alert("사업자등록증이 성공적으로 제출되었습니다.");
       }
     } catch (err) {
@@ -74,11 +75,10 @@ const OwnerBusinessRegistrationPage = () => {
   const handleDeleteImage = async () => {
     if (!shopId) return;
 
-    // confirm() 대신 alert와 UI를 사용하는 것이 더 나은 사용자 경험을 제공할 수 있습니다.
-    // 여기서는 window.confirm을 유지합니다.
     if (window.confirm("업로드한 사업자등록증을 삭제하시겠습니까?")) {
       try {
-        await api.delete(`/shops/manage/${shopId}/business-license`);
+        // [수정] API 엔드포인트를 /license-image로 변경
+        await api.delete(`/shops/manage/${shopId}/license-image`);
         setStatus("NONE");
         setImageUrl(null);
         alert("삭제되었습니다.");
@@ -124,7 +124,6 @@ const OwnerBusinessRegistrationPage = () => {
       </div>
 
       {/* Content Area */}
-      {/* 🔽 pb-28 추가하여 네비게이션 바 공간 확보 */}
       <div style={{ padding: "0 20px 110px" }}>
         {status === "PENDING" && (
           <div className="label1 mb-6 rounded-md px-4 py-3 text-center" style={{ backgroundColor: "var(--color-dark-purple)", color: "var(--color-light-purple)" }}>
