@@ -15,8 +15,8 @@ import {
   MoreVertical,
   Share2,
 } from "lucide-react";
-import api from "@/apis/axiosInstance"; // 🔽 api 인스턴스를 import 합니다.
-import ManagerNavbar from "@/layout/ManagerNavbar"; // 🔽 ManagerNavbar를 import 합니다.
+import api from "@/apis/axiosInstance";
+import ManagerNavbar from "@/layout/ManagerNavbar";
 import "../../styles/color-system.css";
 import "../../styles/type-system.css";
 import Header from "@/layout/Header";
@@ -38,7 +38,7 @@ interface ShopData {
   shopImages?: ShopImage[];
   depositAmount?: number;
   accountHolder?: string;
-  verificationStatus?: "NONE" | "PENDING" | "VERIFIED"; // 인증 상태 추가
+  verificationStatus?: "NONE" | "PENDING" | "VERIFIED";
 }
 
 interface TreatmentImage {
@@ -46,7 +46,7 @@ interface TreatmentImage {
   imageUrl: string;
 }
 
-type ServiceCategory = "HAND" | "FEET" | "ETC"; // API 명세에 맞게 대문자로 변경
+type ServiceCategory = "HAND" | "FEET" | "ETC";
 
 interface Service {
   id: number;
@@ -404,7 +404,6 @@ const OwnerVerificationPage = () => {
 
   return (
     <div className="relative mx-auto min-h-screen max-w-sm bg-[#1A1A1A] text-[var(--color-grey-150)]">
-      {/* 🔽 pb-20 -> pb-28 로 수정하여 네비게이션 바 공간 확보 */}
       <div className="pb-28">
         <Header />
 
@@ -436,7 +435,8 @@ const OwnerVerificationPage = () => {
           </button>
         </div>
 
-        {shopData.verificationStatus !== "VERIFIED" && (
+        {/* -------------------- 수정된 부분 시작 -------------------- */}
+        {shopData.verificationStatus === "NONE" && (
           <div className="my-2 px-5">
             <button
               onClick={navigateTo(`/owner/business-registration/${shopId}`)}
@@ -452,6 +452,34 @@ const OwnerVerificationPage = () => {
             </button>
           </div>
         )}
+        {shopData.verificationStatus === "PENDING" && (
+          <div className="my-2 px-5">
+            <button
+              onClick={navigateTo(`/owner/business-registration/${shopId}`)}
+              className="w-full cursor-pointer"
+            >
+              <div className="flex w-full items-center justify-between rounded-lg bg-[var(--color-dark-purple)] p-4 text-[var(--color-light-purple)]">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert size={20} />
+                  <span className="body1">사업자등록증 확인 중</span>
+                </div>
+                <ChevronRight size={20} />
+              </div>
+            </button>
+          </div>
+        )}
+        {shopData.verificationStatus === "VERIFIED" && (
+          <div className="my-2 px-5">
+            <div className="flex w-full items-center justify-between rounded-lg bg-[var(--color-dark-purple)] p-4 text-[var(--color-light-purple)]">
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={20} />
+                <span className="body1">사업자 등록증 인증 완료</span>
+              </div>
+              <ChevronRight size={20} />
+            </div>
+          </div>
+        )}
+        {/* -------------------- 수정된 부분 끝 -------------------- */}
 
         <div className="mt-2 flex border-b border-[var(--color-grey-750)] px-5">
           {[
@@ -761,7 +789,6 @@ const OwnerVerificationPage = () => {
         </div>
       </div>
 
-      {/* 🔽 bottom-24 -> bottom-[100px]로 수정하여 네비게이션 바와의 간격 확보 */}
       {(activeTab === "services" || activeTab === "notices") && (
         <button
           onClick={
